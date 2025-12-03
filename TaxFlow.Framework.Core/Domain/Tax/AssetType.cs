@@ -2,6 +2,8 @@
 using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Tax.Event;
 
+using System.Text.RegularExpressions;
+
 namespace Core.Domain.Tax;
 
 public class AssetType : SoftAuditableEntity
@@ -47,19 +49,19 @@ public class AssetType : SoftAuditableEntity
     }
 
     // DDD: ajouter un attribut attendu (sans doublon par clé)
-    public bool AddExpectedAttribute(AttributeDefinition definition)
+    public AssetType AddExpectedAttribute(AttributeDefinition definition)
     {
         if (definition is null) throw new ArgumentNullException(nameof(definition));
         if (string.IsNullOrWhiteSpace(definition.Key))
             throw new ArgumentException("La clé de l'attribut attendu ne doit pas être vide.", nameof(definition));
 
-        if (HasExpectedAttribute(definition.Key))
-            return false;
+        if (_expectedAttributes.Any(a => a.Key == definition.Key))
+            throw new InvalidOperationException($"L'attribut attendu '{definition.Key}' existe déjà.");
 
         _expectedAttributes.Add(definition);
         // Optionnel: QueueDomainEvent(new ExpectedAttributeAddedDomainEvent(Guid, definition.Key));
-        return true;
-    }
+        return this;
+    }    
 
     // DDD: retirer un attribut attendu par instance
     public bool RemoveExpectedAttribute(AttributeDefinition definition)
@@ -92,6 +94,7 @@ public class AssetType : SoftAuditableEntity
     // - Tous les requis doivent être présents
     // - Le type de données doit correspondre (si défini)
     // - La valeur doit être valide selon ExtendedAttribute.IsValidValue()
+    // - Si un Paterne Regex est défini dans AttributeDefinition, la valeur doit le respecter 
     public IEnumerable<string> ValidateAttributes(IEnumerable<ExtendedAttribute> attributes)
     {
         if (attributes is null) throw new ArgumentNullException(nameof(attributes));
@@ -106,7 +109,6 @@ public class AssetType : SoftAuditableEntity
                 errors.Add($"Attribut requis manquant: '{expected.Key}'.");
                 continue;
             }
-
             if (byKey.TryGetValue(expected.Key, out var provided))
             {
                 // Si le type est contraint, vérifier le DataType
@@ -120,7 +122,23 @@ public class AssetType : SoftAuditableEntity
                 {
                     errors.Add($"Valeur invalide pour '{expected.Key}' au format {provided.DataType.ToString()}.");
                 }
+                // Vérifier le motif Regex si défini
+                if (!string.IsNullOrWhiteSpace(expected.RegexPattern))
+                {
+                    try
+                    {
+                        if (!Regex.IsMatch(provided.Value ?? string.Empty, expected.RegexPattern!))
+                        {
+                            errors.Add($"La valeur de '{expected.Key}' ne respecte pas le motif requis.");
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        errors.Add($"Motif Regex invalide pour la définition d'attribut '{expected.Key}'.");
+                    }
+                }
             }
+
         }
 
         return errors;
