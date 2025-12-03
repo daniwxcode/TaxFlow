@@ -1,6 +1,6 @@
 ﻿using Ardalis.SmartEnum;
 
-namespace Core.Domain.Contracts;
+namespace Core.Domain.Enums;
 
 public sealed class AttributeDataType : SmartEnum<AttributeDataType>
 {

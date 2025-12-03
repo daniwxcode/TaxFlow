@@ -1,4 +1,5 @@
 ﻿using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Enums;
 
 using System.ComponentModel.DataAnnotations.Schema;
 
