@@ -1,6 +1,6 @@
 ﻿using Core.Domain.Contracts;
 using Core.Domain.Contracts.Abstracts;
-using Core.Domain.Enums;
+using Core.Domain.Tax.Event;
 
 namespace Core.Domain.Tax;
 
@@ -36,7 +36,7 @@ public class AssetType : SoftAuditableEntity
 
         Name = newName.Trim();
         // Optionnel: lever un événement de domaine
-        // QueueDomainEvent(new AssetTypeRenamedDomainEvent(Guid, newName));
+        QueueDomainEvent(new AssetTypeRenamedDomainEvent(Id, newName));
     }
 
     // DDD: intention claire pour modifier la description

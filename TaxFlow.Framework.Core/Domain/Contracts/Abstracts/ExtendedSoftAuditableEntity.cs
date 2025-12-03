@@ -8,7 +8,8 @@ namespace Core.Domain.Contracts.Abstracts;
 public abstract class ExtendedSoftAuditableEntity : SoftAuditableEntity
 {
     // Holds extendable attributes for the entity
-    public Collection<ExtendedAttribute> Attributes { get; } = new();
+    private List<ExtendedAttribute> _attributes = new();
+    public IReadOnlyCollection<ExtendedAttribute> Attributes => _attributes.AsReadOnly();
     public ExtendedAttribute? GetAttribute(string key, DateTimeOffset? date = null)
     {
         date ??= DateTimeOffset.UtcNow;
