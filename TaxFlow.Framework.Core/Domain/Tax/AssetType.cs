@@ -213,6 +213,18 @@ public class AssetType : SoftAuditableEntity
                 expr.Parameters[varName] = attr.Value;
         }
 
+        // Gracefully handle missing parameters by defaulting them to null
+        expr.EvaluateParameter += (name, args) =>
+        {
+            var key = name as string;
+            if (key == null) return;
+            if (!expr.Parameters.ContainsKey(key))
+            {
+                // Provide a null value so expressions like comparisons/ternaries can handle missing inputs
+                args.Result = null;
+            }
+        };
+
         var result = expr.Evaluate();
         if (result == null) return null;
         if (result is double d) return (decimal)d;

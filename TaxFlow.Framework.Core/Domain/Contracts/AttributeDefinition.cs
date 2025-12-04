@@ -112,7 +112,8 @@ public class AttributeDefinition: AuditableEntity
             DataType = AttributeDataType.Enum,
             EnumDefinition = enumDefinition,
             IsRequired = isRequired,
-            RegexPattern = enumDefinition.BuildLabelRegex()
+            // Utiliser les codes des items d'énumération pour la validation des valeurs d'attributs
+            RegexPattern = enumDefinition.BuildCodeRegex()
         };
     }
 

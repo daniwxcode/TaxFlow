@@ -36,4 +36,17 @@ public class EnumDefinition : AuditableEntity
         return $"^({string.Join("|", labels)})$";
     }
 
+    /// <summary>
+    /// Construit une regex basée sur les codes des items d'énumération.
+    /// À utiliser pour valider les valeurs d'attribut de type Enum (stockage par code).
+    /// </summary>
+    public string BuildCodeRegex()
+    {
+        var codes = Items
+            .Select(i => (i.Code ?? string.Empty).Trim())
+            .Where(c => !string.IsNullOrEmpty(c))
+            .OrderByDescending(c => c.Length)
+            .Select(Regex.Escape);
+        return $"^({string.Join("|", codes)})$";
+    }
 }

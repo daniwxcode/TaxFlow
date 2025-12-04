@@ -60,7 +60,7 @@ public static class DefaultAssetTypes
                         new EnumItem { Code = "RES", Label = "Résidentiel", Order = 1 },
                         new EnumItem { Code = "COM", Label = "Location", Order = 2 }
                     }
-        });
+        }, false);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "RealEstateCategory",
@@ -70,7 +70,7 @@ public static class DefaultAssetTypes
                 new EnumItem{Code="CON",Label = "Concession",Order=1},
                 new EnumItem{Code= "STUDIO", Label="Appartement à une piece (studio)",Order=2}
             }
-        });
+        }, false);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "RealEstateOwnerShip",
@@ -80,7 +80,7 @@ public static class DefaultAssetTypes
                 new EnumItem {Code= "OWNER", Label="Propriétaire" },
                 new EnumItem {Code="RENT", Label="Locataire"}
             }
-        });
+        }, false);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "ResidenceStatus",
@@ -90,7 +90,7 @@ public static class DefaultAssetTypes
                 new EnumItem{Code="NEW",Label="Nouvelle", Order=1},
                 new EnumItem{Code="OLD",Label="Ancienne", Order=2}
             }
-        });
+        }, false);
         yield return AttributeDefinition.Create("AcquisitionDate", "Acquisition Date", AttributeDataType.Date);
         yield return AttributeDefinition.Create("BuildingCompletionDate", "Date de fin des Travaux", AttributeDataType.Date); ;
 
