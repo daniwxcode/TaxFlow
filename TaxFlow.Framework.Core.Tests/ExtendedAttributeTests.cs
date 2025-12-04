@@ -1,3 +1,4 @@
+using System;
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Xunit;
