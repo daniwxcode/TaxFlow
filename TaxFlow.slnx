@@ -3,7 +3,9 @@
   <Folder Name="/src/Framework/">
     <Project Path="TaxFlow.Framework.Core/Core.csproj" Id="32c3924b-fb53-4dd5-8cf5-cb7339c412f7" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="TaxFlow.Framework.Core.Tests/TaxFlow.Framework.Core.Tests.csproj" />
+  </Folder>
   <Folder Name="/Éléments de solution/">
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
