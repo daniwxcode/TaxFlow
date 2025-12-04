@@ -84,7 +84,7 @@ public class AttributeDefinition: AuditableEntity
     /// <param name="isRequired">Whether the attribute is required.</param>
     /// <param name="regexPattern">Optional regex pattern.</param>
     /// <returns>A configured <see cref="AttributeDefinition"/> instance.</returns>
-    public static AttributeDefinition Create(string key, string label, AttributeDataType dataType, EnumDefinition?definition=null, bool isRequired=false
+    public static AttributeDefinition Create(string key, string label, AttributeDataType dataType, bool isRequired=false
         ,string regexPattern= null)
     {
         if (string.IsNullOrWhiteSpace(key))
@@ -97,8 +97,22 @@ public class AttributeDefinition: AuditableEntity
             Label = label.Trim(),
             DataType = dataType,
             IsRequired = isRequired,
-            EnumDefinition = definition,
             RegexPattern = regexPattern
+        };
+    }
+
+    public static AttributeDefinition Create(EnumDefinition enumDefinition,bool isRequired=true)
+    {
+        if (enumDefinition == null)
+            throw new ArgumentNullException(nameof(enumDefinition), "La définition d'énumération ne doit pas être nulle.");
+        return new AttributeDefinition
+        {
+            Key = enumDefinition.Key,
+            Label = enumDefinition.Label,
+            DataType = AttributeDataType.Enum,
+            EnumDefinition = enumDefinition,
+            IsRequired = isRequired,
+            RegexPattern = enumDefinition.BuildLabelRegex()
         };
     }
 
