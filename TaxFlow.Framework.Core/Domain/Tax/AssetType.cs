@@ -193,7 +193,7 @@ public class AssetType : SoftAuditableEntity
         if (rule is null) return null;
         if (!rule.Enabled) return null;
 
-        var expr = new Expression(rule.Expression, EvaluateOptions.IgnoreCase);
+        var expr = new Expression(rule.Expression);
 
         // Provide 'amount' variable if present
         if (amount.HasValue)
