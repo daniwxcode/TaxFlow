@@ -37,17 +37,17 @@ public class EnumItem : AuditableEntity
 /// <summary>
 /// Describes an attribute expected by an asset type: key, label, datatype and optional enum definition or regex.
 /// </summary>
-public class AttributeDefinition: AuditableEntity
+public class AttributeDefinition : AuditableEntity
 {
     /// <summary>
     /// Attribute key used as identifier.
     /// </summary>
-    public string Key { get; internal set; }
+    public string Key { get; internal set; } = string.Empty;
 
     /// <summary>
     /// Human-readable label for the attribute.
     /// </summary>
-    public string Label { get; internal set; }= string.Empty;
+    public string Label { get; internal set; } = string.Empty;
 
     /// <summary>
     /// Expected data type for the attribute.
@@ -80,12 +80,11 @@ public class AttributeDefinition: AuditableEntity
     /// <param name="key">Attribute key.</param>
     /// <param name="label">Human-readable label.</param>
     /// <param name="dataType">Data type.</param>
-    /// <param name="definition">Optional enum definition.</param>
     /// <param name="isRequired">Whether the attribute is required.</param>
     /// <param name="regexPattern">Optional regex pattern.</param>
     /// <returns>A configured <see cref="AttributeDefinition"/> instance.</returns>
-    public static AttributeDefinition Create(string key, string label, AttributeDataType dataType, bool isRequired=false
-        ,string regexPattern= null)
+    public static AttributeDefinition Create(string key, string label, AttributeDataType dataType, bool isRequired = false
+        , string regexPattern = null)
     {
         if (string.IsNullOrWhiteSpace(key))
             throw new ArgumentException("La clé de l'attribut ne doit pas être vide.", nameof(key));
@@ -101,7 +100,13 @@ public class AttributeDefinition: AuditableEntity
         };
     }
 
-    public static AttributeDefinition Create(EnumDefinition enumDefinition,bool isRequired=true)
+    /// <summary>
+    /// Factory to create an attribute definition based on an existing enum definition.
+    /// </summary>
+    /// <param name="enumDefinition">The enum definition to base the attribute on.</param>
+    /// <param name="isRequired">Whether the attribute is required.</param>
+    /// <returns>A configured <see cref="AttributeDefinition"/> instance.</returns> 
+    public static AttributeDefinition Create(EnumDefinition enumDefinition, bool isRequired = true)
     {
         if (enumDefinition == null)
             throw new ArgumentNullException(nameof(enumDefinition), "La définition d'énumération ne doit pas être nulle.");
