@@ -17,7 +17,7 @@ public class AssetTypeAndTaxableAssetTests
         var at = AssetType.Create("A");
         var def = AttributeDefinition.Create("K", "L", AttributeDataType.String);
         at.AddExpectedAttribute(def);
-        Assert.True(at.ExpectedAttributes.Any(e => e.Key == "K"));
+        Assert.Contains(at.ExpectedAttributes, e => e.Key == "K");
         Assert.True(at.RemoveExpectedAttribute("K"));
     }
 
@@ -38,7 +38,7 @@ public class AssetTypeAndTaxableAssetTests
     public void TaxableAsset_CalculateTaxLines_ReturnsLines()
     {
         var at = AssetType.Create("A");
-        at.AddExpectedAttribute(AttributeDefinition.Create("ResidualValue", "Valeur Vénale", AttributeDataType.Number, true));
+        at.AddExpectedAttribute(AttributeDefinition.Create("ResidualValue", "Valeur Venale", AttributeDataType.Number, true));
         at.AddTaxRule(new TaxRule { Key = "R1", Label = "r1", Expression = "[ResidualValue]*0.01" });
 
         var attrs = new Collection<ExtendedAttribute> { ExtendedAttribute.Create("ResidualValue", "200", AttributeDataType.Number, true) };
