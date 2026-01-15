@@ -33,6 +33,17 @@ public sealed class PenaltyPolicy
     public decimal RecouvrementAnnualRate { get; init; } = 0m;
 
     /// <summary>
+    /// Periodic rate for collection penalties (e.g., 0.10 for 10% per period).
+    /// When set, takes precedence over <see cref="RecouvrementAnnualRate"/>.
+    /// </summary>
+    public decimal RecouvrementPeriodRate { get; init; } = 0m;
+
+    /// <summary>
+    /// Increment added to the periodic rate for each new period (e.g., 0.01 for +1% per period).
+    /// </summary>
+    public decimal RecouvrementPeriodRateIncrement { get; init; } = 0m;
+
+    /// <summary>
     /// Number of days in the base period for proration (default 365).
     /// </summary>
     public int DaysInYear { get; init; } = 365;
@@ -68,6 +79,11 @@ public sealed class PenaltyPolicy
     public decimal? RecouvrementMinimum { get; init; }
 
     /// <summary>
+    /// Minimum acceptable amount for a penalty line (lines below are skipped).
+    /// </summary>
+    public decimal MinimumLineAmount { get; init; } = 0m;
+
+    /// <summary>
     /// Whether recouvrement penalties are compounded on unpaid balance.
     /// </summary>
     public bool CapitalizeRecouvrement { get; init; } = false;
@@ -88,7 +104,10 @@ public sealed class PenaltyPolicy
         if (AssietteGraceDays < 0) throw new ArgumentOutOfRangeException(nameof(AssietteGraceDays));
         if (AssiettePeriodDays <= 0) throw new ArgumentOutOfRangeException(nameof(AssiettePeriodDays));
         if (RecouvrementAnnualRate < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementAnnualRate));
+        if (RecouvrementPeriodRate < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementPeriodRate));
+        if (RecouvrementPeriodRateIncrement < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementPeriodRateIncrement));
         if (RecouvrementGraceDays < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementGraceDays));
         if (RecouvrementPeriodDays <= 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementPeriodDays));
+        if (MinimumLineAmount < 0) throw new ArgumentOutOfRangeException(nameof(MinimumLineAmount));
     }
 }

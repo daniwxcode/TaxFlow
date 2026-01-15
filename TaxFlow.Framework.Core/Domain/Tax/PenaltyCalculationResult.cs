@@ -20,6 +20,7 @@ public sealed class PenaltyCalculationResult
         TotalAssiette = list.Where(a => a.Type == PenaltyType.Assiette).Sum(a => a.Amount);
         TotalRecouvrement = list.Where(a => a.Type == PenaltyType.Recouvrement).Sum(a => a.Amount);
         Total = TotalAssiette + TotalRecouvrement;
+        History = PenaltyHistory.FromAccruals(list);
     }
 
     /// <summary>
@@ -41,4 +42,9 @@ public sealed class PenaltyCalculationResult
     /// Total penalties.
     /// </summary>
     public decimal Total { get; }
+
+    /// <summary>
+    /// Evolution history of penalties.
+    /// </summary>
+    public PenaltyHistory History { get; }
 }
