@@ -2,9 +2,15 @@
 using Core.Domain.Enums;
 
 namespace Core.Domain.Tax.Bootstrap;
-
+/// <summary>
+///   Provides default asset types and their configurations.
+/// </summary>
 public static class DefaultAssetTypes
 {
+    /// <summary>
+    /// Gets the default tax rules for real estate assets.
+    /// </summary>
+    /// <returns></returns>
     public static IEnumerable<TaxRule> RealEstateTaxRules()
     {
         yield return new TaxRule()
@@ -26,6 +32,10 @@ public static class DefaultAssetTypes
             """
         };
     }
+    /// <summary>
+    /// Gets the default attribute definitions for real estate assets.
+    /// </summary>
+    /// <returns></returns>
     public static IEnumerable<AttributeDefinition> RealEstateAttributes()
     {
         yield return AttributeDefinition.Create("ResidualValue", "Valeur Venale", AttributeDataType.Number, true);
@@ -96,6 +106,10 @@ public static class DefaultAssetTypes
 
 
     }
+    /// <summary>
+    /// Gets the initial data for asset types.
+    /// </summary>
+    /// <returns></returns>
     public static IEnumerable<AssetType> InitialData()
     {
         var realEstate = AssetType.Create("Real Estate", "Propiété Immobilière Maison et Terrain");

@@ -3,12 +3,21 @@
 using System.Collections.ObjectModel;
 
 namespace Core.Domain.Contracts;
+/// <summary>
+///    Base interface for all entities in the domain.
+/// </summary>
 public interface IEntity
 {
+    /// <summary>
+    /// Gets the unique identifier of the entity.
+    /// </summary>
     Collection<IDomainEvent> DomainEvents { get; }
 }
 
 public interface IEntity<out TId> : IEntity
 {
+    /// <summary>
+    /// Gets the unique identifier of the entity.
+    /// </summary>
     TId Id { get; }
 }

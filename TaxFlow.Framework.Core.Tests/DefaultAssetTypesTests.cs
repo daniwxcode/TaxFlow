@@ -46,7 +46,7 @@ public class DefaultAssetTypesTests
 
         // Expressions contain expected multipliers
         var exprs = realEstate.TaxRules.Select(r => r.Expression).ToList();
-        Assert.Contains(exprs, e => e.Contains("*0.5/100") || e.Contains("*0.5/100\r") );
+        Assert.Contains(exprs, e => e.Contains("*0.5/100") || e.Contains("*0.5/100\r"));
         Assert.Contains(exprs, e => e.Contains("*0.75/100") || e.Contains("*0.75/100\r"));
     }
 
@@ -56,11 +56,11 @@ public class DefaultAssetTypesTests
         var list = DefaultAssetTypes.InitialData().ToList();
         var realEstate = list.First(a => a.Name == "Real Estate");
 
-        // Prepare attributes: ResidualValue and RealEstateType = "Propriété Bâtie"
+        // Prepare attributes: ResidualValue and RealEstateType = "Propriï¿½tï¿½ Bï¿½tie"
         var attrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "1000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriï¿½tï¿½ Bï¿½tie", AttributeDataType.Enum, true),
         };
 
         // Evaluate each rule by its key (use the key from the rule instance)
@@ -81,11 +81,11 @@ public class DefaultAssetTypesTests
     {
         var realEstate = DefaultAssetTypes.InitialData().First(a => a.Name == "Real Estate");
 
-        // Scenario 1: Propriété Bâtie => TFNB = 0, TFB = ResidualValue * 0.75/100
+        // Scenario 1: Propriï¿½tï¿½ Bï¿½tie => TFNB = 0, TFB = ResidualValue * 0.75/100
         var attrs1 = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "1000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriï¿½tï¿½ Bï¿½tie", AttributeDataType.Enum, true),
         };
         var tfnb1 = realEstate.EvaluateTaxRule("TFNB", attrs1);
         var tfb1 = realEstate.EvaluateTaxRule("TFB", attrs1);
@@ -103,11 +103,11 @@ public class DefaultAssetTypesTests
         Assert.Equal(0m, tfnb2 ?? 0m);
         Assert.Equal(1500m, tfb2 ?? 0m);
 
-        // Scenario 3: Non bâtie and not Location => TFNB = ResidualValue * 0.5/100, TFB = 0
+        // Scenario 3: Non bï¿½tie and not Location => TFNB = ResidualValue * 0.5/100, TFB = 0
         var attrs3 = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "500000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Non Bâtie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriï¿½tï¿½ Non Bï¿½tie", AttributeDataType.Enum, true),
         };
         var tfnb3 = realEstate.EvaluateTaxRule("TFNB", attrs3);
         var tfb3 = realEstate.EvaluateTaxRule("TFB", attrs3);
@@ -136,15 +136,14 @@ public class DefaultAssetTypesTests
         var errorsType = realEstate.ValidateAttributes(wrongType).ToList();
         Assert.Contains(errorsType, e => e.Contains("Type invalide") || e.Contains("Type invalide"));
 
-        // Enum provided with label instead of code should fail validation
-        var invalidEnumValue = new Collection<ExtendedAttribute>
+        // Enum provided with label should be accepted (code or label supported)
+        var enumLabelValue = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "100000", AttributeDataType.Number, true),
-            // using label instead of code - validation expects codes like "PB" or "PNB"
-            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriï¿½tï¿½ Bï¿½tie", AttributeDataType.Enum, true),
         };
-        var errorsEnum = realEstate.ValidateAttributes(invalidEnumValue).ToList();
-        Assert.Contains(errorsEnum, e => e.Contains("n'est pas dans les valeurs autorisées") || e.Contains("Valeur invalide"));
+        var errorsEnumLabel = realEstate.ValidateAttributes(enumLabelValue).ToList();
+        Assert.Empty(errorsEnumLabel);
 
         // Correct attributes should produce no errors (use enum codes)
         var valid = new Collection<ExtendedAttribute>

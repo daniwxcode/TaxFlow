@@ -2,6 +2,7 @@
 using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Tax.Event;
 
+using System;
 using System.Text.RegularExpressions;
 using System.Linq;
 
@@ -188,50 +189,99 @@ public class AssetType : SoftAuditableEntity
     /// <returns>The evaluated result as decimal if numeric, otherwise null.</returns>
     public decimal? EvaluateTaxRule(string ruleKey, IEnumerable<ExtendedAttribute> attributes, decimal? amount = null)
     {
-        if (string.IsNullOrWhiteSpace(ruleKey)) throw new ArgumentException("ruleKey must not be empty", nameof(ruleKey));
+        var detailed = EvaluateTaxRuleDetailed(ruleKey, attributes, amount);
+        return detailed.Value;
+    }
+
+    /// <summary>
+    /// Evaluate a specific tax rule and return a detailed result containing warnings and errors.
+    /// </summary>
+    /// <param name="ruleKey">Rule key to evaluate.</param>
+    /// <param name="attributes">Asset attributes used as variables.</param>
+    /// <param name="amount">Optional base amount variable for the expression.</param>
+    /// <returns>A detailed evaluation result.</returns>
+    public TaxRuleEvaluationResult EvaluateTaxRuleDetailed(string ruleKey, IEnumerable<ExtendedAttribute> attributes, decimal? amount = null)
+    {
+        if (string.IsNullOrWhiteSpace(ruleKey))
+            return TaxRuleEvaluationResult.CreateFailure(ruleKey, "ruleKey must not be empty.");
+
         var rule = _taxRules.FirstOrDefault(r => r.Key.Equals(ruleKey, StringComparison.OrdinalIgnoreCase));
-        if (rule is null) return null;
-        if (!rule.Enabled) return null;
+        if (rule is null)
+            return TaxRuleEvaluationResult.CreateFailure(ruleKey, $"Rule '{ruleKey}' not found.");
 
-        var expr = new Expression(rule.Expression);
+        if (!rule.Enabled)
+            return TaxRuleEvaluationResult.CreateSuccess(rule.Key, 0m, warnings: new[] { "Rule disabled." });
 
-        // Provide 'amount' variable if present
-        if (amount.HasValue)
-            expr.Parameters["amount"] = (double)amount.Value;
-
-        // Map attributes to variables by key
-        foreach (var attr in attributes)
+        try
         {
-            var varName = attr.Key?.Trim();
-            if (string.IsNullOrWhiteSpace(varName)) continue;
-            // Try cast numeric types for better evaluation, fallback to string
-            if (double.TryParse(attr.Value, out var num))
-                expr.Parameters[varName] = num;
-            else if (bool.TryParse(attr.Value, out var b))
-                expr.Parameters[varName] = b;
-            else
-                expr.Parameters[varName] = attr.Value;
-        }
+            var expr = new Expression(rule.Expression);
+            var expectedByKey = _expectedAttributes.ToDictionary(a => a.Key, a => a, StringComparer.OrdinalIgnoreCase);
+            var missingParameters = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Gracefully handle missing parameters by defaulting them to null
-        expr.EvaluateParameter += (name, args) =>
-        {
-            var key = name as string;
-            if (key == null) return;
-            if (!expr.Parameters.ContainsKey(key))
+            // Provide 'amount' variable if present
+            if (amount.HasValue)
+                expr.Parameters["amount"] = (double)amount.Value;
+
+            // Map attributes to variables by key
+            foreach (var attr in attributes)
             {
-                // Provide a null value so expressions like comparisons/ternaries can handle missing inputs
-                args.Result = null;
-            }
-        };
+                var varName = attr.Key?.Trim();
+                if (string.IsNullOrWhiteSpace(varName)) continue;
 
-        var result = expr.Evaluate();
-        if (result == null) return null;
-        if (result is double d) return (decimal)d;
-        if (result is int i) return i;
-        if (result is decimal dec) return dec;
-        if (decimal.TryParse(result.ToString(), out var parsed)) return parsed;
-        return null;
+                if (expectedByKey.TryGetValue(varName, out var def) && def.DataType == Core.Domain.Enums.AttributeDataType.Enum && def.EnumDefinition is not null)
+                {
+                    if (def.EnumDefinition.TryGetLabel(attr.Value, out var label))
+                        expr.Parameters[varName] = label;
+                    else
+                        expr.Parameters[varName] = attr.Value;
+
+                    if (def.EnumDefinition.TryGetCode(attr.Value, out var code))
+                        expr.Parameters[$"{varName}Code"] = code;
+                    if (def.EnumDefinition.TryGetLabel(attr.Value, out var lbl))
+                        expr.Parameters[$"{varName}Label"] = lbl;
+
+                    continue;
+                }
+
+                // Try cast numeric types for better evaluation, fallback to string
+                if (double.TryParse(attr.Value, out var num))
+                    expr.Parameters[varName] = num;
+                else if (bool.TryParse(attr.Value, out var b))
+                    expr.Parameters[varName] = b;
+                else
+                    expr.Parameters[varName] = attr.Value;
+            }
+
+            // Gracefully handle missing parameters by defaulting them to null
+            expr.EvaluateParameter += (name, args) =>
+            {
+                var key = name as string;
+                if (key == null) return;
+                if (!expr.Parameters.ContainsKey(key))
+                {
+                    missingParameters.Add(key);
+                    // Provide a null value so expressions like comparisons/ternaries can handle missing inputs
+                    args.Result = null;
+                }
+            };
+
+            var result = expr.Evaluate();
+            decimal? value = null;
+            if (result is double d) value = (decimal)d;
+            else if (result is int i) value = i;
+            else if (result is decimal dec) value = dec;
+            else if (result != null && decimal.TryParse(result.ToString(), out var parsed)) value = parsed;
+
+            var warnings = missingParameters.Any()
+                ? new[] { $"Missing parameters: {string.Join(", ", missingParameters)}" }
+                : Array.Empty<string>();
+
+            return TaxRuleEvaluationResult.CreateSuccess(rule.Key, value, warnings);
+        }
+        catch (Exception ex)
+        {
+            return TaxRuleEvaluationResult.CreateFailure(rule.Key, ex.Message);
+        }
     }
 
     /// <summary>
@@ -252,7 +302,20 @@ public class AssetType : SoftAuditableEntity
         if (attributes is null) throw new ArgumentNullException(nameof(attributes));
         var errors = new List<string>();
 
-        var byKey = attributes.ToDictionary(a => a.Key, a => a, StringComparer.OrdinalIgnoreCase);
+        var groups = attributes
+            .Where(a => !string.IsNullOrWhiteSpace(a.Key))
+            .GroupBy(a => a.Key, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        foreach (var group in groups.Where(g => g.Count() > 1))
+        {
+            errors.Add($"Attribut dupliqué détecté pour la clé '{group.Key}'.");
+        }
+
+        var byKey = groups.ToDictionary(
+            g => g.Key,
+            g => g.OrderByDescending(a => a.ValidFrom).First(),
+            StringComparer.OrdinalIgnoreCase);
 
         foreach (var expected in _expectedAttributes)
         {
@@ -273,7 +336,29 @@ public class AssetType : SoftAuditableEntity
                     errors.Add($"Valeur invalide pour '{expected.Key}' au format {provided.DataType.ToString()}.");
                 }
 
-                if (!string.IsNullOrWhiteSpace(expected.RegexPattern))
+                if (expected.DataType == Core.Domain.Enums.AttributeDataType.Enum)
+                {
+                    var enumDef = expected.EnumDefinition;
+                    if (enumDef is null || enumDef.Items == null || !enumDef.Items.Any())
+                    {
+                        errors.Add($"Définition d'enum manquante pour l'attribut '{expected.Key}'.");
+                    }
+                    else
+                    {
+                        var providedValue = (provided.Value ?? string.Empty).Trim();
+                        var isCode = enumDef.TryGetCode(providedValue, out var normalizedCode);
+                        var isLabel = enumDef.TryGetLabel(providedValue, out var normalizedLabel);
+
+                        if (!isCode && !isLabel)
+                        {
+                            var allowedCodes = enumDef.Items.Select(i => i.Code).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => c!.Trim());
+                            var allowedLabels = enumDef.Items.Select(i => i.Label).Where(l => !string.IsNullOrWhiteSpace(l)).Select(l => l!.Trim());
+                            var allowedList = string.Join(", ", allowedCodes.Concat(allowedLabels).Distinct(StringComparer.OrdinalIgnoreCase));
+                            errors.Add($"Valeur invalide pour '{expected.Key}': '{providedValue}' n'est pas dans les valeurs autorisées [{allowedList}].");
+                        }
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(expected.RegexPattern))
                 {
                     try
                     {
@@ -285,25 +370,6 @@ public class AssetType : SoftAuditableEntity
                     catch (ArgumentException)
                     {
                         errors.Add($"Motif Regex invalide pour la définition d'attribut '{expected.Key}'.");
-                    }
-                }
-
-                if (expected.DataType == Core.Domain.Enums.AttributeDataType.Enum)
-                {
-                    var enumDef = expected.EnumDefinition;
-                    if (enumDef is null || enumDef.Items == null || !enumDef.Items.Any())
-                    {
-                        errors.Add($"Définition d'enum manquante pour l'attribut '{expected.Key}'.");
-                    }
-                    else
-                    {
-                        var allowed = enumDef.Items.Select(i => i.Code).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => c!.Trim()).ToList();
-                        var providedValue = (provided.Value ?? string.Empty).Trim();
-                        if (!allowed.Any(a => string.Equals(a, providedValue, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            var allowedList = string.Join(", ", allowed);
-                            errors.Add($"Valeur invalide pour '{expected.Key}': '{providedValue}' n'est pas dans les valeurs autorisées [{allowedList}].");
-                        }
                     }
                 }
             }

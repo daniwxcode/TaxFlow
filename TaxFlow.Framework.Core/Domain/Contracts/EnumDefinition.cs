@@ -25,6 +25,10 @@ public class EnumDefinition : AuditableEntity
     /// </summary>
     public ICollection<EnumItem> Items { get; internal set; } = new List<EnumItem>();
 
+    /// <summary>
+    /// Construit une regex basée sur les labels des items d'énumération.
+    /// À utiliser pour valider les valeurs d'attribut de type Enum (affichage par label).
+    /// </summary>
     public string BuildLabelRegex()
     {
         var labels = Items
@@ -48,5 +52,47 @@ public class EnumDefinition : AuditableEntity
             .OrderByDescending(c => c.Length)
             .Select(Regex.Escape);
         return $"^({string.Join("|", codes)})$";
+    }
+
+    /// <summary>
+    /// Try to resolve the provided value into a label by matching either code or label (case-insensitive).
+    /// </summary>
+    /// <param name="value">Input value to match (code or label).</param>
+    /// <param name="label">Resolved label when match succeeds.</param>
+    /// <returns>True if a matching item was found; otherwise false.</returns>
+    public bool TryGetLabel(string? value, out string label)
+    {
+        label = string.Empty;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+
+        var normalized = value.Trim();
+        var match = Items.FirstOrDefault(i =>
+            string.Equals(i.Code, normalized, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(i.Label, normalized, StringComparison.OrdinalIgnoreCase));
+
+        if (match is null) return false;
+        label = match.Label ?? string.Empty;
+        return !string.IsNullOrWhiteSpace(label);
+    }
+
+    /// <summary>
+    /// Try to resolve the provided value into a code by matching either code or label (case-insensitive).
+    /// </summary>
+    /// <param name="value">Input value to match (code or label).</param>
+    /// <param name="code">Resolved code when match succeeds.</param>
+    /// <returns>True if a matching item was found; otherwise false.</returns>
+    public bool TryGetCode(string? value, out string code)
+    {
+        code = string.Empty;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+
+        var normalized = value.Trim();
+        var match = Items.FirstOrDefault(i =>
+            string.Equals(i.Code, normalized, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(i.Label, normalized, StringComparison.OrdinalIgnoreCase));
+
+        if (match is null) return false;
+        code = match.Code ?? string.Empty;
+        return !string.IsNullOrWhiteSpace(code);
     }
 }
