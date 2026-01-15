@@ -89,6 +89,29 @@ public class TaxableAsset : ExtendedTemporalSoftAuditableEntity
     }
 
     /// <summary>
+    /// Calculate taxes using the optimized engine with diagnostics.
+    /// </summary>
+    /// <param name="options">Optional engine options.</param>
+    /// <returns>Tax calculation result with totals and diagnostics.</returns>
+    public TaxCalculationResult CalculateTaxes(TaxEngineOptions? options = null)
+    {
+        return TaxEngine.Evaluate(this, options);
+    }
+
+    /// <summary>
+    /// Calculate taxes for a period using the optimized engine with diagnostics.
+    /// </summary>
+    /// <param name="from">Period start (inclusive).</param>
+    /// <param name="to">Period end (inclusive).</param>
+    /// <param name="daysInYear">Proration basis (default 365).</param>
+    /// <param name="options">Optional engine options.</param>
+    /// <returns>Tax calculation result with totals and diagnostics.</returns>
+    public TaxCalculationResult CalculateTaxesForPeriod(DateTimeOffset from, DateTimeOffset to, int daysInYear = 365, TaxEngineOptions? options = null)
+    {
+        return TaxEngine.EvaluateForPeriod(this, from, to, daysInYear, options);
+    }
+
+    /// <summary>
     /// Calculate tax lines for a period and apply simple prorata based on number of days.
     /// </summary>
     /// <param name="from">Period start (inclusive).</param>
