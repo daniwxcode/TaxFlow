@@ -30,7 +30,7 @@ public sealed class PaymentDeadline : TaxDeadline
     public PenaltyDefinition? PenaltyDefinition { get; private set; }
 
     /// <summary>
-    /// Creates a new payment deadline with a Duration-based grace period.
+    /// Creates a new payment deadline.
     /// </summary>
     /// <param name="key">Unique key for this deadline.</param>
     /// <param name="label">Human-readable label.</param>
@@ -42,9 +42,9 @@ public sealed class PaymentDeadline : TaxDeadline
         string key,
         string label,
         DateTimeOffset dueDate,
-        decimal fraction,
-        int order,
-        Duration gracePeriod)
+        decimal fraction = 1.0m,
+        int order = 1,
+        Duration gracePeriod = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
@@ -64,26 +64,6 @@ public sealed class PaymentDeadline : TaxDeadline
             Order = order,
             GracePeriod = gracePeriod
         };
-    }
-
-    /// <summary>
-    /// Creates a new payment deadline with a grace period in days (backward compatibility).
-    /// </summary>
-    /// <param name="key">Unique key for this deadline.</param>
-    /// <param name="label">Human-readable label.</param>
-    /// <param name="dueDate">Due date for the payment.</param>
-    /// <param name="fraction">Fraction of total amount due (0.0 to 1.0).</param>
-    /// <param name="order">Order in the payment schedule.</param>
-    /// <param name="graceDays">Grace period in days.</param>
-    public static PaymentDeadline Create(
-        string key,
-        string label,
-        DateTimeOffset dueDate,
-        decimal fraction = 1.0m,
-        int order = 1,
-        int graceDays = 0)
-    {
-        return Create(key, label, dueDate, fraction, order, Duration.Days(graceDays));
     }
 
     /// <summary>

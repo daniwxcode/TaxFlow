@@ -31,7 +31,7 @@ public sealed class RecouvrementPenaltyRule : IPenaltyRule
 
         foreach (var inst in schedule.Installments)
         {
-            var effectiveDue = inst.EffectiveDueDate.AddDays(definition.GraceDays);
+            var effectiveDue = definition.GracePeriod.AddTo(inst.EffectiveDueDate);
             if (asOf <= effectiveDue)
                 continue;
 
@@ -43,14 +43,14 @@ public sealed class RecouvrementPenaltyRule : IPenaltyRule
             if (daysLate == 0)
                 continue;
 
-            var periodDays = definition.PeriodDays;
-            var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDays);
+            var periodDaysApprox = definition.Period.ToDays();
+            var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
             var accumulatedPenalty = 0m;
 
             for (var period = 1; period <= periodCount; period++)
             {
-                var periodStart = effectiveDue.AddDays((period - 1) * periodDays);
-                var periodEnd = periodStart.AddDays(periodDays);
+                var periodStart = definition.GetPeriodStartDate(effectiveDue, period);
+                var periodEnd = definition.GetPeriodEndDate(effectiveDue, period);
                 var cappedEnd = periodEnd < asOf ? periodEnd : asOf;
                 var daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
 

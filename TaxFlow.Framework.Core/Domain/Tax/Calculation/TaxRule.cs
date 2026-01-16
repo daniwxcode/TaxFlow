@@ -39,25 +39,9 @@ public class TaxRule : TemporalAuditableEntity
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// Optional penalty policy associated to this tax rule (legacy support).
-    /// </summary>
-    [Obsolete("Use ObligationSchedule for more granular deadline and penalty configuration.")]
-    public PenaltyPolicy? PenaltyPolicy { get; private set; }
-
-    /// <summary>
     /// Schedule of obligations (declaration and payment deadlines) for this tax rule.
     /// </summary>
     public TaxObligationSchedule? ObligationSchedule { get; private set; }
-
-    /// <summary>
-    /// Configure the penalty policy for this tax rule (legacy).
-    /// </summary>
-    /// <param name="policy">Penalty policy to assign.</param>
-    [Obsolete("Use ConfigureObligationSchedule for more granular deadline and penalty configuration.")]
-    public void ConfigurePenaltyPolicy(PenaltyPolicy policy)
-    {
-        PenaltyPolicy = policy ?? throw new ArgumentNullException(nameof(policy));
-    }
 
     /// <summary>
     /// Configures the obligation schedule for this tax rule.

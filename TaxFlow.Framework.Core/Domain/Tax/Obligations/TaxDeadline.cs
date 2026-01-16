@@ -51,16 +51,6 @@ public abstract class TaxDeadline : AuditableEntity
     public Duration GracePeriod { get; init; } = Duration.Zero;
 
     /// <summary>
-    /// Grace period in days (for backward compatibility).
-    /// </summary>
-    [Obsolete("Use GracePeriod instead for more flexibility.")]
-    public int GraceDays
-    {
-        get => GracePeriod.ToDays();
-        init => GracePeriod = Duration.Days(value);
-    }
-
-    /// <summary>
     /// Gets the effective due date including grace period.
     /// </summary>
     public DateTimeOffset EffectiveDueDate => GracePeriod.AddTo(DueDate);

@@ -34,7 +34,7 @@ public sealed class AssiettePenaltyRule : IPenaltyRule
         var liquidationId = schedule.LiquidationId;
 
         var referenceDue = assietteDueDate ?? schedule.Installments.Select(i => i.DueDate).DefaultIfEmpty(asOf).Min();
-        var effectiveDue = referenceDue.AddDays(definition.GraceDays);
+        var effectiveDue = definition.GracePeriod.AddTo(referenceDue);
         var daysLate = PenaltyCalculationHelper.CalculateDaysLate(asOf, effectiveDue);
 
         if (daysLate <= 0)
@@ -69,14 +69,14 @@ public sealed class AssiettePenaltyRule : IPenaltyRule
         if (definition.AnnualRate <= 0)
             yield break;
 
-        var periodDays = definition.PeriodDays;
-        var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDays);
+        var periodDaysApprox = definition.Period.ToDays();
+        var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
         var baseAmount = taxBaseAmount;
 
         for (var period = 1; period <= periodCount; period++)
         {
-            var periodStart = effectiveDue.AddDays((period - 1) * periodDays);
-            var periodEnd = periodStart.AddDays(periodDays);
+            var periodStart = definition.GetPeriodStartDate(effectiveDue, period);
+            var periodEnd = definition.GetPeriodEndDate(effectiveDue, period);
             var cappedEnd = periodEnd < asOf ? periodEnd : asOf;
             var daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
 

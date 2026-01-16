@@ -29,30 +29,10 @@ public sealed class PenaltyDefinition
     public Duration GracePeriod { get; init; } = Duration.Zero;
 
     /// <summary>
-    /// Grace period in days (for backward compatibility).
-    /// </summary>
-    [Obsolete("Use GracePeriod instead for more flexibility.")]
-    public int GraceDays
-    {
-        get => GracePeriod.ToDays();
-        init => GracePeriod = Duration.Days(value);
-    }
-
-    /// <summary>
     /// Periodicity for penalties.
     /// Supports days, weeks, months, or years.
     /// </summary>
     public Duration Period { get; init; } = Duration.Days(30);
-
-    /// <summary>
-    /// Periodicity in days for penalties (for backward compatibility).
-    /// </summary>
-    [Obsolete("Use Period instead for more flexibility.")]
-    public int PeriodDays
-    {
-        get => Period.ToDays();
-        init => Period = Duration.Days(value);
-    }
 
     /// <summary>
     /// Annual rate for penalties.

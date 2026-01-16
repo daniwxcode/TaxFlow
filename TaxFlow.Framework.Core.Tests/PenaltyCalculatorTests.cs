@@ -26,8 +26,8 @@ public class PenaltyCalculatorTests
             Type = PenaltyType.Assiette,
             FixedAmount = 100m,
             AnnualRate = 0.12m,
-            GraceDays = 10,
-            PeriodDays = 30
+            GracePeriod = Duration.Days(10),
+            Period = Duration.Days(30)
         });
 
         var asOf = new DateTimeOffset(2025, 2, 20, 0, 0, 0, TimeSpan.Zero);
@@ -62,8 +62,8 @@ public class PenaltyCalculatorTests
         {
             Type = PenaltyType.Assiette,
             AnnualRate = 0.12m,
-            GraceDays = 0,
-            PeriodDays = 30
+            GracePeriod = Duration.Zero,
+            Period = Duration.Days(30)
         });
 
         var asOf = new DateTimeOffset(2025, 2, 10, 0, 0, 0, TimeSpan.Zero); // 40 days late => 30 + 10
@@ -91,8 +91,8 @@ public class PenaltyCalculatorTests
         {
             Type = PenaltyType.Recouvrement,
             AnnualRate = 0.12m,
-            GraceDays = 5,
-            PeriodDays = 30
+            GracePeriod = Duration.Days(5),
+            Period = Duration.Days(30)
         });
 
         var asOf = new DateTimeOffset(2025, 2, 20, 0, 0, 0, TimeSpan.Zero);
@@ -121,8 +121,8 @@ public class PenaltyCalculatorTests
         policy.AddOrUpdateDefinition(new PenaltyDefinition
         {
             Type = PenaltyType.Recouvrement,
-            GraceDays = 10,
-            PeriodDays = 30,
+            GracePeriod = Duration.Days(10),
+            Period = Duration.Days(30),
             PeriodRate = 0.10m,
             PeriodRateIncrement = 0.01m
         });
@@ -157,8 +157,8 @@ public class PenaltyCalculatorTests
         {
             Type = PenaltyType.Recouvrement,
             PeriodRate = 0.10m,
-            GraceDays = 0,
-            PeriodDays = 30
+            GracePeriod = Duration.Zero,
+            Period = Duration.Days(30)
         });
 
         // Jan 1 to Mar 5 = 63 days late => 3 periods

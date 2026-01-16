@@ -78,7 +78,7 @@ public class ObligationPenaltyCalculatorTests
                     {
                         Type = PenaltyType.Assiette,
                         AnnualRate = 0.12m,
-                        PeriodDays = 30
+                        Period = Duration.Days(30)
                     }));
 
         rule.ConfigureObligationSchedule(schedule);
@@ -106,7 +106,7 @@ public class ObligationPenaltyCalculatorTests
                     {
                         Type = PenaltyType.Recouvrement,
                         AnnualRate = 0.12m,
-                        PeriodDays = 30
+                        Period = Duration.Days(30)
                     }));
 
         rule.ConfigureObligationSchedule(schedule);
@@ -134,7 +134,7 @@ public class ObligationPenaltyCalculatorTests
                     {
                         Type = PenaltyType.Recouvrement,
                         PeriodRate = 0.10m,
-                        PeriodDays = 30
+                        Period = Duration.Days(30)
                     }));
 
         rule.ConfigureObligationSchedule(schedule);
@@ -181,10 +181,10 @@ public class ObligationPenaltyCalculatorTests
         var schedule = TaxObligationSchedule.Create()
             .AddPaymentDeadline(
                 PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 1, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 1)
-                    .WithPenalty(new PenaltyDefinition { Type = PenaltyType.Recouvrement, PeriodRate = 0.05m, PeriodDays = 30 }))
+                    .WithPenalty(new PenaltyDefinition { Type = PenaltyType.Recouvrement, PeriodRate = 0.05m, Period = Duration.Days(30) }))
             .AddPaymentDeadline(
                 PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 2)
-                    .WithPenalty(new PenaltyDefinition { Type = PenaltyType.Recouvrement, PeriodRate = 0.10m, PeriodDays = 30 }));
+                    .WithPenalty(new PenaltyDefinition { Type = PenaltyType.Recouvrement, PeriodRate = 0.10m, Period = Duration.Days(30) }));
 
         rule.ConfigureObligationSchedule(schedule);
 
