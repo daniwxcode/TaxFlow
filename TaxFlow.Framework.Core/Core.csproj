@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Domain\Tax\Bootstrap\" />
     <Folder Include="Domain\Tax\Enums\" />
     <Folder Include="Domain\Workflow\" />
     <Folder Include="Features\" />
