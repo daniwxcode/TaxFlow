@@ -1,6 +1,6 @@
-# TaxFlow - Documentation du Domaine
+Ôªø# TaxFlow - Documentation du Domaine
 
-## Table des MatiËres
+## Table des Mati√®res
 
 1. [Vue d'Ensemble](#vue-densemble)
 2. [Architecture du Domaine](#architecture-du-domaine)
@@ -19,101 +19,162 @@
 
 TaxFlow est un framework de gestion fiscale qui permet de :
 
-- **DÈfinir des types d'actifs** avec leurs attributs attendus
-- **CrÈer des rËgles fiscales** avec des expressions dynamiques (NCalc)
-- **Calculer les taxes** basÈes sur les attributs des actifs
-- **GÈrer les ÈchÈances** de dÈclaration et de paiement
-- **Calculer les pÈnalitÈs** en cas de retard (assiette et recouvrement)
-- **Suivre les paiements** et leur allocation aux ÈchÈances
+- **D√©finir des types d'actifs** avec leurs attributs attendus
+- **Cr√©er des r√®gles fiscales** avec des expressions dynamiques (NCalc)
+- **Calculer les taxes** bas√©es sur les attributs des actifs
+- **G√©rer les √©ch√©ances** de d√©claration et de paiement
+- **Calculer les p√©nalit√©s** en cas de retard (assiette et recouvrement)
+- **Suivre les paiements** et leur allocation aux √©ch√©ances
 
 ### Principes de Conception
 
-- **Domain-Driven Design (DDD)** : SÈparation claire des agrÈgats et entitÈs
-- **SOLID** : Classes ‡ responsabilitÈ unique, injection de dÈpendances
-- **ImmutabilitÈ** : Utilisation de records et propriÈtÈs `init`
-- **Validation riche** : Types structurÈs pour les erreurs de validation
+- **Domain-Driven Design (DDD)** : S√©paration claire des agr√©gats et entit√©s
+- **SOLID** : Classes √† responsabilit√© unique, injection de d√©pendances
+- **Immutabilit√©** : Utilisation de records et propri√©t√©s `init`
+- **Validation riche** : Types structur√©s pour les erreurs de validation
 
 ---
 
 ## Architecture du Domaine
 
-```
-Core.Domain
-??? Contracts/           # Contrats et abstractions de base
-?   ??? Abstracts/       # EntitÈs de base (AuditableEntity, etc.)
-?   ??? Validation/      # ValidationResult, ValidationError
-?   ??? Event/           # …vÈnements de domaine
-??? Enums/               # …numÈrations (AttributeDataType)
-??? Tax/                 # Module fiscal principal
-    ??? Assets/          # Types d'actifs et actifs imposables
-    ??? Calculation/     # Moteur de calcul des taxes
-    ??? Obligations/     # …chÈances de dÈclaration/paiement
-    ??? Penalties/       # Calcul des pÈnalitÈs
-    ??? Payments/        # Gestion des paiements
-    ??? Events/          # …vÈnements de domaine fiscaux
+```mermaid
+graph TB
+    subgraph "Core.Domain"
+        subgraph "Contracts"
+            Abstracts[Abstracts<br/>AuditableEntity<br/>TemporalAuditableEntity]
+            Validation[Validation<br/>ValidationResult<br/>ValidationError]
+            Events[Event<br/>IDomainEvent]
+        end
+        
+        subgraph "Tax"
+            Assets[Assets<br/>AssetType<br/>TaxableAsset]
+            Calculation[Calculation<br/>TaxEngine<br/>TaxRule]
+            Obligations[Obligations<br/>TaxObligationSchedule<br/>Deadlines]
+            Penalties[Penalties<br/>PenaltyCalculator<br/>PenaltyDefinition]
+            Payments[Payments<br/>PaymentSchedule<br/>Installment]
+        end
+    end
+    
+    Assets --> Calculation
+    Calculation --> Obligations
+    Obligations --> Penalties
+    Penalties --> Payments
+    
+    Abstracts --> Assets
+    Validation --> Assets
+    Events --> Assets
 ```
 
 ---
 
 ## Module Assets
 
-### Concepts ClÈs
+### Concepts Cl√©s
 
 | Classe | Description |
 |--------|-------------|
-| `AssetType` | DÈfinit un type d'actif avec ses attributs attendus et rËgles fiscales |
-| `TaxableAsset` | Instance d'un actif soumis ‡ taxation |
-| `AttributeDefinition` | DÈfinition d'un attribut attendu (clÈ, type, obligatoire) |
-| `ExtendedAttribute` | Valeur d'un attribut pour un actif spÈcifique |
-| `AttributeValidator` | Valide les attributs contre les dÈfinitions |
+| `AssetType` | D√©finit un type d'actif avec ses attributs attendus et r√®gles fiscales |
+| `TaxableAsset` | Instance d'un actif soumis √† taxation |
+| `AttributeDefinition` | D√©finition d'un attribut attendu (cl√©, type, obligatoire) |
+| `ExtendedAttribute` | Valeur d'un attribut pour un actif sp√©cifique |
+| `AttributeValidator` | Valide les attributs contre les d√©finitions |
 
-### AssetType (AgrÈgat Racine)
+### Diagramme de Classes - Assets
 
-`AssetType` est l'agrÈgat principal qui dÈfinit :
+```mermaid
+classDiagram
+    class AssetType {
+        +string Name
+        +string Description
+        +IReadOnlyCollection~AttributeDefinition~ ExpectedAttributes
+        +IReadOnlyCollection~TaxRule~ TaxRules
+        +Create(name, description) AssetType
+        +AddExpectedAttribute(definition) AssetType
+        +AddTaxRule(rule) AssetType
+        +ValidateAttributesResult(attributes) ValidationResult
+        +EvaluateTaxRule(ruleKey, attributes, amount) decimal
+    }
+    
+    class TaxableAsset {
+        +AssetType AssetType
+        +IReadOnlyCollection~ExtendedAttribute~ Attributes
+        +Create(assetType, attributes) TaxableAsset
+        +CalculateTaxes(options) TaxCalculationResult
+        +CalculateTaxLines(baseAmount, forDate) IReadOnlyCollection~TaxLine~
+    }
+    
+    class AttributeDefinition {
+        +string Key
+        +string Label
+        +AttributeDataType DataType
+        +bool IsRequired
+        +EnumDefinition EnumDefinition
+        +string RegexPattern
+        +Create(key, label, dataType, isRequired) AttributeDefinition
+    }
+    
+    class ExtendedAttribute {
+        +string Key
+        +string Value
+        +AttributeDataType DataType
+        +bool IsRequired
+        +Create(key, value, dataType, isRequired) ExtendedAttribute
+        +IsValidValue() bool
+    }
+    
+    AssetType "1" *-- "*" AttributeDefinition : ExpectedAttributes
+    AssetType "1" *-- "*" TaxRule : TaxRules
+    TaxableAsset "*" --> "1" AssetType
+    TaxableAsset "1" *-- "*" ExtendedAttribute : Attributes
+```
+
+### AssetType (Agr√©gat Racine)
+
+`AssetType` est l'agr√©gat principal qui d√©finit :
 - Les **attributs attendus** pour ce type d'actif
-- Les **rËgles fiscales** applicables
+- Les **r√®gles fiscales** applicables
 
 ```csharp
-// CrÈation d'un type d'actif "Immobilier"
+// Cr√©ation d'un type d'actif "Immobilier"
 var realEstate = AssetType.Create("Immobilier", "Biens immobiliers");
 
 // Ajout des attributs attendus
 realEstate
     .AddExpectedAttribute(AttributeDefinition.Create(
         "ValeurVenale", 
-        "Valeur VÈnale", 
+        "Valeur V√©nale", 
         AttributeDataType.Number, 
         isRequired: true))
     .AddExpectedAttribute(AttributeDefinition.Create(
         new EnumDefinition
         {
             Key = "TypePropriete",
-            Label = "Type de PropriÈtÈ",
+            Label = "Type de Propri√©t√©",
             Items = {
-                new EnumItem { Code = "PB", Label = "PropriÈtÈ B‚tie" },
-                new EnumItem { Code = "PNB", Label = "PropriÈtÈ Non B‚tie" }
+                new EnumItem { Code = "PB", Label = "Propri√©t√© B√¢tie" },
+                new EnumItem { Code = "PNB", Label = "Propri√©t√© Non B√¢tie" }
             }
         }));
 
-// Ajout d'une rËgle fiscale
+// Ajout d'une r√®gle fiscale
 realEstate.AddTaxRule(new TaxRule
 {
     Key = "TFB",
-    Label = "Taxe FonciËre sur PropriÈtÈ B‚tie",
-    Expression = "[TypePropriete] == 'PropriÈtÈ B‚tie' ? [ValeurVenale] * 0.0075 : 0"
+    Label = "Taxe Fonci√®re sur Propri√©t√© B√¢tie",
+    Expression = "[TypePropriete] == 'Propri√©t√© B√¢tie' ? [ValeurVenale] * 0.0075 : 0"
 });
 ```
 
 ### TaxableAsset
 
-ReprÈsente un actif concret avec ses valeurs d'attributs :
+Repr√©sente un actif concret avec ses valeurs d'attributs :
 
 ```csharp
-// CrÈation d'un actif imposable
+// Cr√©ation d'un actif imposable
 var attributes = new Collection<ExtendedAttribute>
 {
     ExtendedAttribute.Create("ValeurVenale", "1000000", AttributeDataType.Number, true),
-    ExtendedAttribute.Create("TypePropriete", "PropriÈtÈ B‚tie", AttributeDataType.Enum, true)
+    ExtendedAttribute.Create("TypePropriete", "Propri√©t√© B√¢tie", AttributeDataType.Enum, true)
 };
 
 var asset = TaxableAsset.Create(realEstate, attributes);
@@ -126,7 +187,7 @@ Console.WriteLine($"Total: {result.Total}"); // 7500 (1000000 * 0.0075)
 ### Validation des Attributs
 
 ```csharp
-// Validation avec rÈsultat structurÈ
+// Validation avec r√©sultat structur√©
 var validationResult = realEstate.ValidateAttributesResult(attributes);
 
 if (validationResult.HasErrors)
@@ -142,28 +203,54 @@ if (validationResult.HasErrors)
 
 ## Module Calculation
 
-### Concepts ClÈs
+### Concepts Cl√©s
 
 | Classe | Description |
 |--------|-------------|
-| `TaxRule` | RËgle fiscale avec expression NCalc |
+| `TaxRule` | R√®gle fiscale avec expression NCalc |
 | `TaxEngine` | Moteur de calcul haute performance |
-| `TaxLine` | Ligne de rÈsultat pour une rËgle |
-| `TaxCalculationResult` | RÈsultat complet avec totaux et diagnostics |
-| `TaxRuleEvaluator` | …value une rËgle individuelle |
-| `IExpressionEvaluator` | Abstraction pour l'Èvaluation d'expressions |
+| `TaxLine` | Ligne de r√©sultat pour une r√®gle |
+| `TaxCalculationResult` | R√©sultat complet avec totaux et diagnostics |
+| `TaxRuleEvaluator` | √âvalue une r√®gle individuelle |
+| `IExpressionEvaluator` | Abstraction pour l'√©valuation d'expressions |
+
+### Diagramme de S√©quence - Calcul des Taxes
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant TaxableAsset
+    participant TaxEngine
+    participant TaxRuleEvaluator
+    participant NCalcEvaluator
+    
+    Client->>TaxableAsset: CalculateTaxes(options)
+    TaxableAsset->>TaxEngine: Evaluate(asset, options)
+    
+    loop Pour chaque TaxRule active
+        TaxEngine->>TaxRuleEvaluator: Evaluate(rule, attributes, amount)
+        TaxRuleEvaluator->>NCalcEvaluator: Evaluate(expression, parameters)
+        NCalcEvaluator-->>TaxRuleEvaluator: result (decimal)
+        TaxRuleEvaluator-->>TaxEngine: TaxRuleEvaluationResult
+    end
+    
+    TaxEngine->>TaxEngine: Cr√©er TaxLines
+    TaxEngine->>TaxEngine: Appliquer arrondi
+    TaxEngine-->>TaxableAsset: TaxCalculationResult
+    TaxableAsset-->>Client: TaxCalculationResult
+```
 
 ### TaxRule
 
-DÈfinit une rËgle fiscale avec une expression dynamique :
+D√©finit une r√®gle fiscale avec une expression dynamique :
 
 ```csharp
 var rule = new TaxRule
 {
     Key = "TFNB",
-    Label = "Taxe FonciËre sur PropriÈtÈ Non B‚tie",
+    Label = "Taxe Fonci√®re sur Propri√©t√© Non B√¢tie",
     Expression = """
-        [TypePropriete] == 'PropriÈtÈ Non B‚tie' 
+        [TypePropriete] == 'Propri√©t√© Non B√¢tie' 
             ? [ValeurVenale] * 0.005 
             : 0
     """,
@@ -176,15 +263,15 @@ var rule = new TaxRule
 
 | Variable | Description |
 |----------|-------------|
-| `[AttributKey]` | Valeur de l'attribut (nombre, boolÈen ou chaÓne) |
-| `[EnumKey]` | Label de l'ÈnumÈration |
-| `[EnumKeyCode]` | Code de l'ÈnumÈration |
-| `[EnumKeyLabel]` | Label de l'ÈnumÈration |
+| `[AttributKey]` | Valeur de l'attribut (nombre, bool√©en ou cha√Æne) |
+| `[EnumKey]` | Label de l'√©num√©ration |
+| `[EnumKeyCode]` | Code de l'√©num√©ration |
+| `[EnumKeyLabel]` | Label de l'√©num√©ration |
 | `amount` | Montant de base optionnel |
 
 ### TaxEngine
 
-Moteur optimisÈ pour le calcul de taxes :
+Moteur optimis√© pour le calcul de taxes :
 
 ```csharp
 // Options de calcul
@@ -202,7 +289,7 @@ var options = new TaxEngineOptions
 // Calcul
 var result = TaxEngine.Evaluate(asset, options);
 
-// RÈsultats
+// R√©sultats
 Console.WriteLine($"Total: {result.Total} {result.Currency}");
 foreach (var line in result.Lines)
 {
@@ -212,14 +299,14 @@ foreach (var line in result.Lines)
 // Diagnostic
 foreach (var warning in result.Warnings)
 {
-    Console.WriteLine($"?? {warning}");
+    Console.WriteLine($"‚ö†Ô∏è {warning}");
 }
 ```
 
 ### Calcul au Prorata
 
 ```csharp
-// Calcul pour une pÈriode avec prorata
+// Calcul pour une p√©riode avec prorata
 var result = TaxEngine.EvaluateForPeriod(
     asset,
     from: new DateTimeOffset(2025, 7, 1, 0, 0, 0, TimeSpan.Zero),
@@ -227,35 +314,101 @@ var result = TaxEngine.EvaluateForPeriod(
     daysInYear: 365,
     options);
 
-// Les montants sont proratÈs sur 184 jours / 365
+// Les montants sont prorat√©s sur 184 jours / 365
 ```
 
 ---
 
 ## Module Obligations
 
-### Concepts ClÈs
+### Concepts Cl√©s
 
 | Classe | Description |
 |--------|-------------|
 | `TaxObligationSchedule` | Calendrier des obligations fiscales |
-| `DeclarationDeadline` | …chÈance de dÈclaration |
-| `PaymentDeadline` | …chÈance de paiement avec fraction du montant |
-| `Duration` | DurÈe flexible (jours, semaines, mois, annÈes) |
-| `ObligationPenaltyCalculator` | Calcule les pÈnalitÈs basÈes sur les obligations |
+| `DeclarationDeadline` | √âch√©ance de d√©claration |
+| `PaymentDeadline` | √âch√©ance de paiement avec fraction du montant |
+| `Duration` | Dur√©e flexible (jours, semaines, mois, ann√©es) |
+| `ObligationPenaltyCalculator` | Calcule les p√©nalit√©s bas√©es sur les obligations |
+
+### Diagramme de Classes - Obligations
+
+```mermaid
+classDiagram
+    class TaxObligationSchedule {
+        +DeclarationDeadline DeclarationDeadline
+        +IReadOnlyList~PaymentDeadline~ PaymentDeadlines
+        +int InstallmentCount
+        +bool HasDeclarationDeadline
+        +bool HasPaymentDeadlines
+        +Create() TaxObligationSchedule
+        +WithDeclarationDeadline(deadline) TaxObligationSchedule
+        +AddPaymentDeadline(deadline) TaxObligationSchedule
+        +Validate() ValidationResult
+        +GetOverdueDeadlines(asOf) IReadOnlyList~TaxDeadline~
+    }
+    
+    class TaxDeadline {
+        <<abstract>>
+        +string Key
+        +string Label
+        +DeadlineType Type
+        +DateTimeOffset DueDate
+        +Duration GracePeriod
+        +DateTimeOffset EffectiveDueDate
+        +bool Enabled
+        +IsOverdue(asOf) bool
+        +GetDaysLate(asOf) int
+    }
+    
+    class DeclarationDeadline {
+        +DeadlineType Type = Declaration
+        +PenaltyDefinition PenaltyDefinition
+        +Create(key, label, dueDate, gracePeriod) DeclarationDeadline
+        +WithPenalty(definition) DeclarationDeadline
+    }
+    
+    class PaymentDeadline {
+        +DeadlineType Type = Payment
+        +decimal Fraction
+        +int Order
+        +PenaltyDefinition PenaltyDefinition
+        +Create(key, label, dueDate, fraction, order, gracePeriod) PaymentDeadline
+        +WithPenalty(definition) PaymentDeadline
+        +GetAmountDue(totalTaxAmount) decimal
+    }
+    
+    class Duration {
+        <<struct>>
+        +int Value
+        +TimeUnit Unit
+        +Days(value) Duration
+        +Weeks(value) Duration
+        +Months(value) Duration
+        +Years(value) Duration
+        +AddTo(date) DateTimeOffset
+        +ToDays() int
+    }
+    
+    TaxDeadline <|-- DeclarationDeadline
+    TaxDeadline <|-- PaymentDeadline
+    TaxObligationSchedule "1" o-- "0..1" DeclarationDeadline
+    TaxObligationSchedule "1" o-- "*" PaymentDeadline
+    TaxDeadline --> Duration : GracePeriod
+```
 
 ### Duration
 
-Type flexible pour les pÈriodes :
+Type flexible pour les p√©riodes :
 
 ```csharp
-// DiffÈrentes unitÈs de temps
+// Diff√©rentes unit√©s de temps
 var grace1 = Duration.Days(10);      // 10 jours
 var grace2 = Duration.Weeks(2);      // 2 semaines
 var grace3 = Duration.Months(1);     // 1 mois
 var grace4 = Duration.Years(1);      // 1 an
 
-// OpÈrations
+// Op√©rations
 var futureDate = grace1.AddTo(DateTimeOffset.Now);
 var approximateDays = grace3.ToDays(); // ~30 jours
 
@@ -265,15 +418,15 @@ Console.WriteLine(grace3); // "1 mois"
 
 ### TaxObligationSchedule
 
-DÈfinit le calendrier complet des obligations :
+D√©finit le calendrier complet des obligations :
 
 ```csharp
 var schedule = TaxObligationSchedule.Create()
-    // …chÈance de dÈclaration
+    // √âch√©ance de d√©claration
     .WithDeclarationDeadline(
         DeclarationDeadline.Create(
             key: "DECL_ANNUELLE",
-            label: "DÈclaration Annuelle",
+            label: "D√©claration Annuelle",
             dueDate: new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero),
             gracePeriod: Duration.Days(15))
         .WithPenalty(new PenaltyDefinition
@@ -284,7 +437,7 @@ var schedule = TaxObligationSchedule.Create()
             Period = Duration.Months(1)
         }))
     
-    // PremiËre ÈchÈance de paiement (50%)
+    // Premi√®re √©ch√©ance de paiement (50%)
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             key: "PAY_1",
@@ -300,11 +453,11 @@ var schedule = TaxObligationSchedule.Create()
             Period = Duration.Days(30)
         }))
     
-    // DeuxiËme ÈchÈance de paiement (50%)
+    // Deuxi√®me √©ch√©ance de paiement (50%)
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             key: "PAY_2",
-            label: "DeuxiËme Versement",
+            label: "Deuxi√®me Versement",
             dueDate: new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero),
             fraction: 0.5m,
             order: 2,
@@ -323,11 +476,11 @@ if (validation.HasErrors)
     throw new InvalidOperationException(validation.ErrorMessage);
 }
 
-// Association ‡ une rËgle fiscale
+// Association √† une r√®gle fiscale
 rule.ConfigureObligationSchedule(schedule);
 ```
 
-### Calcul des PÈnalitÈs d'Obligations
+### Calcul des P√©nalit√©s d'Obligations
 
 ```csharp
 var calculator = new ObligationPenaltyCalculator(new PenaltyPolicy 
@@ -335,10 +488,10 @@ var calculator = new ObligationPenaltyCalculator(new PenaltyPolicy
     DaysInYear = 365 
 });
 
-// Paiements effectuÈs
+// Paiements effectu√©s
 var payments = new Dictionary<string, decimal>
 {
-    { "PAY_1", 250_000m }  // Paiement partiel sur la 1Ëre ÈchÈance
+    { "PAY_1", 250_000m }  // Paiement partiel sur la 1√®re √©ch√©ance
 };
 
 var result = calculator.Calculate(
@@ -347,11 +500,11 @@ var result = calculator.Calculate(
     asOf: new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero),
     payments);
 
-Console.WriteLine($"PÈnalitÈs de dÈclaration: {result.TotalDeclarationPenalty}");
-Console.WriteLine($"PÈnalitÈs de paiement: {result.TotalPaymentPenalty}");
-Console.WriteLine($"Total pÈnalitÈs: {result.TotalAmount}");
+Console.WriteLine($"P√©nalit√©s de d√©claration: {result.TotalDeclarationPenalty}");
+Console.WriteLine($"P√©nalit√©s de paiement: {result.TotalPaymentPenalty}");
+Console.WriteLine($"Total p√©nalit√©s: {result.TotalAmount}");
 
-// DÈtail par ÈchÈance
+// D√©tail par √©ch√©ance
 foreach (var (key, penalties) in result.PaymentPenalties)
 {
     Console.WriteLine($"  {key}: {penalties.Sum(p => p.Amount)}");
@@ -362,23 +515,74 @@ foreach (var (key, penalties) in result.PaymentPenalties)
 
 ## Module Penalties
 
-### Concepts ClÈs
+### Concepts Cl√©s
 
 | Classe | Description |
 |--------|-------------|
-| `PenaltyPolicy` | Politique de calcul des pÈnalitÈs |
-| `PenaltyDefinition` | DÈfinition d'une pÈnalitÈ (taux, pÈriodicitÈ, etc.) |
+| `PenaltyPolicy` | Politique de calcul des p√©nalit√©s |
+| `PenaltyDefinition` | D√©finition d'une p√©nalit√© (taux, p√©riodicit√©, etc.) |
 | `PenaltyCalculator` | Calculateur principal (utilise PaymentSchedule) |
-| `AssiettePenaltyRule` | RËgle de pÈnalitÈ d'assiette |
-| `RecouvrementPenaltyRule` | RËgle de pÈnalitÈ de recouvrement |
-| `PenaltyAccrual` | Ligne de pÈnalitÈ calculÈe |
+| `AssiettePenaltyRule` | R√®gle de p√©nalit√© d'assiette |
+| `RecouvrementPenaltyRule` | R√®gle de p√©nalit√© de recouvrement |
+| `PenaltyAccrual` | Ligne de p√©nalit√© calcul√©e |
 
-### Types de PÈnalitÈs
+### Types de P√©nalit√©s
 
-| Type | Description | DÈclencheur |
+```mermaid
+graph LR
+    subgraph "Types de P√©nalit√©s"
+        A[Assiette] --> A1[D√©claration tardive]
+        A --> A2[P√©nalit√© fixe + Taux annuel]
+        
+        R[Recouvrement] --> R1[Paiement tardif]
+        R --> R2[Taux p√©riodique progressif]
+    end
+    
+    subgraph "Calcul"
+        A1 --> C[PenaltyCalculator]
+        R1 --> C
+        C --> P[PenaltyAccrual]
+    end
+```
+
+| Type | Description | D√©clencheur |
 |------|-------------|-------------|
-| `Assiette` | PÈnalitÈ de dÈclaration tardive | DÈpassement de l'ÈchÈance de dÈclaration |
-| `Recouvrement` | PÈnalitÈ de paiement tardif | DÈpassement d'une ÈchÈance de paiement |
+| `Assiette` | P√©nalit√© de d√©claration tardive | D√©passement de l'√©ch√©ance de d√©claration |
+| `Recouvrement` | P√©nalit√© de paiement tardif | D√©passement d'une √©ch√©ance de paiement |
+
+### Diagramme de S√©quence - Calcul des P√©nalit√©s
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Calculator as PenaltyCalculator
+    participant AssietteRule as AssiettePenaltyRule
+    participant RecouvrementRule as RecouvrementPenaltyRule
+    participant Helper as PenaltyCalculationHelper
+    
+    Client->>Calculator: Calculate(schedule, policy, asOf, taxAmount)
+    
+    Calculator->>AssietteRule: Evaluate(schedule, policy, asOf, taxAmount)
+    AssietteRule->>Helper: CalculateDaysLate()
+    Helper-->>AssietteRule: daysLate
+    AssietteRule->>Helper: Prorate(baseAmount, rate, daysInYear, days)
+    Helper-->>AssietteRule: amount
+    AssietteRule-->>Calculator: IEnumerable~PenaltyAccrual~
+    
+    loop Pour chaque Installment
+        Calculator->>RecouvrementRule: Evaluate(schedule, policy, asOf)
+        RecouvrementRule->>Helper: CalculatePeriodCount()
+        Helper-->>RecouvrementRule: periodCount
+        
+        loop Pour chaque p√©riode
+            RecouvrementRule->>Helper: ApplyFloorAndCap()
+            Helper-->>RecouvrementRule: penalty
+        end
+        RecouvrementRule-->>Calculator: IEnumerable~PenaltyAccrual~
+    end
+    
+    Calculator-->>Client: PenaltyCalculationResult
+```
 
 ### PenaltyDefinition
 
@@ -387,27 +591,27 @@ var penaltyDef = new PenaltyDefinition
 {
     Type = PenaltyType.Recouvrement,
     
-    // PÈriode de gr‚ce avant application des pÈnalitÈs
+    // P√©riode de gr√¢ce avant application des p√©nalit√©s
     GracePeriod = Duration.Days(10),
     
-    // Montant fixe (appliquÈ une fois)
+    // Montant fixe (appliqu√© une fois)
     FixedAmount = 50_000m,
     
-    // Taux annuel (proratÈ par pÈriode)
+    // Taux annuel (prorat√© par p√©riode)
     AnnualRate = 0.12m,  // 12% par an
     
-    // OU Taux pÈriodique (prioritaire sur AnnualRate)
-    PeriodRate = 0.10m,  // 10% par pÈriode
-    PeriodRateIncrement = 0.01m,  // +1% par pÈriode supplÈmentaire
+    // OU Taux p√©riodique (prioritaire sur AnnualRate)
+    PeriodRate = 0.10m,  // 10% par p√©riode
+    PeriodRateIncrement = 0.01m,  // +1% par p√©riode suppl√©mentaire
     
-    // PÈriodicitÈ
+    // P√©riodicit√©
     Period = Duration.Months(1),
     
     // Limites
     Minimum = 10_000m,
     Cap = 500_000m,
     
-    // Capitalisation (intÈrÍts composÈs)
+    // Capitalisation (int√©r√™ts compos√©s)
     Capitalize = false
 };
 ```
@@ -421,7 +625,7 @@ var policy = new PenaltyPolicy
     MinimumLineAmount = 100m    // Montant minimum par ligne
 };
 
-// Ajout des dÈfinitions
+// Ajout des d√©finitions
 policy.AddOrUpdateDefinition(new PenaltyDefinition
 {
     Type = PenaltyType.Assiette,
@@ -444,7 +648,7 @@ policy.Validate();
 ### Calcul avec PenaltyCalculator
 
 ```csharp
-// CrÈer un ÈchÈancier de paiement
+// Cr√©er un √©ch√©ancier de paiement
 var installments = new[]
 {
     new Installment(Guid.NewGuid(), 500_000m, 
@@ -461,21 +665,21 @@ schedule.ApplyPayment(new Payment(
     300_000m, 
     new DateTimeOffset(2025, 5, 15, 0, 0, 0, TimeSpan.Zero)));
 
-// Calculer les pÈnalitÈs
+// Calculer les p√©nalit√©s
 var result = PenaltyCalculator.Calculate(
     schedule,
     policy,
     asOf: new DateTimeOffset(2025, 8, 15, 0, 0, 0, TimeSpan.Zero),
     taxBaseAmount: 1_000_000m);
 
-// RÈsultats
+// R√©sultats
 foreach (var accrual in result.Accruals)
 {
     Console.WriteLine($"{accrual.LineType}: {accrual.Amount}");
     Console.WriteLine($"  Base: {accrual.BaseAmount}");
     Console.WriteLine($"  Taux: {accrual.Rate:P2}");
     Console.WriteLine($"  Jours de retard: {accrual.DaysLate}");
-    Console.WriteLine($"  PÈriode: {accrual.PeriodIndex}");
+    Console.WriteLine($"  P√©riode: {accrual.PeriodIndex}");
 }
 ```
 
@@ -483,20 +687,69 @@ foreach (var accrual in result.Accruals)
 
 ## Module Payments
 
-### Concepts ClÈs
+### Concepts Cl√©s
 
 | Classe | Description |
 |--------|-------------|
-| `PaymentSchedule` | …chÈancier de paiement |
-| `Installment` | …chÈance de paiement individuelle |
-| `Payment` | Paiement reÁu |
-| `PaymentAllocation` | Allocation d'un paiement ‡ une ÈchÈance |
-| `AllocationStrategy` | StratÈgie d'allocation (FIFO, etc.) |
+| `PaymentSchedule` | √âch√©ancier de paiement |
+| `Installment` | √âch√©ance de paiement individuelle |
+| `Payment` | Paiement re√ßu |
+| `PaymentAllocation` | Allocation d'un paiement √† une √©ch√©ance |
+| `AllocationStrategy` | Strat√©gie d'allocation (FIFO, etc.) |
+
+### Diagramme de Classes - Payments
+
+```mermaid
+classDiagram
+    class PaymentSchedule {
+        +Guid DeclarationId
+        +Guid LiquidationId
+        +IReadOnlyList~Installment~ Installments
+        +IReadOnlyList~Payment~ Payments
+        +decimal TotalDue
+        +decimal TotalPaid
+        +decimal TotalOutstanding
+        +ApplyPayment(payment, strategy) void
+    }
+    
+    class Installment {
+        +Guid Id
+        +decimal Amount
+        +DateTimeOffset DueDate
+        +DateTimeOffset EffectiveDueDate
+        +IReadOnlyList~PaymentAllocation~ Allocations
+        +GetOutstanding(asOf) decimal
+    }
+    
+    class Payment {
+        +Guid Id
+        +decimal Amount
+        +DateTimeOffset Date
+    }
+    
+    class PaymentAllocation {
+        +Guid PaymentId
+        +decimal Amount
+        +DateTimeOffset Date
+    }
+    
+    class AllocationStrategy {
+        <<enumeration>>
+        Fifo
+        Lifo
+        ProRata
+    }
+    
+    PaymentSchedule "1" *-- "*" Installment
+    PaymentSchedule "1" *-- "*" Payment
+    Installment "1" *-- "*" PaymentAllocation
+    Payment --> PaymentAllocation : cr√©e
+```
 
 ### PaymentSchedule
 
 ```csharp
-// CrÈation d'un ÈchÈancier
+// Cr√©ation d'un √©ch√©ancier
 var schedule = new PaymentSchedule(
     declarationId: Guid.NewGuid(),
     liquidationId: Guid.NewGuid(),
@@ -514,11 +767,11 @@ schedule.ApplyPayment(new Payment(
     600_000m,
     new DateTimeOffset(2025, 5, 1, 0, 0, 0, TimeSpan.Zero)));
 
-// VÈrifier les soldes
+// V√©rifier les soldes
 foreach (var inst in schedule.Installments)
 {
     var outstanding = inst.GetOutstanding(DateTimeOffset.Now);
-    Console.WriteLine($"…chÈance {inst.DueDate:d}: D˚={inst.Amount}, Restant={outstanding}");
+    Console.WriteLine($"√âch√©ance {inst.DueDate:d}: D√ª={inst.Amount}, Restant={outstanding}");
 }
 ```
 
@@ -530,12 +783,12 @@ var installment = new Installment(
     amount: 500_000m,
     dueDate: new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero));
 
-// PropriÈtÈs
-Console.WriteLine($"Date d'ÈchÈance: {installment.DueDate}");
+// Propri√©t√©s
+Console.WriteLine($"Date d'√©ch√©ance: {installment.DueDate}");
 Console.WriteLine($"Date effective: {installment.EffectiveDueDate}");
 Console.WriteLine($"Montant: {installment.Amount}");
 
-// Solde ‡ une date donnÈe
+// Solde √† une date donn√©e
 var outstanding = installment.GetOutstanding(DateTimeOffset.Now);
 ```
 
@@ -545,19 +798,19 @@ var outstanding = installment.GetOutstanding(DateTimeOffset.Now);
 
 ### ValidationResult
 
-Type structurÈ pour les rÈsultats de validation :
+Type structur√© pour les r√©sultats de validation :
 
 ```csharp
-// Validation rÈussie
+// Validation r√©ussie
 var success = ValidationResult.Success();
 
-// Validation ÈchouÈe
+// Validation √©chou√©e
 var failure = ValidationResult.Failure(new ValidationError(
     code: "MISSING_REQUIRED_ATTRIBUTE",
     message: "Attribut requis manquant: 'ValeurVenale'.",
     propertyName: "ValeurVenale"));
 
-// Combinaison de rÈsultats
+// Combinaison de r√©sultats
 var combined = ValidationResult.Combine(result1, result2, result3);
 
 // Utilisation
@@ -585,7 +838,7 @@ public static class ValidationErrorCodes
     public const string InvalidRegexPattern = "INVALID_REGEX_PATTERN";
     public const string RegexMismatch = "REGEX_MISMATCH";
 
-    // Validation des rËgles fiscales
+    // Validation des r√®gles fiscales
     public const string RuleNotFound = "RULE_NOT_FOUND";
     public const string RuleDisabled = "RULE_DISABLED";
     public const string RuleEvaluationFailed = "RULE_EVALUATION_FAILED";
@@ -598,41 +851,41 @@ public static class ValidationErrorCodes
 
 ## Exemples Complets
 
-### Exemple 1 : Calcul de Taxe FonciËre
+### Exemple 1 : Calcul de Taxe Fonci√®re
 
 ```csharp
-// 1. DÈfinir le type d'actif
+// 1. D√©finir le type d'actif
 var realEstate = AssetType.Create("Immobilier", "Biens immobiliers");
 
 realEstate
     .AddExpectedAttribute(AttributeDefinition.Create(
-        "ValeurVenale", "Valeur VÈnale", AttributeDataType.Number, true))
+        "ValeurVenale", "Valeur V√©nale", AttributeDataType.Number, true))
     .AddExpectedAttribute(AttributeDefinition.Create(new EnumDefinition
     {
         Key = "TypePropriete",
-        Label = "Type de PropriÈtÈ",
+        Label = "Type de Propri√©t√©",
         Items = {
-            new EnumItem { Code = "PB", Label = "PropriÈtÈ B‚tie", Order = 1 },
-            new EnumItem { Code = "PNB", Label = "PropriÈtÈ Non B‚tie", Order = 2 }
+            new EnumItem { Code = "PB", Label = "Propri√©t√© B√¢tie", Order = 1 },
+            new EnumItem { Code = "PNB", Label = "Propri√©t√© Non B√¢tie", Order = 2 }
         }
     }));
 
-// 2. DÈfinir les rËgles fiscales
+// 2. D√©finir les r√®gles fiscales
 realEstate.AddTaxRule(new TaxRule
 {
     Key = "TFB",
-    Label = "Taxe FonciËre B‚tie",
-    Expression = "[TypePropriete] == 'PropriÈtÈ B‚tie' ? [ValeurVenale] * 0.0075 : 0"
+    Label = "Taxe Fonci√®re B√¢tie",
+    Expression = "[TypePropriete] == 'Propri√©t√© B√¢tie' ? [ValeurVenale] * 0.0075 : 0"
 });
 
 realEstate.AddTaxRule(new TaxRule
 {
     Key = "TFNB",
-    Label = "Taxe FonciËre Non B‚tie",
-    Expression = "[TypePropriete] == 'PropriÈtÈ Non B‚tie' ? [ValeurVenale] * 0.005 : 0"
+    Label = "Taxe Fonci√®re Non B√¢tie",
+    Expression = "[TypePropriete] == 'Propri√©t√© Non B√¢tie' ? [ValeurVenale] * 0.005 : 0"
 });
 
-// 3. CrÈer un actif imposable
+// 3. Cr√©er un actif imposable
 var attributes = new Collection<ExtendedAttribute>
 {
     ExtendedAttribute.Create("ValeurVenale", "50000000", AttributeDataType.Number, true),
@@ -656,14 +909,14 @@ foreach (var line in result.Lines)
     Console.WriteLine($"  {line.Label}: {line.RoundedAmount:N0}");
 }
 // Output:
-//   Taxe FonciËre B‚tie: 375,000
-//   Taxe FonciËre Non B‚tie: 0
+//   Taxe Fonci√®re B√¢tie: 375,000
+//   Taxe Fonci√®re Non B√¢tie: 0
 ```
 
-### Exemple 2 : Gestion des PÈnalitÈs de Retard
+### Exemple 2 : Gestion des P√©nalit√©s de Retard
 
 ```csharp
-// 1. Configurer la politique de pÈnalitÈs
+// 1. Configurer la politique de p√©nalit√©s
 var policy = new PenaltyPolicy { DaysInYear = 365 };
 
 policy.AddOrUpdateDefinition(new PenaltyDefinition
@@ -683,7 +936,7 @@ policy.AddOrUpdateDefinition(new PenaltyDefinition
     Period = Duration.Days(30)
 });
 
-// 2. CrÈer l'ÈchÈancier
+// 2. Cr√©er l'√©ch√©ancier
 var schedule = new PaymentSchedule(
     Guid.NewGuid(),
     null,
@@ -692,11 +945,11 @@ var schedule = new PaymentSchedule(
             new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero))
     });
 
-// 3. Calculer les pÈnalitÈs au 15 juin (45 jours de retard)
+// 3. Calculer les p√©nalit√©s au 15 juin (45 jours de retard)
 var asOf = new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero);
 var penalties = PenaltyCalculator.Calculate(schedule, policy, asOf, 375_000m);
 
-Console.WriteLine($"PÈnalitÈs totales: {penalties.Total:N0} XOF");
+Console.WriteLine($"P√©nalit√©s totales: {penalties.Total:N0} XOF");
 foreach (var accrual in penalties.Accruals)
 {
     Console.WriteLine($"  {accrual.LineType}: {accrual.Amount:N0}");
@@ -706,12 +959,12 @@ foreach (var accrual in penalties.Accruals)
 ### Exemple 3 : Calendrier d'Obligations Complet
 
 ```csharp
-// 1. CrÈer le calendrier
+// 1. Cr√©er le calendrier
 var schedule = TaxObligationSchedule.Create()
     .WithDeclarationDeadline(
         DeclarationDeadline.Create(
             "DECL_TF_2025",
-            "DÈclaration Taxe FonciËre 2025",
+            "D√©claration Taxe Fonci√®re 2025",
             new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero),
             Duration.Weeks(2))
         .WithPenalty(new PenaltyDefinition
@@ -738,7 +991,7 @@ var schedule = TaxObligationSchedule.Create()
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_TF_2025_Q2",
-            "Paiement 2Ëme Trimestre",
+            "Paiement 2√®me Trimestre",
             new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero),
             fraction: 0.25m,
             order: 2,
@@ -752,7 +1005,7 @@ var schedule = TaxObligationSchedule.Create()
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_TF_2025_Q3",
-            "Paiement 3Ëme Trimestre",
+            "Paiement 3√®me Trimestre",
             new DateTimeOffset(2025, 10, 31, 0, 0, 0, TimeSpan.Zero),
             fraction: 0.25m,
             order: 3,
@@ -766,7 +1019,7 @@ var schedule = TaxObligationSchedule.Create()
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_TF_2025_Q4",
-            "Paiement 4Ëme Trimestre",
+            "Paiement 4√®me Trimestre",
             new DateTimeOffset(2026, 1, 31, 0, 0, 0, TimeSpan.Zero),
             fraction: 0.25m,
             order: 4,
@@ -785,15 +1038,15 @@ if (validation.HasErrors)
     throw new InvalidOperationException(validation.ErrorMessage);
 }
 
-// 3. Associer ‡ la rËgle fiscale
-var taxRule = new TaxRule { Key = "TF_2025", Label = "Taxe FonciËre 2025" };
+// 3. Associer √† la r√®gle fiscale
+var taxRule = new TaxRule { Key = "TF_2025", Label = "Taxe Fonci√®re 2025" };
 taxRule.ConfigureObligationSchedule(schedule);
 
-// 4. VÈrifier les ÈchÈances en retard
+// 4. V√©rifier les √©ch√©ances en retard
 var asOf = new DateTimeOffset(2025, 8, 15, 0, 0, 0, TimeSpan.Zero);
 var overdue = schedule.GetOverdueDeadlines(asOf);
 
-Console.WriteLine($"…chÈances en retard au {asOf:d}:");
+Console.WriteLine($"√âch√©ances en retard au {asOf:d}:");
 foreach (var deadline in overdue)
 {
     Console.WriteLine($"  - {deadline.Label} (due: {deadline.DueDate:d}, retard: {deadline.GetDaysLate(asOf)} jours)");
@@ -804,119 +1057,186 @@ foreach (var deadline in overdue)
 
 ## Diagrammes
 
-### Diagramme de Classes Principal
+### Vue d'Ensemble de l'Architecture
 
-```
-???????????????????????????????????????????????????????????????????????????
-?                              AssetType                                   ?
-? ??????????????????????????????????????????????????????????????????????? ?
-? + Name: string                                                          ?
-? + Description: string?                                                  ?
-? + ExpectedAttributes: IReadOnlyCollection<AttributeDefinition>          ?
-? + TaxRules: IReadOnlyCollection<TaxRule>                               ?
-? ??????????????????????????????????????????????????????????????????????? ?
-? + Create(name, description): AssetType                                  ?
-? + AddExpectedAttribute(definition): AssetType                           ?
-? + AddTaxRule(rule): AssetType                                          ?
-? + ValidateAttributesResult(attributes): ValidationResult                ?
-? + EvaluateTaxRule(ruleKey, attributes, amount?): decimal?              ?
-???????????????????????????????????????????????????????????????????????????
-                                ? 1
-                                ?
-                                ? *
-???????????????????????????????????????????????????????????????????????????
-?                            TaxableAsset                                  ?
-? ??????????????????????????????????????????????????????????????????????? ?
-? + AssetType: AssetType                                                  ?
-? + Attributes: IReadOnlyCollection<ExtendedAttribute>                    ?
-? ??????????????????????????????????????????????????????????????????????? ?
-? + Create(assetType, attributes): TaxableAsset                           ?
-? + CalculateTaxes(options?): TaxCalculationResult                        ?
-? + CalculateTaxLines(baseAmount?, forDate?): IReadOnlyCollection<TaxLine>?
-???????????????????????????????????????????????????????????????????????????
+```mermaid
+graph TB
+    subgraph "Couche Pr√©sentation"
+        API[API REST]
+        UI[Interface Utilisateur]
+    end
+    
+    subgraph "Couche Application"
+        Services[Services Applicatifs]
+    end
+    
+    subgraph "Couche Domaine"
+        subgraph "Tax Module"
+            Assets[Assets]
+            Calc[Calculation]
+            Oblig[Obligations]
+            Pen[Penalties]
+            Pay[Payments]
+        end
+        
+        subgraph "Contracts"
+            Entities[Entit√©s de Base]
+            Valid[Validation]
+            Events[√âv√©nements]
+        end
+    end
+    
+    subgraph "Couche Infrastructure"
+        DB[(Base de Donn√©es)]
+        External[Services Externes]
+    end
+    
+    API --> Services
+    UI --> Services
+    Services --> Assets
+    Services --> Calc
+    Services --> Oblig
+    Services --> Pen
+    Services --> Pay
+    
+    Assets --> Entities
+    Calc --> Entities
+    Oblig --> Entities
+    Pen --> Entities
+    Pay --> Entities
+    
+    Assets --> Valid
+    Calc --> Valid
+    Oblig --> Valid
+    
+    Assets --> Events
+    
+    Services --> DB
+    Services --> External
 ```
 
 ### Flux de Calcul des Taxes
 
-```
-????????????????    ???????????????    ????????????????????
-? TaxableAsset ??????  TaxEngine  ?????? TaxRuleEvaluator ?
-????????????????    ???????????????    ????????????????????
-                                                 ?
-                                                 ?
-                                       ????????????????????
-                                       ? NCalcExpression  ?
-                                       ?    Evaluator     ?
-                                       ????????????????????
-                                                 ?
-                                                 ?
-                                       ????????????????????
-                                       ? TaxCalculation   ?
-                                       ?     Result       ?
-                                       ????????????????????
+```mermaid
+flowchart LR
+    A[TaxableAsset] --> B[TaxEngine]
+    B --> C{Pour chaque TaxRule}
+    C -->|Active| D[TaxRuleEvaluator]
+    C -->|Inactive| E[Skip]
+    D --> F[NCalcExpressionEvaluator]
+    F --> G{R√©sultat}
+    G -->|Succ√®s| H[TaxLine]
+    G -->|Erreur| I[Warning]
+    H --> J[TaxCalculationResult]
+    I --> J
+    E --> C
 ```
 
-### Flux de Calcul des PÈnalitÈs
+### Flux de Calcul des P√©nalit√©s
 
-```
-???????????????????    ?????????????????????
-? PaymentSchedule ?????? PenaltyCalculator ?
-???????????????????    ?????????????????????
-                                 ?
-            ???????????????????????????????????????????
-            ?                    ?                    ?
-?????????????????????  ?????????????????????  ????????????????
-? AssiettePenalty   ?  ? Recouvrement      ?  ? PenaltyPolicy?
-?      Rule         ?  ? PenaltyRule       ?  ?              ?
-?????????????????????  ?????????????????????  ????????????????
-          ?                      ?
-          ????????????????????????
-                     ?
-           ????????????????????
-           ? PenaltyCalculation?
-           ?      Result       ?
-           ????????????????????
+```mermaid
+flowchart TB
+    Start([D√©but]) --> CheckSchedule{ObligationSchedule existe?}
+    CheckSchedule -->|Non| ReturnEmpty[Retourner r√©sultat vide]
+    CheckSchedule -->|Oui| CalcDecl[Calculer p√©nalit√©s d√©claration]
+    
+    CalcDecl --> CheckDeclOverdue{D√©claration en retard?}
+    CheckDeclOverdue -->|Non| CalcPay
+    CheckDeclOverdue -->|Oui| AddDeclPenalty[Ajouter p√©nalit√©s assiette]
+    AddDeclPenalty --> CalcPay
+    
+    CalcPay[Calculer p√©nalit√©s paiement]
+    CalcPay --> LoopDeadlines{Pour chaque PaymentDeadline}
+    
+    LoopDeadlines --> CheckOverdue{Deadline en retard?}
+    CheckOverdue -->|Non| NextDeadline
+    CheckOverdue -->|Oui| CalcOutstanding[Calculer montant impay√©]
+    
+    CalcOutstanding --> CheckPaid{Enti√®rement pay√©?}
+    CheckPaid -->|Oui| NextDeadline
+    CheckPaid -->|Non| CalcPeriods[Calculer par p√©riode]
+    
+    CalcPeriods --> AddPayPenalty[Ajouter p√©nalit√©s recouvrement]
+    AddPayPenalty --> NextDeadline
+    
+    NextDeadline --> LoopDeadlines
+    LoopDeadlines -->|Termin√©| Aggregate[Agr√©ger r√©sultats]
+    
+    Aggregate --> Return([ObligationPenaltyResult])
+    ReturnEmpty --> End([Fin])
+    Return --> End
 ```
 
-### ModËle des Obligations
+### Mod√®le des Obligations
 
+```mermaid
+graph TB
+    subgraph TaxObligationSchedule
+        direction TB
+        
+        subgraph "D√©claration (0..1)"
+            D[DeclarationDeadline]
+            D --> DD[DueDate: 31/03/2025]
+            D --> DG[GracePeriod: 2 semaines]
+            D --> DP[PenaltyDefinition<br/>Assiette]
+        end
+        
+        subgraph "Paiements (0..*)"
+            P1[PaymentDeadline #1]
+            P1 --> P1D[DueDate: 30/04/2025]
+            P1 --> P1F[Fraction: 25%]
+            P1 --> P1P[PenaltyDefinition<br/>Recouvrement]
+            
+            P2[PaymentDeadline #2]
+            P2 --> P2D[DueDate: 31/07/2025]
+            P2 --> P2F[Fraction: 25%]
+            P2 --> P2P[PenaltyDefinition<br/>Recouvrement]
+            
+            P3[PaymentDeadline #3]
+            P3 --> P3D[DueDate: 31/10/2025]
+            P3 --> P3F[Fraction: 25%]
+            
+            P4[PaymentDeadline #4]
+            P4 --> P4D[DueDate: 31/01/2026]
+            P4 --> P4F[Fraction: 25%]
+        end
+    end
+    
+    style D fill:#f9f,stroke:#333
+    style P1 fill:#bbf,stroke:#333
+    style P2 fill:#bbf,stroke:#333
+    style P3 fill:#bbf,stroke:#333
+    style P4 fill:#bbf,stroke:#333
 ```
-???????????????????????????????????????????????????????????????
-?                    TaxObligationSchedule                     ?
-???????????????????????????????????????????????????????????????
-?                                                             ?
-?  ?????????????????????????????????????????????????????????  ?
-?  ?              DeclarationDeadline (0..1)               ?  ?
-?  ?  + Key, Label, DueDate, GracePeriod                   ?  ?
-?  ?  + PenaltyDefinition (Assiette)                       ?  ?
-?  ?????????????????????????????????????????????????????????  ?
-?                                                             ?
-?  ?????????????????????????????????????????????????????????  ?
-?  ?              PaymentDeadlines (0..*)                  ?  ?
-?  ?  ???????????????????????????????????????????????????  ?  ?
-?  ?  ? PaymentDeadline #1                              ?  ?  ?
-?  ?  ? + Fraction: 0.25, Order: 1                      ?  ?  ?
-?  ?  ? + PenaltyDefinition (Recouvrement)              ?  ?  ?
-?  ?  ???????????????????????????????????????????????????  ?  ?
-?  ?  ???????????????????????????????????????????????????  ?  ?
-?  ?  ? PaymentDeadline #2                              ?  ?  ?
-?  ?  ? + Fraction: 0.25, Order: 2                      ?  ?  ?
-?  ?  ? + PenaltyDefinition (Recouvrement)              ?  ?  ?
-?  ?  ???????????????????????????????????????????????????  ?  ?
-?  ?  ...                                                  ?  ?
-?  ?????????????????????????????????????????????????????????  ?
-?                                                             ?
-???????????????????????????????????????????????????????????????
+
+### √âtat des √âch√©ances dans le Temps
+
+```mermaid
+gantt
+    title Calendrier Fiscal 2025
+    dateFormat YYYY-MM-DD
+    
+    section D√©claration
+    D√©claration          :done, decl, 2025-01-01, 2025-03-31
+    P√©riode de gr√¢ce     :active, grace, after decl, 14d
+    P√©nalit√©s assiette   :crit, pen1, after grace, 2025-12-31
+    
+    section Paiements
+    Paiement Q1 (25%)    :done, pay1, 2025-04-01, 2025-04-30
+    Paiement Q2 (25%)    :pay2, 2025-07-01, 2025-07-31
+    Paiement Q3 (25%)    :pay3, 2025-10-01, 2025-10-31
+    Paiement Q4 (25%)    :pay4, 2026-01-01, 2026-01-31
 ```
 
 ---
 
-## RÈfÈrences
+## R√©f√©rences
 
-- **NCalc** : BibliothËque d'Èvaluation d'expressions dynamiques
-- **Domain-Driven Design** : Eric Evans
+- **NCalc** : Biblioth√®que d'√©valuation d'expressions dynamiques
+- **Domain-Driven Design** 
 - **.NET 10** : Framework cible
+- **Mermaid** : Diagrammes dans Markdown
 
 ---
 
-*Documentation gÈnÈrÈe automatiquement - TaxFlow Framework v1.0*
+*Documentation g√©n√©r√©e automatiquement - TaxFlow Framework v1.0*

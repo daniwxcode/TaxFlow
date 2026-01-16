@@ -15,21 +15,35 @@ Framework de gestion fiscale flexible et extensible pour le calcul des taxes, la
 
 ## ?? Structure du Projet
 
-```
-TaxFlow.Framework.Core/
-??? Domain/
-?   ??? Contracts/          # Abstractions de base
-?   ?   ??? Abstracts/      # Entités (AuditableEntity, TemporalAuditableEntity)
-?   ?   ??? Validation/     # ValidationResult, ValidationError
-?   ?   ??? Event/          # Événements de domaine
-?   ??? Enums/              # AttributeDataType
-?   ??? Tax/                # Module fiscal
-?       ??? Assets/         # AssetType, TaxableAsset, AttributeValidator
-?       ??? Calculation/    # TaxEngine, TaxRule, TaxRuleEvaluator
-?       ??? Obligations/    # TaxObligationSchedule, Deadlines
-?       ??? Penalties/      # PenaltyCalculator, PenaltyDefinition
-?       ??? Payments/       # PaymentSchedule, Installment
-??? Bootstrap/              # DefaultAssetTypes
+```mermaid
+graph TB
+    subgraph "TaxFlow.Framework.Core"
+        subgraph "Domain"
+            subgraph "Contracts"
+                Abstracts[Abstracts<br/>AuditableEntity<br/>TemporalAuditableEntity]
+                Validation[Validation<br/>ValidationResult<br/>ValidationError]
+                Events[Event<br/>IDomainEvent]
+            end
+            
+            Enums[Enums<br/>AttributeDataType]
+            
+            subgraph "Tax"
+                Assets[Assets<br/>AssetType<br/>TaxableAsset]
+                Calculation[Calculation<br/>TaxEngine<br/>TaxRule]
+                Obligations[Obligations<br/>TaxObligationSchedule<br/>Deadlines]
+                Penalties[Penalties<br/>PenaltyCalculator<br/>PenaltyDefinition]
+                Payments[Payments<br/>PaymentSchedule<br/>Installment]
+            end
+        end
+        
+        Bootstrap[Bootstrap<br/>DefaultAssetTypes]
+    end
+    
+    Assets --> Abstracts
+    Calculation --> Assets
+    Obligations --> Calculation
+    Penalties --> Obligations
+    Payments --> Penalties
 ```
 
 ## ?? Démarrage Rapide
@@ -184,13 +198,29 @@ Console.WriteLine($"Pénalités de paiement: {penalties.TotalPaymentPenalty:N0}");
 Console.WriteLine($"Total pénalités: {penalties.TotalAmount:N0}");
 ```
 
+## ?? Flux de Calcul
+
+```mermaid
+flowchart LR
+    A[TaxableAsset] --> B[TaxEngine]
+    B --> C[TaxRuleEvaluator]
+    C --> D[NCalcExpression]
+    D --> E[TaxCalculationResult]
+    
+    E --> F{Obligations?}
+    F -->|Oui| G[ObligationPenaltyCalculator]
+    F -->|Non| H[Fin]
+    G --> I[PenaltyResult]
+    I --> H
+```
+
 ## ?? Documentation Complète
 
 Consultez la [Documentation du Domaine](docs/DOMAIN.md) pour :
 - Guide détaillé de chaque module
 - Exemples complets avec cas d'usage
-- Diagrammes d'architecture
-- API Reference
+- Diagrammes d'architecture Mermaid
+- [API Reference](docs/API.md)
 
 ## ?? Tests
 
