@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Collections.ObjectModel;
-using Core.Domain.Tax.Assets.Bootstrap;
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Xunit;
+using Core.Bootstrap;
 
 namespace TaxFlow.Framework.Core.Tests;
 

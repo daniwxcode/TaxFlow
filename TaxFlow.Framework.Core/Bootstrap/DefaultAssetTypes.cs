@@ -1,8 +1,9 @@
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
+using Core.Domain.Tax.Assets;
 using Core.Domain.Tax.Calculation;
 
-namespace Core.Domain.Tax.Assets.Bootstrap;
+namespace Core.Bootstrap;
 
 /// <summary>
 /// Provides default asset types and their configurations.
