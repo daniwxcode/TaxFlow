@@ -19,14 +19,15 @@ public class PenaltyCalculatorTests
         };
         var schedule = new PaymentSchedule(declarationId, null, installments);
 
-        var policy = new PenaltyPolicy
+        var policy = new PenaltyPolicy { DaysInYear = 360 };
+        policy.AddOrUpdateDefinition(new PenaltyDefinition
         {
-            AssietteFixedAmount = 100m,
-            AssietteAnnualRate = 0.12m,
-            DaysInYear = 360,
-            AssietteGraceDays = 10,
-            AssiettePeriodDays = 30
-        };
+            Type = PenaltyType.Assiette,
+            FixedAmount = 100m,
+            AnnualRate = 0.12m,
+            GraceDays = 10,
+            PeriodDays = 30
+        });
 
         var asOf = new DateTimeOffset(2025, 2, 20, 0, 0, 0, TimeSpan.Zero);
         var result = PenaltyCalculator.Calculate(schedule, policy, asOf, taxBaseAmount: 1000m);
@@ -50,13 +51,14 @@ public class PenaltyCalculatorTests
         };
         var schedule = new PaymentSchedule(declarationId, null, installments);
 
-        var policy = new PenaltyPolicy
+        var policy = new PenaltyPolicy { DaysInYear = 360 };
+        policy.AddOrUpdateDefinition(new PenaltyDefinition
         {
-            AssietteAnnualRate = 0.12m,
-            DaysInYear = 360,
-            AssietteGraceDays = 0,
-            AssiettePeriodDays = 30
-        };
+            Type = PenaltyType.Assiette,
+            AnnualRate = 0.12m,
+            GraceDays = 0,
+            PeriodDays = 30
+        });
 
         var asOf = new DateTimeOffset(2025, 2, 10, 0, 0, 0, TimeSpan.Zero); // 40 days late => 30 + 10
         var result = PenaltyCalculator.Calculate(schedule, policy, asOf, taxBaseAmount: 1000m);
@@ -78,13 +80,14 @@ public class PenaltyCalculatorTests
         var payment = new Payment(Guid.NewGuid(), 400m, new DateTimeOffset(2025, 1, 10, 0, 0, 0, TimeSpan.Zero));
         schedule.ApplyPayment(payment);
 
-        var policy = new PenaltyPolicy
+        var policy = new PenaltyPolicy { DaysInYear = 360 };
+        policy.AddOrUpdateDefinition(new PenaltyDefinition
         {
-            RecouvrementAnnualRate = 0.12m,
-            DaysInYear = 360,
-            RecouvrementGraceDays = 5,
-            RecouvrementPeriodDays = 30
-        };
+            Type = PenaltyType.Recouvrement,
+            AnnualRate = 0.12m,
+            GraceDays = 5,
+            PeriodDays = 30
+        });
 
         var asOf = new DateTimeOffset(2025, 2, 20, 0, 0, 0, TimeSpan.Zero);
         var result = PenaltyCalculator.Calculate(schedule, policy, asOf, taxBaseAmount: 1000m);
@@ -103,13 +106,15 @@ public class PenaltyCalculatorTests
         var installment = new Installment(installmentId, 1000m, new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
         var schedule = new PaymentSchedule(declarationId, null, new[] { installment });
 
-        var policy = new PenaltyPolicy
+        var policy = new PenaltyPolicy();
+        policy.AddOrUpdateDefinition(new PenaltyDefinition
         {
-            RecouvrementGraceDays = 10,
-            RecouvrementPeriodDays = 30,
-            RecouvrementPeriodRate = 0.10m,
-            RecouvrementPeriodRateIncrement = 0.01m
-        };
+            Type = PenaltyType.Recouvrement,
+            GraceDays = 10,
+            PeriodDays = 30,
+            PeriodRate = 0.10m,
+            PeriodRateIncrement = 0.01m
+        });
 
         var asOf = new DateTimeOffset(2025, 3, 15, 0, 0, 0, TimeSpan.Zero);
         var result = PenaltyCalculator.Calculate(schedule, policy, asOf, taxBaseAmount: 1000m);
@@ -136,12 +141,14 @@ public class PenaltyCalculatorTests
         var payment = new Payment(Guid.NewGuid(), 500m, new DateTimeOffset(2025, 2, 1, 0, 0, 0, TimeSpan.Zero));
         schedule.ApplyPayment(payment);
 
-        var policy = new PenaltyPolicy
+        var policy = new PenaltyPolicy();
+        policy.AddOrUpdateDefinition(new PenaltyDefinition
         {
-            RecouvrementPeriodRate = 0.10m,
-            RecouvrementGraceDays = 0,
-            RecouvrementPeriodDays = 30
-        };
+            Type = PenaltyType.Recouvrement,
+            PeriodRate = 0.10m,
+            GraceDays = 0,
+            PeriodDays = 30
+        });
 
         var asOf = new DateTimeOffset(2025, 3, 5, 0, 0, 0, TimeSpan.Zero);
         var result = PenaltyCalculator.Calculate(schedule, policy, asOf, taxBaseAmount: 1000m);

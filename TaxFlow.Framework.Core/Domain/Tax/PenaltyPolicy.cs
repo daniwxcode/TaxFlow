@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace Core.Domain.Tax;
 
@@ -7,41 +8,7 @@ namespace Core.Domain.Tax;
 /// </summary>
 public sealed class PenaltyPolicy
 {
-    /// <summary>
-    /// Fixed assiette penalty amount (applied once per declaration).
-    /// </summary>
-    public decimal AssietteFixedAmount { get; init; } = 0m;
-
-    /// <summary>
-    /// Grace period in days before assiette penalties start.
-    /// </summary>
-    public int AssietteGraceDays { get; init; } = 0;
-
-    /// <summary>
-    /// Periodicity in days for assiette penalties (default 30).
-    /// </summary>
-    public int AssiettePeriodDays { get; init; } = 30;
-
-    /// <summary>
-    /// Annual rate for assiette penalties.
-    /// </summary>
-    public decimal AssietteAnnualRate { get; init; } = 0m;
-
-    /// <summary>
-    /// Annual rate for collection penalties.
-    /// </summary>
-    public decimal RecouvrementAnnualRate { get; init; } = 0m;
-
-    /// <summary>
-    /// Periodic rate for collection penalties (e.g., 0.10 for 10% per period).
-    /// When set, takes precedence over <see cref="RecouvrementAnnualRate"/>.
-    /// </summary>
-    public decimal RecouvrementPeriodRate { get; init; } = 0m;
-
-    /// <summary>
-    /// Increment added to the periodic rate for each new period (e.g., 0.01 for +1% per period).
-    /// </summary>
-    public decimal RecouvrementPeriodRateIncrement { get; init; } = 0m;
+    private readonly Dictionary<PenaltyType, PenaltyDefinition> _definitions = new();
 
     /// <summary>
     /// Number of days in the base period for proration (default 365).
@@ -49,49 +16,45 @@ public sealed class PenaltyPolicy
     public int DaysInYear { get; init; } = 365;
 
     /// <summary>
-    /// Grace period in days before collection penalties start.
-    /// </summary>
-    public int RecouvrementGraceDays { get; init; } = 0;
-
-    /// <summary>
-    /// Periodicity in days for recouvrement penalties (default 30).
-    /// </summary>
-    public int RecouvrementPeriodDays { get; init; } = 30;
-
-    /// <summary>
-    /// Optional cap for assiette penalty amount.
-    /// </summary>
-    public decimal? AssietteCap { get; init; }
-
-    /// <summary>
-    /// Optional cap for recouvrement penalty amount.
-    /// </summary>
-    public decimal? RecouvrementCap { get; init; }
-
-    /// <summary>
-    /// Optional minimum for assiette penalty amount.
-    /// </summary>
-    public decimal? AssietteMinimum { get; init; }
-
-    /// <summary>
-    /// Optional minimum for recouvrement penalty amount.
-    /// </summary>
-    public decimal? RecouvrementMinimum { get; init; }
-
-    /// <summary>
     /// Minimum acceptable amount for a penalty line (lines below are skipped).
     /// </summary>
     public decimal MinimumLineAmount { get; init; } = 0m;
 
     /// <summary>
-    /// Whether recouvrement penalties are compounded on unpaid balance.
+    /// Registered penalty definitions.
     /// </summary>
-    public bool CapitalizeRecouvrement { get; init; } = false;
+    public IReadOnlyCollection<PenaltyDefinition> Definitions => _definitions.Values.ToList().AsReadOnly();
 
     /// <summary>
-    /// Whether assiette penalties are compounded on tax base.
+    /// Add or update a penalty definition.
     /// </summary>
-    public bool CapitalizeAssiette { get; init; } = false;
+    /// <param name="definition">Definition to add or update.</param>
+    public void AddOrUpdateDefinition(PenaltyDefinition definition)
+    {
+        if (definition is null) throw new ArgumentNullException(nameof(definition));
+        _definitions[definition.Type] = definition;
+    }
+
+    /// <summary>
+    /// Get a penalty definition by type.
+    /// </summary>
+    /// <param name="type">Penalty type.</param>
+    /// <returns>Definition or null.</returns>
+    public PenaltyDefinition? GetDefinition(PenaltyType type)
+        => _definitions.TryGetValue(type, out var def) ? def : null;
+
+    /// <summary>
+    /// Get penalty definitions that are triggered by the given event.
+    /// </summary>
+    /// <param name="triggerEvent">Trigger event.</param>
+    /// <returns>Matching definitions.</returns>
+    public IReadOnlyCollection<PenaltyDefinition> GetDefinitionsForEvent(PenaltyTriggerEvent triggerEvent)
+    {
+        return _definitions.Values
+            .Where(d => d.TriggerEvent == PenaltyTriggerEvent.Any || d.TriggerEvent.HasFlag(triggerEvent))
+            .ToList()
+            .AsReadOnly();
+    }
 
     /// <summary>
     /// Validate policy values.
@@ -99,15 +62,10 @@ public sealed class PenaltyPolicy
     public void Validate()
     {
         if (DaysInYear <= 0) throw new ArgumentOutOfRangeException(nameof(DaysInYear));
-        if (AssietteAnnualRate < 0) throw new ArgumentOutOfRangeException(nameof(AssietteAnnualRate));
-        if (AssietteFixedAmount < 0) throw new ArgumentOutOfRangeException(nameof(AssietteFixedAmount));
-        if (AssietteGraceDays < 0) throw new ArgumentOutOfRangeException(nameof(AssietteGraceDays));
-        if (AssiettePeriodDays <= 0) throw new ArgumentOutOfRangeException(nameof(AssiettePeriodDays));
-        if (RecouvrementAnnualRate < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementAnnualRate));
-        if (RecouvrementPeriodRate < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementPeriodRate));
-        if (RecouvrementPeriodRateIncrement < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementPeriodRateIncrement));
-        if (RecouvrementGraceDays < 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementGraceDays));
-        if (RecouvrementPeriodDays <= 0) throw new ArgumentOutOfRangeException(nameof(RecouvrementPeriodDays));
         if (MinimumLineAmount < 0) throw new ArgumentOutOfRangeException(nameof(MinimumLineAmount));
+        foreach (var def in _definitions.Values)
+        {
+            def.Validate();
+        }
     }
 }

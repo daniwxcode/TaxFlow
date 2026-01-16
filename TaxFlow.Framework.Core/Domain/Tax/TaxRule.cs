@@ -1,6 +1,8 @@
 using Core.Domain.Contracts;
 using Core.Domain.Contracts.Abstracts;
 
+using System;
+
 namespace Core.Domain.Tax;
 
 /// <summary>
@@ -33,4 +35,18 @@ public class TaxRule : TemporalAuditableEntity
     /// Whether the rule is enabled and should be executed.
     /// </summary>
     public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Optional penalty policy associated to this tax rule.
+    /// </summary>
+    public PenaltyPolicy? PenaltyPolicy { get; private set; }
+
+    /// <summary>
+    /// Configure the penalty policy for this tax rule.
+    /// </summary>
+    /// <param name="policy">Penalty policy to assign.</param>
+    public void ConfigurePenaltyPolicy(PenaltyPolicy policy)
+    {
+        PenaltyPolicy = policy ?? throw new ArgumentNullException(nameof(policy));
+    }
 }

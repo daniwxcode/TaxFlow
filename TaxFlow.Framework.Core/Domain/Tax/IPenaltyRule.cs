@@ -17,5 +17,5 @@ public interface IPenaltyRule
     /// <param name="taxBaseAmount">Tax base amount for assiette penalties.</param>
     /// <param name="assietteDueDate">Assiette due date (optional).</param>
     /// <returns>Penalty accrual lines.</returns>
-    IEnumerable<PenaltyAccrual> Evaluate(PaymentSchedule schedule, PenaltyPolicy policy, DateTimeOffset asOf, decimal taxBaseAmount, DateTimeOffset? assietteDueDate);
+    IEnumerable<PenaltyAccrual> Evaluate(PaymentSchedule schedule, PenaltyPolicy policy, DateTimeOffset asOf, decimal taxBaseAmount, DateTimeOffset? assietteDueDate, PenaltyTriggerEvent triggerEvent);
 }

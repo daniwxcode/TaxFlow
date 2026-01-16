@@ -9,14 +9,18 @@ namespace Core.Domain.Tax;
 public sealed class RecouvrementPenaltyRule : IPenaltyRule
 {
     /// <inheritdoc />
-    public IEnumerable<PenaltyAccrual> Evaluate(PaymentSchedule schedule, PenaltyPolicy policy, DateTimeOffset asOf, decimal taxBaseAmount, DateTimeOffset? assietteDueDate)
+    public IEnumerable<PenaltyAccrual> Evaluate(PaymentSchedule schedule, PenaltyPolicy policy, DateTimeOffset asOf, decimal taxBaseAmount, DateTimeOffset? assietteDueDate, PenaltyTriggerEvent triggerEvent)
     {
+        var definition = policy.GetDefinition(PenaltyType.Recouvrement);
+        if (definition is null) yield break;
+        if (definition.TriggerEvent != PenaltyTriggerEvent.Any && !definition.TriggerEvent.HasFlag(triggerEvent)) yield break;
+
         var declarationId = schedule.DeclarationId == Guid.Empty ? Guid.NewGuid() : schedule.DeclarationId;
         var liquidationId = schedule.LiquidationId;
 
         foreach (var inst in schedule.Installments)
         {
-            var effectiveDue = inst.EffectiveDueDate.AddDays(policy.RecouvrementGraceDays);
+            var effectiveDue = inst.EffectiveDueDate.AddDays(definition.GraceDays);
             if (asOf <= effectiveDue) continue;
 
             var unpaid = inst.GetOutstanding(asOf);
@@ -25,7 +29,7 @@ public sealed class RecouvrementPenaltyRule : IPenaltyRule
             var daysLate = (int)Math.Max(0, (asOf.Date - effectiveDue.Date).TotalDays);
             if (daysLate == 0) continue;
 
-            var periodDays = policy.RecouvrementPeriodDays;
+            var periodDays = definition.PeriodDays;
             var periods = (int)Math.Ceiling(daysLate / (double)periodDays);
             var accumulatedPenalty = 0m;
 
@@ -40,18 +44,18 @@ public sealed class RecouvrementPenaltyRule : IPenaltyRule
                 var outstandingAtPeriodEnd = inst.GetOutstanding(cappedEnd);
                 if (outstandingAtPeriodEnd <= 0) break;
 
-                var baseAmount = policy.CapitalizeRecouvrement
+                var baseAmount = definition.Capitalize
                     ? outstandingAtPeriodEnd + accumulatedPenalty
                     : outstandingAtPeriodEnd;
-                var rate = policy.RecouvrementPeriodRate > 0
-                    ? policy.RecouvrementPeriodRate + (p - 1) * policy.RecouvrementPeriodRateIncrement
-                    : policy.RecouvrementAnnualRate;
+                var rate = definition.PeriodRate > 0
+                    ? definition.PeriodRate + (p - 1) * definition.PeriodRateIncrement
+                    : definition.AnnualRate;
 
-                var penalty = policy.RecouvrementPeriodRate > 0
+                var penalty = definition.PeriodRate > 0
                     ? baseAmount * rate
                     : Prorate(baseAmount, rate, policy.DaysInYear, daysInPeriod);
 
-                penalty = ApplyFloorAndCap(penalty, policy.RecouvrementMinimum, policy.RecouvrementCap);
+                penalty = ApplyFloorAndCap(penalty, definition.Minimum, definition.Cap);
                 if (penalty < policy.MinimumLineAmount) continue;
 
                 yield return new PenaltyAccrual(
@@ -70,7 +74,7 @@ public sealed class RecouvrementPenaltyRule : IPenaltyRule
                     cappedEnd,
                     asOf);
 
-                if (policy.CapitalizeRecouvrement)
+                if (definition.Capitalize)
                     accumulatedPenalty += penalty;
             }
         }

@@ -10,22 +10,26 @@ namespace Core.Domain.Tax;
 public sealed class AssiettePenaltyRule : IPenaltyRule
 {
     /// <inheritdoc />
-    public IEnumerable<PenaltyAccrual> Evaluate(PaymentSchedule schedule, PenaltyPolicy policy, DateTimeOffset asOf, decimal taxBaseAmount, DateTimeOffset? assietteDueDate)
+    public IEnumerable<PenaltyAccrual> Evaluate(PaymentSchedule schedule, PenaltyPolicy policy, DateTimeOffset asOf, decimal taxBaseAmount, DateTimeOffset? assietteDueDate, PenaltyTriggerEvent triggerEvent)
     {
         if (taxBaseAmount <= 0) yield break;
 
         var declarationId = schedule.DeclarationId == Guid.Empty ? Guid.NewGuid() : schedule.DeclarationId;
         var liquidationId = schedule.LiquidationId;
 
+        var definition = policy.GetDefinition(PenaltyType.Assiette);
+        if (definition is null) yield break;
+        if (definition.TriggerEvent != PenaltyTriggerEvent.Any && !definition.TriggerEvent.HasFlag(triggerEvent)) yield break;
+
         var referenceDue = assietteDueDate ?? schedule.Installments.Select(i => i.DueDate).DefaultIfEmpty(asOf).Min();
-        var assietteEffectiveDue = referenceDue.AddDays(policy.AssietteGraceDays);
+        var assietteEffectiveDue = referenceDue.AddDays(definition.GraceDays);
         var assietteDaysLate = asOf > assietteEffectiveDue
             ? (int)Math.Max(0, (asOf.Date - assietteEffectiveDue.Date).TotalDays)
             : 0;
 
-        if (policy.AssietteFixedAmount > 0 && assietteDaysLate > 0)
+        if (definition.FixedAmount > 0 && assietteDaysLate > 0)
         {
-            var fixedAmount = ApplyFloorAndCap(policy.AssietteFixedAmount, policy.AssietteMinimum, policy.AssietteCap);
+            var fixedAmount = ApplyFloorAndCap(definition.FixedAmount, definition.Minimum, definition.Cap);
             yield return new PenaltyAccrual(
                 PenaltyType.Assiette,
                 PenaltyLineType.AssietteFixed,
@@ -43,9 +47,9 @@ public sealed class AssiettePenaltyRule : IPenaltyRule
                 asOf);
         }
 
-        if (policy.AssietteAnnualRate <= 0 || assietteDaysLate <= 0) yield break;
+        if (definition.AnnualRate <= 0 || assietteDaysLate <= 0) yield break;
 
-        var periodDays = policy.AssiettePeriodDays;
+        var periodDays = definition.PeriodDays;
         var periods = (int)Math.Ceiling(assietteDaysLate / (double)periodDays);
         var baseAmount = taxBaseAmount;
 
@@ -57,8 +61,8 @@ public sealed class AssiettePenaltyRule : IPenaltyRule
             var daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
             if (daysInPeriod == 0) continue;
 
-            var amount = Prorate(baseAmount, policy.AssietteAnnualRate, policy.DaysInYear, daysInPeriod);
-            amount = ApplyFloorAndCap(amount, policy.AssietteMinimum, policy.AssietteCap);
+            var amount = Prorate(baseAmount, definition.AnnualRate, policy.DaysInYear, daysInPeriod);
+            amount = ApplyFloorAndCap(amount, definition.Minimum, definition.Cap);
             if (amount < policy.MinimumLineAmount) continue;
 
             yield return new PenaltyAccrual(
@@ -69,7 +73,7 @@ public sealed class AssiettePenaltyRule : IPenaltyRule
                 null,
                 baseAmount,
                 amount,
-                policy.AssietteAnnualRate,
+                definition.AnnualRate,
                 assietteDaysLate,
                 p,
                 daysInPeriod,
@@ -77,7 +81,7 @@ public sealed class AssiettePenaltyRule : IPenaltyRule
                 cappedEnd,
                 asOf);
 
-            if (policy.CapitalizeAssiette)
+            if (definition.Capitalize)
                 baseAmount += amount;
         }
     }
