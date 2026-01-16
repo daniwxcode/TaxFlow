@@ -23,14 +23,36 @@ public sealed class PenaltyDefinition
     public decimal FixedAmount { get; init; } = 0m;
 
     /// <summary>
-    /// Grace period in days before penalties start.
+    /// Grace period before penalties start.
+    /// Supports days, weeks, months, or years.
     /// </summary>
-    public int GraceDays { get; init; } = 0;
+    public Duration GracePeriod { get; init; } = Duration.Zero;
 
     /// <summary>
-    /// Periodicity in days for penalties (default 30).
+    /// Grace period in days (for backward compatibility).
     /// </summary>
-    public int PeriodDays { get; init; } = 30;
+    [Obsolete("Use GracePeriod instead for more flexibility.")]
+    public int GraceDays
+    {
+        get => GracePeriod.ToDays();
+        init => GracePeriod = Duration.Days(value);
+    }
+
+    /// <summary>
+    /// Periodicity for penalties.
+    /// Supports days, weeks, months, or years.
+    /// </summary>
+    public Duration Period { get; init; } = Duration.Days(30);
+
+    /// <summary>
+    /// Periodicity in days for penalties (for backward compatibility).
+    /// </summary>
+    [Obsolete("Use Period instead for more flexibility.")]
+    public int PeriodDays
+    {
+        get => Period.ToDays();
+        init => Period = Duration.Days(value);
+    }
 
     /// <summary>
     /// Annual rate for penalties.
@@ -68,10 +90,39 @@ public sealed class PenaltyDefinition
     public void Validate()
     {
         if (FixedAmount < 0) throw new ArgumentOutOfRangeException(nameof(FixedAmount));
-        if (GraceDays < 0) throw new ArgumentOutOfRangeException(nameof(GraceDays));
-        if (PeriodDays <= 0) throw new ArgumentOutOfRangeException(nameof(PeriodDays));
+        if (GracePeriod.Value < 0) throw new ArgumentOutOfRangeException(nameof(GracePeriod));
+        if (Period.Value <= 0) throw new ArgumentOutOfRangeException(nameof(Period));
         if (AnnualRate < 0) throw new ArgumentOutOfRangeException(nameof(AnnualRate));
         if (PeriodRate < 0) throw new ArgumentOutOfRangeException(nameof(PeriodRate));
         if (PeriodRateIncrement < 0) throw new ArgumentOutOfRangeException(nameof(PeriodRateIncrement));
+    }
+
+    /// <summary>
+    /// Calculates the effective due date by adding the grace period to the original due date.
+    /// </summary>
+    public DateTimeOffset GetEffectiveDueDate(DateTimeOffset dueDate) => GracePeriod.AddTo(dueDate);
+
+    /// <summary>
+    /// Gets the start date of a specific period.
+    /// </summary>
+    public DateTimeOffset GetPeriodStartDate(DateTimeOffset effectiveDueDate, int periodIndex)
+    {
+        if (periodIndex < 1)
+            throw new ArgumentOutOfRangeException(nameof(periodIndex), "Period index must be at least 1.");
+
+        var start = effectiveDueDate;
+        for (var i = 1; i < periodIndex; i++)
+        {
+            start = Period.AddTo(start);
+        }
+        return start;
+    }
+
+    /// <summary>
+    /// Gets the end date of a specific period.
+    /// </summary>
+    public DateTimeOffset GetPeriodEndDate(DateTimeOffset effectiveDueDate, int periodIndex)
+    {
+        return Period.AddTo(GetPeriodStartDate(effectiveDueDate, periodIndex));
     }
 }

@@ -1,0 +1,12 @@
+[33ma8d0b33[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev/engine[m[33m)[m feat(validation): add ValidationResult, ValidationError and error codes
+[33m98b93f0[m chore: remove old files after reorganization into subfolders
+[33mb6d9eaf[m test: add tests for obligations and fix existing tests
+[33mf2ce817[m chore: update project file after reorganization
+[33meb02554[m refactor(contracts): improve ExtendedAttribute with modern C# patterns
+[33m5032ad2[m feat(obligations): add tax deadline and obligation schedule model
+[33m02151e4[m feat(events): add domain events for tax module
+[33m7dc6fe8[m feat(payments): add payment schedule and installment classes
+[33m20d1563[m feat(penalties): add PenaltyCalculationHelper and refactor penalty rules
+[33m914f2e7[m feat(assets): add AttributeValidator and refactor AssetType
+[33m6d0d230[m feat(calculation): add expression evaluator abstraction and TaxRuleEvaluator
+[33mde51856[m[33m ([m[1;31morigin/dev/engine[m[33m)[m Ajoute une définition de pénalité et modifie les règles de pénalité pour prendre en compte les événements déclencheurs, avec des ajustements dans les tests associés.

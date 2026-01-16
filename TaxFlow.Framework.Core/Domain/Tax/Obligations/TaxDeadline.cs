@@ -1,4 +1,5 @@
 using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Tax.Penalties;
 
 namespace Core.Domain.Tax.Obligations;
 
@@ -44,14 +45,25 @@ public abstract class TaxDeadline : AuditableEntity
     public DateTimeOffset DueDate { get; init; }
 
     /// <summary>
-    /// Grace period in days after the due date before penalties apply.
+    /// Grace period after the due date before penalties apply.
+    /// Supports days, weeks, months, or years.
     /// </summary>
-    public int GraceDays { get; init; } = 0;
+    public Duration GracePeriod { get; init; } = Duration.Zero;
+
+    /// <summary>
+    /// Grace period in days (for backward compatibility).
+    /// </summary>
+    [Obsolete("Use GracePeriod instead for more flexibility.")]
+    public int GraceDays
+    {
+        get => GracePeriod.ToDays();
+        init => GracePeriod = Duration.Days(value);
+    }
 
     /// <summary>
     /// Gets the effective due date including grace period.
     /// </summary>
-    public DateTimeOffset EffectiveDueDate => DueDate.AddDays(GraceDays);
+    public DateTimeOffset EffectiveDueDate => GracePeriod.AddTo(DueDate);
 
     /// <summary>
     /// Optional description for this deadline.
@@ -77,5 +89,16 @@ public abstract class TaxDeadline : AuditableEntity
             return 0;
 
         return (int)(asOf.Date - EffectiveDueDate.Date).TotalDays;
+    }
+
+    /// <summary>
+    /// Calculates the time elapsed since the effective due date.
+    /// </summary>
+    public TimeSpan GetTimeOverdue(DateTimeOffset asOf)
+    {
+        if (!IsOverdue(asOf))
+            return TimeSpan.Zero;
+
+        return asOf - EffectiveDueDate;
     }
 }

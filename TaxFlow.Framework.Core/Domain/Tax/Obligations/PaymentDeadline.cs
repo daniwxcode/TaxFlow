@@ -30,21 +30,21 @@ public sealed class PaymentDeadline : TaxDeadline
     public PenaltyDefinition? PenaltyDefinition { get; private set; }
 
     /// <summary>
-    /// Creates a new payment deadline.
+    /// Creates a new payment deadline with a Duration-based grace period.
     /// </summary>
     /// <param name="key">Unique key for this deadline.</param>
     /// <param name="label">Human-readable label.</param>
     /// <param name="dueDate">Due date for the payment.</param>
     /// <param name="fraction">Fraction of total amount due (0.0 to 1.0).</param>
     /// <param name="order">Order in the payment schedule.</param>
-    /// <param name="graceDays">Grace period in days.</param>
+    /// <param name="gracePeriod">Grace period before penalties apply.</param>
     public static PaymentDeadline Create(
         string key,
         string label,
         DateTimeOffset dueDate,
-        decimal fraction = 1.0m,
-        int order = 1,
-        int graceDays = 0)
+        decimal fraction,
+        int order,
+        Duration gracePeriod)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
@@ -62,8 +62,28 @@ public sealed class PaymentDeadline : TaxDeadline
             DueDate = dueDate,
             Fraction = fraction,
             Order = order,
-            GraceDays = graceDays
+            GracePeriod = gracePeriod
         };
+    }
+
+    /// <summary>
+    /// Creates a new payment deadline with a grace period in days (backward compatibility).
+    /// </summary>
+    /// <param name="key">Unique key for this deadline.</param>
+    /// <param name="label">Human-readable label.</param>
+    /// <param name="dueDate">Due date for the payment.</param>
+    /// <param name="fraction">Fraction of total amount due (0.0 to 1.0).</param>
+    /// <param name="order">Order in the payment schedule.</param>
+    /// <param name="graceDays">Grace period in days.</param>
+    public static PaymentDeadline Create(
+        string key,
+        string label,
+        DateTimeOffset dueDate,
+        decimal fraction = 1.0m,
+        int order = 1,
+        int graceDays = 0)
+    {
+        return Create(key, label, dueDate, fraction, order, Duration.Days(graceDays));
     }
 
     /// <summary>

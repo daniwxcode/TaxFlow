@@ -143,13 +143,14 @@ public sealed class ObligationPenaltyCalculator
         // Periodic penalties
         if (definition.AnnualRate > 0)
         {
-            var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, definition.PeriodDays);
+            var periodDaysApprox = definition.Period.ToDays();
+            var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
             var baseAmount = taxAmount;
 
             for (var period = 1; period <= periodCount; period++)
             {
-                var periodStart = deadline.EffectiveDueDate.AddDays((period - 1) * definition.PeriodDays);
-                var periodEnd = periodStart.AddDays(definition.PeriodDays);
+                var periodStart = definition.GetPeriodStartDate(deadline.EffectiveDueDate, period);
+                var periodEnd = definition.GetPeriodEndDate(deadline.EffectiveDueDate, period);
                 var cappedEnd = periodEnd < asOf ? periodEnd : asOf;
                 var daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
 
@@ -230,13 +231,14 @@ public sealed class ObligationPenaltyCalculator
         var installmentId = Guid.NewGuid();
         var declarationId = Guid.NewGuid();
 
-        var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, definition.PeriodDays);
+        var periodDaysApprox = definition.Period.ToDays();
+        var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
         var accumulatedPenalty = 0m;
 
         for (var period = 1; period <= periodCount; period++)
         {
-            var periodStart = deadline.EffectiveDueDate.AddDays((period - 1) * definition.PeriodDays);
-            var periodEnd = periodStart.AddDays(definition.PeriodDays);
+            var periodStart = definition.GetPeriodStartDate(deadline.EffectiveDueDate, period);
+            var periodEnd = definition.GetPeriodEndDate(deadline.EffectiveDueDate, period);
             var cappedEnd = periodEnd < asOf ? periodEnd : asOf;
             var daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
 

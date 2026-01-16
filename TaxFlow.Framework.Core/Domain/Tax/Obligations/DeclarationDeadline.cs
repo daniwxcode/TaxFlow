@@ -17,7 +17,32 @@ public sealed class DeclarationDeadline : TaxDeadline
     public PenaltyDefinition? PenaltyDefinition { get; private set; }
 
     /// <summary>
-    /// Creates a new declaration deadline.
+    /// Creates a new declaration deadline with a Duration-based grace period.
+    /// </summary>
+    /// <param name="key">Unique key for this deadline.</param>
+    /// <param name="label">Human-readable label.</param>
+    /// <param name="dueDate">Due date for the declaration.</param>
+    /// <param name="gracePeriod">Grace period before penalties apply.</param>
+    public static DeclarationDeadline Create(
+        string key,
+        string label,
+        DateTimeOffset dueDate,
+        Duration gracePeriod)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentException.ThrowIfNullOrWhiteSpace(label);
+
+        return new DeclarationDeadline
+        {
+            Key = key.Trim(),
+            Label = label.Trim(),
+            DueDate = dueDate,
+            GracePeriod = gracePeriod
+        };
+    }
+
+    /// <summary>
+    /// Creates a new declaration deadline with a grace period in days (backward compatibility).
     /// </summary>
     /// <param name="key">Unique key for this deadline.</param>
     /// <param name="label">Human-readable label.</param>
@@ -29,16 +54,7 @@ public sealed class DeclarationDeadline : TaxDeadline
         DateTimeOffset dueDate,
         int graceDays = 0)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        ArgumentException.ThrowIfNullOrWhiteSpace(label);
-
-        return new DeclarationDeadline
-        {
-            Key = key.Trim(),
-            Label = label.Trim(),
-            DueDate = dueDate,
-            GraceDays = graceDays
-        };
+        return Create(key, label, dueDate, Duration.Days(graceDays));
     }
 
     /// <summary>
