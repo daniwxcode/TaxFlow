@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Collections.ObjectModel;
-using Core.Domain.Tax.Bootstrap;
+using Core.Domain.Tax.Assets.Bootstrap;
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Xunit;
@@ -56,11 +56,11 @@ public class DefaultAssetTypesTests
         var list = DefaultAssetTypes.InitialData().ToList();
         var realEstate = list.First(a => a.Name == "Real Estate");
 
-        // Prepare attributes: ResidualValue and RealEstateType = "Propri�t� B�tie"
+        // Prepare attributes: ResidualValue and RealEstateType = "Propriété Bâtie"
         var attrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "1000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propri�t� B�tie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
         };
 
         // Evaluate each rule by its key (use the key from the rule instance)
@@ -81,11 +81,11 @@ public class DefaultAssetTypesTests
     {
         var realEstate = DefaultAssetTypes.InitialData().First(a => a.Name == "Real Estate");
 
-        // Scenario 1: Propri�t� B�tie => TFNB = 0, TFB = ResidualValue * 0.75/100
+        // Scenario 1: Propriété Bâtie => TFNB = 0, TFB = ResidualValue * 0.75/100
         var attrs1 = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "1000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propri�t� B�tie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
         };
         var tfnb1 = realEstate.EvaluateTaxRule("TFNB", attrs1);
         var tfb1 = realEstate.EvaluateTaxRule("TFB", attrs1);
@@ -103,11 +103,11 @@ public class DefaultAssetTypesTests
         Assert.Equal(0m, tfnb2 ?? 0m);
         Assert.Equal(1500m, tfb2 ?? 0m);
 
-        // Scenario 3: Non b�tie and not Location => TFNB = ResidualValue * 0.5/100, TFB = 0
+        // Scenario 3: Non bâtie and not Location => TFNB = ResidualValue * 0.5/100, TFB = 0
         var attrs3 = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "500000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propri�t� Non B�tie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriété Non Bâtie", AttributeDataType.Enum, true),
         };
         var tfnb3 = realEstate.EvaluateTaxRule("TFNB", attrs3);
         var tfb3 = realEstate.EvaluateTaxRule("TFB", attrs3);
@@ -140,7 +140,7 @@ public class DefaultAssetTypesTests
         var enumLabelValue = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "100000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propri�t� B�tie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
         };
         var errorsEnumLabel = realEstate.ValidateAttributes(enumLabelValue).ToList();
         Assert.Empty(errorsEnumLabel);
