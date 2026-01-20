@@ -6,17 +6,44 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Core.Domain.Tax.Calculation;
+namespace Core.Domain.Tax.Calculation.Services;
 
 /// <summary>
-/// High-performance tax engine for evaluating tax rules on a taxable asset.
+/// Abstraction for tax calculation engine.
+/// Supports Dependency Inversion Principle and testability.
 /// </summary>
-public static class TaxEngine
+public interface ITaxCalculationEngine
 {
     /// <summary>
     /// Evaluate taxes for a single date.
     /// </summary>
-    public static TaxCalculationResult Evaluate(TaxableAsset asset, TaxEngineOptions? options = null)
+    TaxCalculationResult Evaluate(TaxableAsset asset, TaxEngineOptions? options = null);
+
+    /// <summary>
+    /// Evaluate taxes for a period and apply simple prorata.
+    /// </summary>
+    TaxCalculationResult EvaluateForPeriod(
+        TaxableAsset asset,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        int daysInYear = 365,
+        TaxEngineOptions? options = null);
+}
+
+/// <summary>
+/// High-performance tax engine for evaluating tax rules on a taxable asset.
+/// </summary>
+public sealed class TaxCalculationEngine : ITaxCalculationEngine
+{
+    /// <summary>
+    /// Singleton instance with default implementation.
+    /// </summary>
+    public static ITaxCalculationEngine Default { get; } = new TaxCalculationEngine();
+
+    /// <summary>
+    /// Evaluate taxes for a single date.
+    /// </summary>
+    public TaxCalculationResult Evaluate(TaxableAsset asset, TaxEngineOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(asset);
 
@@ -36,7 +63,7 @@ public static class TaxEngine
     /// <summary>
     /// Evaluate taxes for a period and apply simple prorata.
     /// </summary>
-    public static TaxCalculationResult EvaluateForPeriod(
+    public TaxCalculationResult EvaluateForPeriod(
         TaxableAsset asset,
         DateTimeOffset from,
         DateTimeOffset to,
@@ -219,4 +246,30 @@ public static class TaxEngine
     }
 
     #endregion
+}
+
+/// <summary>
+/// Static facade for backward compatibility.
+/// Use ITaxCalculationEngine interface for new code.
+/// </summary>
+public static class TaxEngine
+{
+    private static readonly ITaxCalculationEngine Engine = TaxCalculationEngine.Default;
+
+    /// <summary>
+    /// Evaluate taxes for a single date.
+    /// </summary>
+    public static TaxCalculationResult Evaluate(TaxableAsset asset, TaxEngineOptions? options = null)
+        => Engine.Evaluate(asset, options);
+
+    /// <summary>
+    /// Evaluate taxes for a period and apply simple prorata.
+    /// </summary>
+    public static TaxCalculationResult EvaluateForPeriod(
+        TaxableAsset asset,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        int daysInYear = 365,
+        TaxEngineOptions? options = null)
+        => Engine.EvaluateForPeriod(asset, from, to, daysInYear, options);
 }

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 
 using Core.Domain.Tax.Penalties;
+using Core.Domain.Tax.Penalties.Services;
 using Core.Domain.Tax.Payments;
 
 using Xunit;

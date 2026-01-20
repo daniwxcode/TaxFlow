@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
-namespace Core.Domain.Tax.Calculation;
+namespace Core.Domain.Tax.Calculation.Services;
 
 /// <summary>
 /// Provides orchestration utilities to liquidate multiple taxable assets in a single pass.

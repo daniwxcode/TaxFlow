@@ -2,7 +2,7 @@ using System;
 using Core.Domain.Localization;
 using NCalc;
 
-namespace Core.Domain.Tax.Calculation;
+namespace Core.Domain.Tax.Calculation.Services;
 
 /// <summary>
 /// Provides guard clauses to validate rule expressions before registration.

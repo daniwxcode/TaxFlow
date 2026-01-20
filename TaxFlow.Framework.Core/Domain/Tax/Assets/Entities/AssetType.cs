@@ -4,6 +4,7 @@ using Core.Domain.Contracts.Validation;
 using Core.Domain.Enums;
 using Core.Domain.Localization;
 using Core.Domain.Tax.Calculation;
+using Core.Domain.Tax.Calculation.Services;
 using Core.Domain.Tax.Events;
 
 using System;
@@ -218,7 +219,7 @@ public class AssetType : SoftAuditableEntity
         if (rule is null)
             return TaxRuleEvaluationResult.CreateFailure(ruleKey, $"Rule '{ruleKey}' not found.");
 
-        return TaxRuleEvaluator.Default.Evaluate(rule, attributes, _expectedAttributes, amount);
+        return ((DefaultTaxRuleEvaluator)DefaultTaxRuleEvaluator.Default).Evaluate(rule, attributes, _expectedAttributes, amount);
     }
 
     #endregion

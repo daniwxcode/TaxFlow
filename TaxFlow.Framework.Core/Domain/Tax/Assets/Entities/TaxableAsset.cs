@@ -4,6 +4,7 @@ using Core.Domain.Contracts.Validation;
 using Core.Domain.Enums;
 using Core.Domain.Localization;
 using Core.Domain.Tax.Calculation;
+using Core.Domain.Tax.Calculation.Services;
 
 using System;
 using System.Collections.ObjectModel;

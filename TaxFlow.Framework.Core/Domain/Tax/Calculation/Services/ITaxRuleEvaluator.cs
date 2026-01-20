@@ -2,13 +2,28 @@ using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Core.Domain.Localization;
 
-namespace Core.Domain.Tax.Calculation;
+namespace Core.Domain.Tax.Calculation.Services;
 
 /// <summary>
-/// Evaluates tax rules using expression evaluation.
-/// Extracted from AssetType to follow Single Responsibility Principle.
+/// Abstraction for evaluating tax rules.
+/// Supports Dependency Inversion Principle and testability.
 /// </summary>
-public sealed class TaxRuleEvaluator
+public interface ITaxRuleEvaluator
+{
+    /// <summary>
+    /// Evaluates a tax rule with the given attributes.
+    /// </summary>
+    TaxRuleEvaluationResult Evaluate(
+        TaxRule rule,
+        IEnumerable<ExtendedAttribute> attributes,
+        IReadOnlyCollection<AttributeDefinition> expectedAttributes,
+        decimal? amount = null);
+}
+
+/// <summary>
+/// Default implementation of ITaxRuleEvaluator.
+/// </summary>
+public sealed class DefaultTaxRuleEvaluator : ITaxRuleEvaluator
 {
     private readonly IExpressionEvaluator _expressionEvaluator;
 
@@ -27,7 +42,7 @@ public sealed class TaxRuleEvaluator
     /// </summary>
     public const string LabelSuffix = "Label";
 
-    public TaxRuleEvaluator(IExpressionEvaluator? expressionEvaluator = null)
+    public DefaultTaxRuleEvaluator(IExpressionEvaluator? expressionEvaluator = null)
     {
         _expressionEvaluator = expressionEvaluator ?? NCalcExpressionEvaluator.Instance;
     }
@@ -35,7 +50,7 @@ public sealed class TaxRuleEvaluator
     /// <summary>
     /// Singleton instance with default evaluator.
     /// </summary>
-    public static TaxRuleEvaluator Default { get; } = new();
+    public static ITaxRuleEvaluator Default { get; } = new DefaultTaxRuleEvaluator();
 
     /// <summary>
     /// Evaluates a tax rule with the given attributes.
@@ -108,10 +123,8 @@ public sealed class TaxRuleEvaluator
 
         var enumDef = def.EnumDefinition;
 
-        // Set main parameter to label or raw value
         parameters[varName] = enumDef.TryGetLabel(attr.Value, out var label) ? label : attr.Value;
 
-        // Add Code and Label suffixed parameters
         if (enumDef.TryGetCode(attr.Value, out var code))
             parameters[$"{varName}{CodeSuffix}"] = code;
 
