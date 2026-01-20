@@ -1,158 +1,180 @@
-using System.Linq;
 using System.Collections.ObjectModel;
+using System.Linq;
+using Core.Bootstrap;
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Xunit;
-using Core.Bootstrap;
 
 namespace TaxFlow.Framework.Core.Tests;
 
 public class DefaultAssetTypesTests
 {
     [Fact]
-    public void InitialData_ContainsRealEstate_WithExpectedAttributesAndRules()
+    public void InitialData_Exposes_All_Default_AssetTypes()
     {
-        var list = DefaultAssetTypes.InitialData().ToList();
-        Assert.NotEmpty(list);
+        var assetTypes = DefaultAssetTypes.InitialData().ToList();
+        var expected = new[] {
+            "Real Estate",
+            "Transport Operators",
+            "Economic Activity",
+            "Legal Act",
+            "Household Income",
+            "Recovery Penalties"
+        };
 
-        var realEstate = list.FirstOrDefault(a => a.Name == "Real Estate");
-        Assert.NotNull(realEstate);
+        foreach (var name in expected)
+            Assert.Contains(assetTypes, a => a.Name == name);
 
-        // Expected attribute keys
-        var expectedKeys = new[] {
+        var realEstate = assetTypes.First(a => a.Name == "Real Estate");
+        var requiredAttributes = new[] {
             "ResidualValue",
-            "Situation",
-            "RealEstateType",
-            "ResidenceType",
-            "RealEstateUsage",
-            "RealEstateCategory",
-            "RealEstateOwnerShip",
-            "ResidenceStatus",
-            "AcquisitionDate",
-            "BuildingCompletionDate"
+            "LocativeValue",
+            "NetRentalIncome",
+            "AnnualRent",
+            "RealEstateCategory"
         };
 
-        foreach (var key in expectedKeys)
-        {
-            Assert.True(realEstate!.ExpectedAttributes.Any(e => e.Key == key), $"Expected attribute '{key}' not found.");
-        }
+        foreach (var key in requiredAttributes)
+            Assert.Contains(realEstate.ExpectedAttributes, attr => attr.Key == key);
 
-        // Tax rules
-        Assert.NotEmpty(realEstate.TaxRules);
-        Assert.Equal(2, realEstate.TaxRules.Count);
-
-        var labels = realEstate.TaxRules.Select(r => r.Label).ToList();
-        Assert.Contains(labels, l => l.Contains("TAXE FONCIERE"));
-
-        // Expressions contain expected multipliers
-        var exprs = realEstate.TaxRules.Select(r => r.Expression).ToList();
-        Assert.Contains(exprs, e => e.Contains("*0.5/100") || e.Contains("*0.5/100\r"));
-        Assert.Contains(exprs, e => e.Contains("*0.75/100") || e.Contains("*0.75/100\r"));
+        var realEstateRuleKeys = realEstate.TaxRules.Select(r => r.Key).ToList();
+        Assert.Contains("TH", realEstateRuleKeys);
+        Assert.Contains("TFPB", realEstateRuleKeys);
+        Assert.Contains("TFPNB", realEstateRuleKeys);
+        Assert.Contains("IRF", realEstateRuleKeys);
+        Assert.Contains("RSL", realEstateRuleKeys);
     }
 
     [Fact]
-    public void TaxRule_Expressions_CanBeEvaluatedWithSampleAttributes()
-    {
-        var list = DefaultAssetTypes.InitialData().ToList();
-        var realEstate = list.First(a => a.Name == "Real Estate");
-
-        // Prepare attributes: ResidualValue and RealEstateType = "Propriété Bâtie"
-        var attrs = new Collection<ExtendedAttribute>
-        {
-            ExtendedAttribute.Create("ResidualValue", "1000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
-        };
-
-        // Evaluate each rule by its key (use the key from the rule instance)
-        foreach (var rule in realEstate.TaxRules)
-        {
-            var value = realEstate.EvaluateTaxRule(rule.Key, attrs);
-            // Evaluation should at least return a decimal or zero (not throw)
-            Assert.True(value == null || value is decimal);
-        }
-
-        // Additionally ensure that at least one rule produces a positive amount for this configuration
-        var anyPositive = realEstate.TaxRules.Any(r => (realEstate.EvaluateTaxRule(r.Key, attrs) ?? 0m) > 0m);
-        Assert.True(anyPositive, "At least one tax rule should produce a positive amount for the provided attributes.");
-    }
-
-    [Fact]
-    public void TaxRule_Evaluation_Produces_Expected_Amounts_For_Scenarios()
+    public void RealEstateRules_Follow_Specified_Grids()
     {
         var realEstate = DefaultAssetTypes.InitialData().First(a => a.Name == "Real Estate");
 
-        // Scenario 1: Propriété Bâtie => TFNB = 0, TFB = ResidualValue * 0.75/100
-        var attrs1 = new Collection<ExtendedAttribute>
+        var thAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("ResidualValue", "1000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("RealEstateCategory", "Appartement 2 pièces", AttributeDataType.Enum, true)
         };
-        var tfnb1 = realEstate.EvaluateTaxRule("TFNB", attrs1);
-        var tfb1 = realEstate.EvaluateTaxRule("TFB", attrs1);
-        Assert.Equal(0m, tfnb1 ?? 0m);
-        Assert.Equal(7500m, tfb1 ?? 0m);
+        Assert.Equal(6_000m, realEstate.EvaluateTaxRule("TH", thAttrs));
 
-        // Scenario 2: Usage = Location => TFNB = 0, TFB = ResidualValue * 0.75/100
-        var attrs2 = new Collection<ExtendedAttribute>
+        var tfpbAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("ResidualValue", "200000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateUsage", "Location", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("LocativeValue", "1200000", AttributeDataType.Number, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true)
         };
-        var tfnb2 = realEstate.EvaluateTaxRule("TFNB", attrs2);
-        var tfb2 = realEstate.EvaluateTaxRule("TFB", attrs2);
-        Assert.Equal(0m, tfnb2 ?? 0m);
-        Assert.Equal(1500m, tfb2 ?? 0m);
+        Assert.Equal(90_000m, realEstate.EvaluateTaxRule("TFPB", tfpbAttrs));
 
-        // Scenario 3: Non bâtie and not Location => TFNB = ResidualValue * 0.5/100, TFB = 0
-        var attrs3 = new Collection<ExtendedAttribute>
+        var tfpnbAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("ResidualValue", "500000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Non Bâtie", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("ResidualValue", "800000", AttributeDataType.Number, true),
+            ExtendedAttribute.Create("RealEstateType", "Propriété Non Bâtie", AttributeDataType.Enum, true)
         };
-        var tfnb3 = realEstate.EvaluateTaxRule("TFNB", attrs3);
-        var tfb3 = realEstate.EvaluateTaxRule("TFB", attrs3);
-        Assert.Equal(2500m, tfnb3 ?? 0m);
-        Assert.Equal(0m, tfb3 ?? 0m);
+        Assert.Equal(4_000m, realEstate.EvaluateTaxRule("TFPNB", tfpnbAttrs));
+
+        var irfAttrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("NetRentalIncome", "12500000", AttributeDataType.Number, true)
+        };
+        Assert.Equal(1_835_000m, realEstate.EvaluateTaxRule("IRF", irfAttrs));
     }
 
     [Fact]
-    public void ValidateAttributes_Detects_MissingRequired_And_Invalid_Types_And_Enum_Values()
+    public void TransportRule_Calculates_Forfeits_By_Activity()
     {
-        var realEstate = DefaultAssetTypes.InitialData().First(a => a.Name == "Real Estate");
+        var transport = DefaultAssetTypes.InitialData().First(a => a.Name == "Transport Operators");
 
-        // Missing required ResidualValue
-        var missing = new Collection<ExtendedAttribute>
+        var sandAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("RealEstateType", "PB", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("TransportActivity", "Transport de sable et gravats", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("VehicleTonnage", "18", AttributeDataType.Number, true)
         };
-        var errorsMissing = realEstate.ValidateAttributes(missing).ToList();
-        Assert.Contains(errorsMissing, e => e.Contains("ResidualValue") || e.Contains("requis") || e.Contains("manquant"));
+        Assert.Equal(11_000m, transport.EvaluateTaxRule("TPU_TR", sandAttrs));
 
-        // Wrong data type for ResidualValue (enum provided instead of number)
-        var wrongType = new Collection<ExtendedAttribute>
+        var motoAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("ResidualValue", "PB", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("TransportActivity", "Taximoto", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("OperationZone", "Zone rurale", AttributeDataType.Enum, true)
         };
-        var errorsType = realEstate.ValidateAttributes(wrongType).ToList();
-        Assert.Contains(errorsType, e => e.Contains("type") || e.Contains("invalide") || e.Contains("données"));
+        Assert.Equal(2_500m, transport.EvaluateTaxRule("TPU_TR", motoAttrs));
+    }
 
-        // Enum provided with label should be accepted (code or label supported)
-        var enumLabelValue = new Collection<ExtendedAttribute>
-        {
-            ExtendedAttribute.Create("ResidualValue", "100000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true),
-        };
-        var errorsEnumLabel = realEstate.ValidateAttributes(enumLabelValue).ToList();
-        Assert.Empty(errorsEnumLabel);
+    [Fact]
+    public void EconomicActivityRule_Applies_Commercial_And_Service_Baremes()
+    {
+        var economic = DefaultAssetTypes.InitialData().First(a => a.Name == "Economic Activity");
 
-        // Correct attributes should produce no errors (use enum codes)
-        var valid = new Collection<ExtendedAttribute>
+        var commerceAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("ResidualValue", "100000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "PB", AttributeDataType.Enum, true),
-            ExtendedAttribute.Create("RealEstateUsage", "RES", AttributeDataType.Enum, false),
+            ExtendedAttribute.Create("AnnualTurnover", "6000000", AttributeDataType.Number, true),
+            ExtendedAttribute.Create("ActivityNature", "Commerce", AttributeDataType.Enum, true)
         };
-        var errorsValid = realEstate.ValidateAttributes(valid).ToList();
-        Assert.Empty(errorsValid);
+        Assert.Equal(115_000m, economic.EvaluateTaxRule("TPU_ECO", commerceAttrs));
+
+        var serviceAttrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("AnnualTurnover", "6000000", AttributeDataType.Number, true),
+            ExtendedAttribute.Create("ActivityNature", "Services", AttributeDataType.Enum, true)
+        };
+        Assert.Equal(155_250m, economic.EvaluateTaxRule("TPU_ECO", serviceAttrs));
+    }
+
+    [Fact]
+    public void Income_And_Penalty_Rules_Respect_Specified_Scales()
+    {
+        var income = DefaultAssetTypes.InitialData().First(a => a.Name == "Household Income");
+
+        var pensionAttrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("PensionAmount", "3200000", AttributeDataType.Number, true)
+        };
+        Assert.Equal(200_000m, income.EvaluateTaxRule("IRPRV", pensionAttrs));
+
+        var salaryAttrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("AnnualGlobalIncome", "25000000", AttributeDataType.Number, true)
+        };
+        Assert.Equal(5_710_000m, income.EvaluateTaxRule("IRTS", salaryAttrs));
+
+        var capitalAttrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("CapitalIncomeAmount", "1000000", AttributeDataType.Number, true)
+        };
+        Assert.Equal(150_000m, income.EvaluateTaxRule("IRCM", capitalAttrs));
+
+        var managerAttrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("ManagerRemuneration", "2000000", AttributeDataType.Number, true)
+        };
+        Assert.Equal(200_000m, income.EvaluateTaxRule("IRGM", managerAttrs));
+
+        var penalties = DefaultAssetTypes.InitialData().First(a => a.Name == "Recovery Penalties");
+        var penaltyAttrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("OutstandingTaxAmount", "5000", AttributeDataType.Number, true)
+        };
+        Assert.Equal(1_000m, penalties.EvaluateTaxRule("PENAR", penaltyAttrs));
+    }
+
+    [Fact]
+    public void AssetTypes_Configure_Liquidation_Modes()
+    {
+        var assetTypes = DefaultAssetTypes.InitialData().ToList();
+
+        var grouped = assetTypes.First(a => a.Name == "Household Income");
+        Assert.Equal(LiquidationMode.Grouped, grouped.LiquidationMode);
+
+        var soloNames = new[]
+        {
+            "Real Estate",
+            "Transport Operators",
+            "Economic Activity",
+            "Legal Act",
+            "Recovery Penalties"
+        };
+
+        foreach (var name in soloNames)
+        {
+            var asset = assetTypes.First(a => a.Name == name);
+            Assert.Equal(LiquidationMode.Individual, asset.LiquidationMode);
+        }
     }
 }

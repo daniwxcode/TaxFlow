@@ -1,6 +1,7 @@
 using Core.Domain.Contracts;
 using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Contracts.Validation;
+using Core.Domain.Enums;
 using Core.Domain.Localization;
 using Core.Domain.Tax.Calculation;
 using Core.Domain.Tax.Events;
@@ -30,6 +31,11 @@ public class AssetType : SoftAuditableEntity
     public string? Description { get; private set; }
 
     /// <summary>
+    /// Gets the liquidation mode applied to assets of this type.
+    /// </summary>
+    public LiquidationMode LiquidationMode { get; private set; } = LiquidationMode.Individual;
+
+    /// <summary>
     /// Gets the read-only collection of attribute definitions expected for this asset type.
     /// </summary>
     public IReadOnlyCollection<AttributeDefinition> ExpectedAttributes => _expectedAttributes.AsReadOnly();
@@ -47,10 +53,11 @@ public class AssetType : SoftAuditableEntity
     /// <summary>
     /// Factory method to create a new <see cref="AssetType"/> with the specified name and optional description.
     /// </summary>
-    public static AssetType Create(string name, string? description = null)
+    public static AssetType Create(string name, string? description = null, LiquidationMode liquidationMode = LiquidationMode.Individual)
     {
         var assetType = new AssetType();
         assetType.Rename(name);
+        assetType.UpdateLiquidationMode(liquidationMode);
 
         if (!string.IsNullOrWhiteSpace(description))
             assetType.UpdateDescription(description);
@@ -76,6 +83,17 @@ public class AssetType : SoftAuditableEntity
     public void UpdateDescription(string? newDescription)
     {
         Description = string.IsNullOrWhiteSpace(newDescription) ? null : newDescription.Trim();
+    }
+
+    /// <summary>
+    /// Update the liquidation mode of the asset type.
+    /// </summary>
+    public void UpdateLiquidationMode(LiquidationMode mode)
+    {
+        if (!Enum.IsDefined(typeof(LiquidationMode), mode))
+            throw new ArgumentOutOfRangeException(nameof(mode));
+
+        LiquidationMode = mode;
     }
 
     #region Expected Attributes Management
