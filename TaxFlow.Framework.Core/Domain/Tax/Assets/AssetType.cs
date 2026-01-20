@@ -1,6 +1,7 @@
 using Core.Domain.Contracts;
 using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Contracts.Validation;
+using Core.Domain.Localization;
 using Core.Domain.Tax.Calculation;
 using Core.Domain.Tax.Events;
 
@@ -63,7 +64,7 @@ public class AssetType : SoftAuditableEntity
     public void Rename(string newName)
     {
         if (string.IsNullOrWhiteSpace(newName))
-            throw new ArgumentException("Le nom ne doit pas être vide.", nameof(newName));
+            throw new ArgumentException(ExceptionMessages.NameCannotBeEmpty.Format(), nameof(newName));
 
         Name = newName.Trim();
         QueueDomainEvent(new AssetTypeRenamedDomainEvent(Id, newName));
@@ -87,10 +88,10 @@ public class AssetType : SoftAuditableEntity
         ArgumentNullException.ThrowIfNull(definition);
 
         if (string.IsNullOrWhiteSpace(definition.Key))
-            throw new ArgumentException("La clé de l'attribut attendu ne doit pas être vide.", nameof(definition));
+            throw new ArgumentException(ExceptionMessages.ExpectedAttributeKeyCannotBeEmpty.Format(), nameof(definition));
 
         if (HasExpectedAttribute(definition.Key))
-            throw new InvalidOperationException($"L'attribut attendu '{definition.Key}' existe déjà.");
+            throw new InvalidOperationException(ExceptionMessages.ExpectedAttributeAlreadyExists.Format(("attributeKey", definition.Key)));
 
         _expectedAttributes.Add(definition);
         return this;
@@ -111,7 +112,7 @@ public class AssetType : SoftAuditableEntity
     public bool RemoveExpectedAttribute(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException("La clé ne doit pas être vide.", nameof(key));
+            throw new ArgumentException(ExceptionMessages.KeyCannotBeEmpty.Format(), nameof(key));
 
         return _expectedAttributes.RemoveAll(a => a.Key.Equals(key, StringComparison.OrdinalIgnoreCase)) > 0;
     }
@@ -139,10 +140,10 @@ public class AssetType : SoftAuditableEntity
         ArgumentNullException.ThrowIfNull(rule);
 
         if (string.IsNullOrWhiteSpace(rule.Key))
-            throw new ArgumentException("Rule key must not be empty", nameof(rule));
+            throw new ArgumentException(ExceptionMessages.TaxRuleKeyCannotBeEmpty.Format(), nameof(rule));
 
         if (_taxRules.Any(r => r.Key.Equals(rule.Key, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException($"A tax rule with key '{rule.Key}' already exists.");
+            throw new InvalidOperationException(ExceptionMessages.TaxRuleAlreadyExists.Format(("ruleKey", rule.Key)));
 
         _taxRules.Add(rule);
         return this;
@@ -154,7 +155,7 @@ public class AssetType : SoftAuditableEntity
     public bool RemoveTaxRule(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException("Key must not be empty", nameof(key));
+            throw new ArgumentException(ExceptionMessages.KeyCannotBeEmpty.Format(), nameof(key));
 
         return _taxRules.RemoveAll(r => r.Key.Equals(key, StringComparison.OrdinalIgnoreCase)) > 0;
     }

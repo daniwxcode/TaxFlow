@@ -1,6 +1,7 @@
 using Core.Domain.Contracts;
 using Core.Domain.Contracts.Validation;
 using Core.Domain.Enums;
+using Core.Domain.Localization;
 
 using System.Text.RegularExpressions;
 
@@ -20,9 +21,6 @@ public sealed class AttributeValidator
     /// <summary>
     /// Validates a set of extended attributes against expected attribute definitions.
     /// </summary>
-    /// <param name="attributes">The attributes to validate.</param>
-    /// <param name="expectedAttributes">The expected attribute definitions.</param>
-    /// <returns>A validation result containing any errors.</returns>
     public ValidationResult Validate(
         IEnumerable<ExtendedAttribute> attributes,
         IReadOnlyCollection<AttributeDefinition> expectedAttributes)
@@ -53,7 +51,7 @@ public sealed class AttributeValidator
         {
             errors.Add(new ValidationError(
                 ValidationErrorCodes.DuplicateAttribute,
-                $"Attribut dupliqué détecté pour la clé '{group.Key}'.",
+                ValidationMessages.DuplicateAttribute.Format(("attributeKey", group.Key)),
                 group.Key));
         }
 
@@ -74,7 +72,7 @@ public sealed class AttributeValidator
             {
                 errors.Add(new ValidationError(
                     ValidationErrorCodes.MissingRequiredAttribute,
-                    $"Attribut requis manquant: '{expected.Key}'.",
+                    ValidationMessages.MissingRequiredAttribute.Format(("attributeKey", expected.Key)),
                     expected.Key));
             }
             return;
@@ -105,7 +103,10 @@ public sealed class AttributeValidator
         {
             errors.Add(new ValidationError(
                 ValidationErrorCodes.InvalidDataType,
-                $"Type invalide pour '{expected.Key}': attendu {expected.DataType}, obtenu {provided.DataType}.",
+                ValidationMessages.InvalidDataType.Format(
+                    ("attributeKey", expected.Key),
+                    ("expectedType", expected.DataType.Name),
+                    ("actualType", provided.DataType.Name)),
                 expected.Key));
         }
     }
@@ -119,7 +120,9 @@ public sealed class AttributeValidator
         {
             errors.Add(new ValidationError(
                 ValidationErrorCodes.InvalidValue,
-                $"Valeur invalide pour '{expected.Key}' au format {provided.DataType}.",
+                ValidationMessages.InvalidValue.Format(
+                    ("attributeKey", expected.Key),
+                    ("reason", provided.DataType.Name)),
                 expected.Key));
         }
     }
@@ -135,7 +138,7 @@ public sealed class AttributeValidator
         {
             errors.Add(new ValidationError(
                 ValidationErrorCodes.MissingEnumDefinition,
-                $"Définition d'enum manquante pour l'attribut '{expected.Key}'.",
+                ValidationMessages.MissingEnumDefinition.Format(("attributeKey", expected.Key)),
                 expected.Key));
             return;
         }
@@ -150,7 +153,10 @@ public sealed class AttributeValidator
         var allowedValues = GetAllowedEnumValues(enumDef);
         errors.Add(new ValidationError(
             ValidationErrorCodes.InvalidEnumValue,
-            $"Valeur invalide pour '{expected.Key}': '{providedValue}' n'est pas dans les valeurs autorisées [{allowedValues}].",
+            ValidationMessages.InvalidEnumValue.Format(
+                ("value", providedValue),
+                ("attributeKey", expected.Key),
+                ("validValues", allowedValues)),
             expected.Key));
     }
 
@@ -183,7 +189,7 @@ public sealed class AttributeValidator
             {
                 errors.Add(new ValidationError(
                     ValidationErrorCodes.RegexMismatch,
-                    $"La valeur de '{expected.Key}' ne respecte pas le motif requis.",
+                    ValidationMessages.RegexMismatch.Format(("attributeKey", expected.Key)),
                     expected.Key));
             }
         }
@@ -191,7 +197,9 @@ public sealed class AttributeValidator
         {
             errors.Add(new ValidationError(
                 ValidationErrorCodes.InvalidRegexPattern,
-                $"Motif Regex invalide pour la définition d'attribut '{expected.Key}'.",
+                ValidationMessages.InvalidValue.Format(
+                    ("attributeKey", expected.Key),
+                    ("reason", "Invalid regex pattern")),
                 expected.Key));
         }
     }
