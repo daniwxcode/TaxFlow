@@ -13,12 +13,11 @@ internal static class TaxRuleExpressionValidator
     {
         ArgumentNullException.ThrowIfNull(rule);
 
-        if (string.IsNullOrWhiteSpace(rule.Expression))
+        var preprocessResult = RulePreprocessor.Process(rule.Expression);
+        if (string.IsNullOrWhiteSpace(preprocessResult.Expression))
             throw new ArgumentException(ExceptionMessages.ValueCannotBeNull.Format(), nameof(rule.Expression));
 
-        var normalized = NCalcExpressionEvaluator.NormalizeExpression(rule.Expression);
-
-        var expr = new Expression(normalized);
+        var expr = new Expression(preprocessResult.Expression);
         if (expr.HasErrors())
         {
             var errorMessage = expr.Error?.Message ?? string.Empty;
