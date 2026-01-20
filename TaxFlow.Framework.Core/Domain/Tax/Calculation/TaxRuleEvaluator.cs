@@ -1,5 +1,6 @@
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
+using Core.Domain.Localization;
 
 namespace Core.Domain.Tax.Calculation;
 
@@ -46,22 +47,22 @@ public sealed class TaxRuleEvaluator
         decimal? amount = null)
     {
         if (rule is null)
-            return TaxRuleEvaluationResult.CreateFailure(string.Empty, "Rule cannot be null.");
+            return TaxRuleEvaluationResult.CreateFailure(string.Empty, ExceptionMessages.RuleCannotBeNull.Format());
 
         if (string.IsNullOrWhiteSpace(rule.Key))
-            return TaxRuleEvaluationResult.CreateFailure(rule.Key ?? string.Empty, "Rule key must not be empty.");
+            return TaxRuleEvaluationResult.CreateFailure(rule.Key ?? string.Empty, ExceptionMessages.RuleKeyMustNotBeEmpty.Format());
 
         if (!rule.Enabled)
-            return TaxRuleEvaluationResult.CreateSuccess(rule.Key, 0m, ["Rule disabled."]);
+            return TaxRuleEvaluationResult.CreateSuccess(rule.Key, 0m, [ExceptionMessages.RuleDisabled.Format()]);
 
         var parameters = BuildParameters(attributes, expectedAttributes, amount);
         var evalResult = _expressionEvaluator.Evaluate(rule.Expression, parameters);
 
         if (!evalResult.IsSuccess)
-            return TaxRuleEvaluationResult.CreateFailure(rule.Key, evalResult.ErrorMessage ?? "Evaluation failed.");
+            return TaxRuleEvaluationResult.CreateFailure(rule.Key, evalResult.ErrorMessage ?? ExceptionMessages.EvaluationFailed.Format());
 
         var warnings = evalResult.MissingParameters.Count > 0
-            ? [$"Missing parameters: {string.Join(", ", evalResult.MissingParameters)}"]
+            ? [ExceptionMessages.MissingParameters.Format(("parameters", string.Join(", ", evalResult.MissingParameters)))]
             : Array.Empty<string>();
 
         return TaxRuleEvaluationResult.CreateSuccess(rule.Key, evalResult.Value, warnings);

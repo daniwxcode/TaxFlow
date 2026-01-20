@@ -2,6 +2,7 @@ using Core.Domain.Contracts;
 using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Contracts.Validation;
 using Core.Domain.Enums;
+using Core.Domain.Localization;
 using Core.Domain.Tax.Calculation;
 
 using System;
@@ -40,7 +41,7 @@ public class TaxableAsset : ExtendedTemporalSoftAuditableEntity
 
         var validationResult = assetType.ValidateAttributesResult(attributes);
         if (validationResult.HasErrors)
-            throw new ArgumentException($"Attributes validation failed: {validationResult.ErrorMessage}");
+            throw new ArgumentException(ExceptionMessages.AttributeValidationFailed.Format(("errorMessage", validationResult.ErrorMessage)));
 
         return new TaxableAsset
         {
@@ -156,7 +157,7 @@ public class TaxableAsset : ExtendedTemporalSoftAuditableEntity
 
         var validationResult = AssetType.ValidateAttributesResult(updatedAttributes);
         if (validationResult.HasErrors)
-            throw new ArgumentException($"Attributes validation failed: {validationResult.ErrorMessage}");
+            throw new ArgumentException(ExceptionMessages.AttributeValidationFailed.Format(("errorMessage", validationResult.ErrorMessage)));
 
         return ApplyAttributeChange(key, candidate);
     }
@@ -168,7 +169,7 @@ public class TaxableAsset : ExtendedTemporalSoftAuditableEntity
     private void EnsureAssetTypeSet()
     {
         if (AssetType is null)
-            throw new InvalidOperationException("AssetType must be set.");
+            throw new InvalidOperationException(ExceptionMessages.AssetTypeMustBeSet.Format());
     }
 
     private List<ExtendedAttribute> GetEffectiveAttributes(DateTimeOffset forDate)
@@ -187,10 +188,10 @@ public class TaxableAsset : ExtendedTemporalSoftAuditableEntity
     private static void ValidatePeriod(DateTimeOffset from, DateTimeOffset to, int daysInYear)
     {
         if (to < from)
-            throw new ArgumentException("The end date must be greater than or equal to the start date.", nameof(to));
+            throw new ArgumentException(ExceptionMessages.EndDateMustBeGreaterOrEqual.Format(), nameof(to));
 
         if (daysInYear <= 0)
-            throw new ArgumentOutOfRangeException(nameof(daysInYear), "daysInYear must be greater than 0.");
+            throw new ArgumentOutOfRangeException(nameof(daysInYear), ExceptionMessages.DaysInYearMustBePositive.Format());
     }
 
     private static decimal CalculateProrataFactor(DateTimeOffset from, DateTimeOffset to, int daysInYear)

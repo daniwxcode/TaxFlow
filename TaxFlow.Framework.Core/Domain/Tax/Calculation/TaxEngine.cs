@@ -1,4 +1,5 @@
 using Core.Domain.Contracts;
+using Core.Domain.Localization;
 using Core.Domain.Tax.Assets;
 
 using System;
@@ -12,9 +13,6 @@ namespace Core.Domain.Tax.Calculation;
 /// </summary>
 public static class TaxEngine
 {
-    private const string DuplicateAttributeWarningTemplate = "Attribut dupliqué détecté pour la clé '{0}'.";
-    private const string RuleEvaluationFailedTemplate = "Rule '{0}': {1}";
-
     /// <summary>
     /// Evaluate taxes for a single date.
     /// </summary>
@@ -23,7 +21,7 @@ public static class TaxEngine
         ArgumentNullException.ThrowIfNull(asset);
 
         if (asset.AssetType is null)
-            throw new InvalidOperationException("AssetType must be set to evaluate taxes.");
+            throw new InvalidOperationException(ExceptionMessages.AssetTypeMustBeSetToEvaluate.Format());
 
         options ??= new TaxEngineOptions();
         var forDate = options.ForDate ?? DateTimeOffset.UtcNow;
@@ -89,7 +87,7 @@ public static class TaxEngine
         if (validationResult.HasErrors)
         {
             if (options.StrictValidation)
-                throw new ArgumentException($"Attributes validation failed: {validationResult.ErrorMessage}");
+                throw new ArgumentException(ExceptionMessages.AttributeValidationFailed.Format(("errorMessage", validationResult.ErrorMessage)));
 
             errors.AddRange(validationResult.ToMessages());
         }
@@ -105,7 +103,7 @@ public static class TaxEngine
             .Select(g => g.Key);
 
         foreach (var key in duplicateKeys)
-            warnings.Add(string.Format(DuplicateAttributeWarningTemplate, key));
+            warnings.Add(ExceptionMessages.DuplicateAttributeDetected.Format(("key", key)));
     }
 
     private static (List<TaxLine> lines, List<TaxRuleEvaluationResult>? ruleResults) EvaluateRules(
@@ -159,12 +157,12 @@ public static class TaxEngine
         if (result.IsSuccess)
             return;
 
-        var message = result.ErrorMessage ?? "Rule evaluation failed.";
+        var message = result.ErrorMessage ?? ExceptionMessages.EvaluationFailed.Format();
 
         if (options.ThrowOnRuleError)
-            throw new InvalidOperationException(string.Format(RuleEvaluationFailedTemplate, rule.Key, message));
+            throw new InvalidOperationException(ExceptionMessages.RuleEvaluationFailed.Format(("ruleKey", rule.Key ?? ""), ("error", message)));
 
-        errors.Add(string.Format(RuleEvaluationFailedTemplate, rule.Key, message));
+        errors.Add(ExceptionMessages.RuleEvaluationFailed.Format(("ruleKey", rule.Key ?? ""), ("error", message)));
     }
 
     private static TaxCalculationResult BuildResult(
@@ -192,10 +190,10 @@ public static class TaxEngine
     private static void ValidatePeriodParameters(DateTimeOffset from, DateTimeOffset to, int daysInYear)
     {
         if (to < from)
-            throw new ArgumentException("The end date must be greater than or equal to the start date.", nameof(to));
+            throw new ArgumentException(ExceptionMessages.EndDateMustBeGreaterOrEqual.Format(), nameof(to));
 
         if (daysInYear <= 0)
-            throw new ArgumentOutOfRangeException(nameof(daysInYear), "daysInYear must be greater than 0.");
+            throw new ArgumentOutOfRangeException(nameof(daysInYear), ExceptionMessages.DaysInYearMustBePositive.Format());
     }
 
     private static TaxEngineOptions CreatePeriodOptions(TaxEngineOptions source, DateTimeOffset forDate)

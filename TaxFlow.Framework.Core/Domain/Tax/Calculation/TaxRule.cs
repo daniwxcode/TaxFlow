@@ -1,5 +1,6 @@
 using Core.Domain.Contracts;
 using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Localization;
 using Core.Domain.Tax.Obligations;
 using Core.Domain.Tax.Penalties;
 
@@ -53,7 +54,7 @@ public class TaxRule : TemporalAuditableEntity
 
         var validation = schedule.Validate();
         if (validation.HasErrors)
-            throw new ArgumentException($"Invalid obligation schedule: {validation.ErrorMessage}");
+            throw new ArgumentException(ExceptionMessages.InvalidObligationSchedule.Format(("errorMessage", validation.ErrorMessage)));
 
         ObligationSchedule = schedule;
         return this;
