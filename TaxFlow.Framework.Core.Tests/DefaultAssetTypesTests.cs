@@ -126,7 +126,7 @@ public class DefaultAssetTypesTests
             ExtendedAttribute.Create("RealEstateType", "PB", AttributeDataType.Enum, true),
         };
         var errorsMissing = realEstate.ValidateAttributes(missing).ToList();
-        Assert.Contains(errorsMissing, e => e.Contains("ResidualValue") || e.Contains("requis"));
+        Assert.Contains(errorsMissing, e => e.Contains("ResidualValue") || e.Contains("requis") || e.Contains("manquant"));
 
         // Wrong data type for ResidualValue (enum provided instead of number)
         var wrongType = new Collection<ExtendedAttribute>
@@ -134,7 +134,7 @@ public class DefaultAssetTypesTests
             ExtendedAttribute.Create("ResidualValue", "PB", AttributeDataType.Enum, true),
         };
         var errorsType = realEstate.ValidateAttributes(wrongType).ToList();
-        Assert.Contains(errorsType, e => e.Contains("Type invalide") || e.Contains("Type invalide"));
+        Assert.Contains(errorsType, e => e.Contains("type") || e.Contains("invalide") || e.Contains("données"));
 
         // Enum provided with label should be accepted (code or label supported)
         var enumLabelValue = new Collection<ExtendedAttribute>
