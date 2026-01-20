@@ -9,10 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Domain\Tax\Bootstrap\" />
-    <Folder Include="Domain\Tax\Enums\" />
-    <Folder Include="Domain\Workflow\" />
-    <Folder Include="Features\" />
+    <Compile Remove="Domain\Tax\Enums\**" />
+    <Compile Remove="Domain\Workflow\**" />
+    <Compile Remove="Features\**" />
+    <EmbeddedResource Remove="Domain\Tax\Enums\**" />
+    <EmbeddedResource Remove="Domain\Workflow\**" />
+    <EmbeddedResource Remove="Features\**" />
+    <None Remove="Domain\Tax\Enums\**" />
+    <None Remove="Domain\Workflow\**" />
+    <None Remove="Features\**" />
   </ItemGroup>
 
   <ItemGroup>
