@@ -9,9 +9,16 @@ namespace Core.Domain.Tax.Obligations;
 public sealed class ObligationPenaltyResult
 {
     /// <summary>
-    /// Declaration penalty accruals (if any).
+    /// Declaration penalty accruals grouped by declaration deadline key.
     /// </summary>
-    public IReadOnlyList<PenaltyAccrual> DeclarationPenalties { get; init; } = [];
+    public IReadOnlyDictionary<string, IReadOnlyList<PenaltyAccrual>> DeclarationPenaltiesByKey { get; init; } =
+        new Dictionary<string, IReadOnlyList<PenaltyAccrual>>();
+
+    /// <summary>
+    /// All declaration penalty accruals combined (for backward compatibility).
+    /// </summary>
+    public IReadOnlyList<PenaltyAccrual> DeclarationPenalties =>
+        DeclarationPenaltiesByKey.Values.SelectMany(p => p).ToList().AsReadOnly();
 
     /// <summary>
     /// Payment penalty accruals grouped by payment deadline key.
@@ -47,6 +54,26 @@ public sealed class ObligationPenaltyResult
     /// Total payment penalty amount.
     /// </summary>
     public decimal TotalPaymentPenalty => PaymentPenalties.Values.SelectMany(p => p).Sum(p => p.Amount);
+
+    /// <summary>
+    /// Gets penalties for a specific declaration deadline.
+    /// </summary>
+    public IReadOnlyList<PenaltyAccrual> GetDeclarationPenalties(string declarationKey)
+    {
+        return DeclarationPenaltiesByKey.TryGetValue(declarationKey, out var penalties)
+            ? penalties
+            : [];
+    }
+
+    /// <summary>
+    /// Gets penalties for a specific payment deadline.
+    /// </summary>
+    public IReadOnlyList<PenaltyAccrual> GetPaymentPenalties(string paymentKey)
+    {
+        return PaymentPenalties.TryGetValue(paymentKey, out var penalties)
+            ? penalties
+            : [];
+    }
 }
 
 /// <summary>
@@ -88,27 +115,60 @@ public sealed class ObligationPenaltyCalculator
         if (rule.ObligationSchedule is null)
             return new ObligationPenaltyResult();
 
-        var schedule = rule.ObligationSchedule;
+        return Calculate(rule.ObligationSchedule, taxAmount, asOf, payments);
+    }
+
+    /// <summary>
+    /// Calculates penalties for an obligation schedule.
+    /// </summary>
+    /// <param name="schedule">The obligation schedule.</param>
+    /// <param name="taxAmount">The calculated tax amount.</param>
+    /// <param name="asOf">Date for penalty calculation.</param>
+    /// <param name="payments">Optional dictionary of payments made keyed by deadline key.</param>
+    public ObligationPenaltyResult Calculate(
+        TaxObligationSchedule schedule,
+        decimal taxAmount,
+        DateTimeOffset asOf,
+        IReadOnlyDictionary<string, decimal>? payments = null)
+    {
+        ArgumentNullException.ThrowIfNull(schedule);
         payments ??= new Dictionary<string, decimal>();
 
-        var declarationPenalties = CalculateDeclarationPenalties(schedule.DeclarationDeadline, taxAmount, asOf);
+        var declarationPenalties = CalculateAllDeclarationPenalties(schedule.DeclarationDeadlines, taxAmount, asOf);
         var paymentPenalties = CalculatePaymentPenalties(schedule.PaymentDeadlines, taxAmount, asOf, payments);
 
         return new ObligationPenaltyResult
         {
-            DeclarationPenalties = declarationPenalties,
+            DeclarationPenaltiesByKey = declarationPenalties,
             PaymentPenalties = paymentPenalties
         };
     }
 
+    private Dictionary<string, IReadOnlyList<PenaltyAccrual>> CalculateAllDeclarationPenalties(
+        IReadOnlyList<DeclarationDeadline> deadlines,
+        decimal taxAmount,
+        DateTimeOffset asOf)
+    {
+        var result = new Dictionary<string, IReadOnlyList<PenaltyAccrual>>();
+
+        foreach (var deadline in deadlines)
+        {
+            var penalties = CalculateDeclarationPenalties(deadline, taxAmount, asOf);
+            if (penalties.Count > 0)
+                result[deadline.Key] = penalties.AsReadOnly();
+        }
+
+        return result;
+    }
+
     private List<PenaltyAccrual> CalculateDeclarationPenalties(
-        DeclarationDeadline? deadline,
+        DeclarationDeadline deadline,
         decimal taxAmount,
         DateTimeOffset asOf)
     {
         var penalties = new List<PenaltyAccrual>();
 
-        if (deadline?.PenaltyDefinition is null || !deadline.IsOverdue(asOf))
+        if (deadline.PenaltyDefinition is null || !deadline.IsOverdue(asOf))
             return penalties;
 
         var definition = deadline.PenaltyDefinition;

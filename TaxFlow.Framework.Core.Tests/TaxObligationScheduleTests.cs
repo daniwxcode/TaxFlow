@@ -34,6 +34,33 @@ public class TaxObligationScheduleTests
     }
 
     [Fact]
+    public void AddDeclarationDeadline_Supports_Multiple_Declarations()
+    {
+        var schedule = TaxObligationSchedule.Create();
+        var decl1 = DeclarationDeadline.Create(
+            "DECL_Q1", 
+            "Q1 Declaration", 
+            new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 
+            DeadlinePeriodicity.Quarterly,
+            TaxRegime.General,
+            Duration.Zero,
+            order: 1);
+        var decl2 = DeclarationDeadline.Create(
+            "DECL_Q2", 
+            "Q2 Declaration", 
+            new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 
+            DeadlinePeriodicity.Quarterly,
+            TaxRegime.General,
+            Duration.Zero,
+            order: 2);
+
+        schedule.AddDeclarationDeadline(decl1).AddDeclarationDeadline(decl2);
+
+        Assert.True(schedule.HasMultipleDeclarations);
+        Assert.Equal(2, schedule.DeclarationCount);
+    }
+
+    [Fact]
     public void AddPaymentDeadline_Adds_To_Collection()
     {
         var schedule = TaxObligationSchedule.Create();
@@ -73,17 +100,32 @@ public class TaxObligationScheduleTests
     }
 
     [Fact]
-    public void Validate_Detects_Declaration_After_FirstPayment()
+    public void Validate_Detects_Declaration_After_LinkedPayment()
     {
         var schedule = TaxObligationSchedule.Create();
         var declaration = DeclarationDeadline.Create("DECL", "Late Declaration", new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero));
-        var payment = PaymentDeadline.Create("PAY", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero));
+        var payment = PaymentDeadline.Create("PAY", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero))
+            .LinkedToDeclaration("DECL");
 
         schedule.WithDeclarationDeadline(declaration).AddPaymentDeadline(payment);
         var result = schedule.Validate();
 
         Assert.True(result.HasErrors);
         Assert.Contains(result.Errors, e => e.Code == "DECLARATION_AFTER_PAYMENT");
+    }
+
+    [Fact]
+    public void Validate_Detects_Invalid_Linked_Declaration()
+    {
+        var schedule = TaxObligationSchedule.Create();
+        var payment = PaymentDeadline.Create("PAY", "Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero))
+            .LinkedToDeclaration("NON_EXISTENT");
+
+        schedule.AddPaymentDeadline(payment);
+        var result = schedule.Validate();
+
+        Assert.True(result.HasErrors);
+        Assert.Contains(result.Errors, e => e.Code == "INVALID_LINKED_DECLARATION");
     }
 
     [Fact]
@@ -107,6 +149,25 @@ public class TaxObligationScheduleTests
         var declaration = DeclarationDeadline.Create("DECL", "Declaration", new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero));
         var payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1);
         var payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
+
+        schedule.WithDeclarationDeadline(declaration)
+                .AddPaymentDeadline(payment1)
+                .AddPaymentDeadline(payment2);
+
+        var result = schedule.Validate();
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_Succeeds_For_Valid_Schedule_With_Linked_Payments()
+    {
+        var schedule = TaxObligationSchedule.Create();
+        var declaration = DeclarationDeadline.Create("DECL", "Declaration", new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero));
+        var payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1)
+            .LinkedToDeclaration("DECL");
+        var payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2)
+            .LinkedToDeclaration("DECL");
 
         schedule.WithDeclarationDeadline(declaration)
                 .AddPaymentDeadline(payment1)
@@ -175,5 +236,72 @@ public class TaxObligationScheduleTests
 
         Assert.NotNull(deadline.PenaltyDefinition);
         Assert.Equal(0.10m, deadline.PenaltyDefinition.AnnualRate);
+    }
+
+    [Fact]
+    public void GetPaymentsForDeclaration_Returns_Linked_Payments()
+    {
+        var schedule = TaxObligationSchedule.Create();
+        var declaration = DeclarationDeadline.Create("DECL", "Declaration", new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero));
+        var payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1)
+            .LinkedToDeclaration("DECL");
+        var payment2 = PaymentDeadline.Create("PAY2", "Unlinked Payment", new DateTimeOffset(2025, 5, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
+
+        schedule.WithDeclarationDeadline(declaration)
+                .AddPaymentDeadline(payment1)
+                .AddPaymentDeadline(payment2);
+
+        var linkedPayments = schedule.GetPaymentsForDeclaration("DECL");
+
+        Assert.Single(linkedPayments);
+        Assert.Equal("PAY1", linkedPayments[0].Key);
+    }
+
+    [Fact]
+    public void LegalReference_Can_Be_Added_To_Deadline()
+    {
+        var declaration = DeclarationDeadline.Create("DECL", "Declaration", DateTimeOffset.Now)
+            .AddLegalReference(LegalReference.Create(
+                LegalTextType.TaxCode,
+                "CGI Art. 123",
+                "Obligation de déclaration annuelle",
+                "123"));
+
+        Assert.True(declaration.HasLegalBasis);
+        Assert.Single(declaration.LegalReferences);
+    }
+
+    [Fact]
+    public void Deadline_GetNextOccurrence_Works_For_Recurring()
+    {
+        var declaration = DeclarationDeadline.Create(
+            "DECL_M",
+            "Monthly Declaration",
+            new DateTimeOffset(2025, 1, 15, 0, 0, 0, TimeSpan.Zero),
+            DeadlinePeriodicity.Monthly);
+
+        var next = declaration.GetNextOccurrence(new DateTimeOffset(2025, 3, 15, 0, 0, 0, TimeSpan.Zero));
+
+        Assert.NotNull(next);
+        // Jan 15 + 1 month = Feb 15, + 1 month = Mar 15, + 1 month = Apr 15
+        Assert.Equal(new DateTimeOffset(2025, 4, 15, 0, 0, 0, TimeSpan.Zero), next.Value);
+    }
+
+    [Fact]
+    public void PaymentDeadline_CreateAdvance_Sets_PaymentType()
+    {
+        var advance = PaymentDeadline.CreateAdvance("ADV", "Advance Payment", DateTimeOffset.Now, 0.25m, 1);
+
+        Assert.Equal(PaymentType.Advance, advance.PaymentType);
+        Assert.True(advance.IsAdvancePayment);
+    }
+
+    [Fact]
+    public void PaymentDeadline_CreateBalance_Sets_PaymentType()
+    {
+        var balance = PaymentDeadline.CreateBalance("BAL", "Balance Payment", DateTimeOffset.Now, 0.75m, 2);
+
+        Assert.Equal(PaymentType.Balance, balance.PaymentType);
+        Assert.True(balance.IsBalancePayment);
     }
 }
