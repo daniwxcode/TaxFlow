@@ -163,6 +163,8 @@ public class AssetType : SoftAuditableEntity
         if (_taxRules.Any(r => r.Key.Equals(rule.Key, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException(ExceptionMessages.TaxRuleAlreadyExists.Format(("ruleKey", rule.Key)));
 
+        TaxRuleExpressionValidator.Validate(rule);
+
         _taxRules.Add(rule);
         return this;
     }

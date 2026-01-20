@@ -139,6 +139,12 @@ public static class ExceptionMessages
         ("ar-SA", "???? ?????????? ??? ????: {errorMessage}"),
         ("pt-PT", "Calendário de obrigações inválido: {errorMessage}"));
 
+    public static readonly LocalizedTemplate InvalidTaxRuleExpression = LocalizedTemplate.Create(
+        "Expression invalide pour la règle '{ruleKey}': {error}",
+        ("en-US", "Invalid expression for rule '{ruleKey}': {error}"),
+        ("ar-SA", "???? ??? ????? '{ruleKey}': {error}"),
+        ("pt-PT", "Expressão inválida para a regra '{ruleKey}': {error}"));
+
     // ============================================
     // ASSET MESSAGES
     // ============================================

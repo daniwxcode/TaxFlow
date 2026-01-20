@@ -3,6 +3,8 @@ using System.Linq;
 using Core.Bootstrap;
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
+using Core.Domain.Tax.Assets;
+using Core.Domain.Tax.Calculation;
 using Xunit;
 
 namespace TaxFlow.Framework.Core.Tests;
@@ -52,29 +54,41 @@ public class DefaultAssetTypesTests
 
         var thAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("RealEstateCategory", "Appartement 2 pièces", AttributeDataType.Enum, true)
+            ExtendedAttribute.Create("RealEstateCategory", "APT2", AttributeDataType.Enum, true)
         };
-        Assert.Equal(6_000m, realEstate.EvaluateTaxRule("TH", thAttrs));
+        var thResult = realEstate.EvaluateTaxRuleDetailed("TH", thAttrs);
+        Assert.True(thResult.IsSuccess, thResult.ErrorMessage ?? string.Empty);
+        Assert.True(thResult.Value.HasValue, $"Warnings: {string.Join(", ", thResult.Warnings)}");
+        Assert.Equal(6_000m, thResult.Value.Value);
 
         var tfpbAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("LocativeValue", "1200000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Bâtie", AttributeDataType.Enum, true)
+            ExtendedAttribute.Create("RealEstateType", "PB", AttributeDataType.Enum, true)
         };
-        Assert.Equal(90_000m, realEstate.EvaluateTaxRule("TFPB", tfpbAttrs));
+        var tfpbResult = realEstate.EvaluateTaxRuleDetailed("TFPB", tfpbAttrs);
+        Assert.True(tfpbResult.IsSuccess, tfpbResult.ErrorMessage ?? string.Empty);
+        Assert.True(tfpbResult.Value.HasValue, $"Warnings: {string.Join(", ", tfpbResult.Warnings)}");
+        Assert.Equal(90_000m, tfpbResult.Value.Value);
 
         var tfpnbAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "800000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("RealEstateType", "Propriété Non Bâtie", AttributeDataType.Enum, true)
+            ExtendedAttribute.Create("RealEstateType", "PNB", AttributeDataType.Enum, true)
         };
-        Assert.Equal(4_000m, realEstate.EvaluateTaxRule("TFPNB", tfpnbAttrs));
+        var tfpnbResult = realEstate.EvaluateTaxRuleDetailed("TFPNB", tfpnbAttrs);
+        Assert.True(tfpnbResult.IsSuccess, tfpnbResult.ErrorMessage ?? string.Empty);
+        Assert.True(tfpnbResult.Value.HasValue, $"Warnings: {string.Join(", ", tfpnbResult.Warnings)}");
+        Assert.Equal(4_000m, tfpnbResult.Value.Value);
 
         var irfAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("NetRentalIncome", "12500000", AttributeDataType.Number, true)
         };
-        Assert.Equal(1_835_000m, realEstate.EvaluateTaxRule("IRF", irfAttrs));
+        var irfResult = realEstate.EvaluateTaxRuleDetailed("IRF", irfAttrs);
+        Assert.True(irfResult.IsSuccess, irfResult.ErrorMessage ?? string.Empty);
+        Assert.True(irfResult.Value.HasValue, $"Warnings: {string.Join(", ", irfResult.Warnings)}");
+        Assert.Equal(1_835_000m, irfResult.Value.Value);
     }
 
     [Fact]
@@ -84,15 +98,16 @@ public class DefaultAssetTypesTests
 
         var sandAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("TransportActivity", "Transport de sable et gravats", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("TransportActivity", "SABLE", AttributeDataType.Enum, true),
             ExtendedAttribute.Create("VehicleTonnage", "18", AttributeDataType.Number, true)
         };
-        Assert.Equal(11_000m, transport.EvaluateTaxRule("TPU_TR", sandAttrs));
+        var tax = transport.EvaluateTaxRule("TPU_TR", sandAttrs);
+        Assert.Equal(11_000m, tax.Value);
 
         var motoAttrs = new Collection<ExtendedAttribute>
         {
-            ExtendedAttribute.Create("TransportActivity", "Taximoto", AttributeDataType.Enum, true),
-            ExtendedAttribute.Create("OperationZone", "Zone rurale", AttributeDataType.Enum, true)
+            ExtendedAttribute.Create("TransportActivity", "TAXIMOTO", AttributeDataType.Enum, true),
+            ExtendedAttribute.Create("OperationZone", "RURALE", AttributeDataType.Enum, true)
         };
         Assert.Equal(2_500m, transport.EvaluateTaxRule("TPU_TR", motoAttrs));
     }
@@ -105,14 +120,14 @@ public class DefaultAssetTypesTests
         var commerceAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("AnnualTurnover", "6000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("ActivityNature", "Commerce", AttributeDataType.Enum, true)
+            ExtendedAttribute.Create("ActivityNature", "COM", AttributeDataType.Enum, true)
         };
         Assert.Equal(115_000m, economic.EvaluateTaxRule("TPU_ECO", commerceAttrs));
 
         var serviceAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("AnnualTurnover", "6000000", AttributeDataType.Number, true),
-            ExtendedAttribute.Create("ActivityNature", "Services", AttributeDataType.Enum, true)
+            ExtendedAttribute.Create("ActivityNature", "SRV", AttributeDataType.Enum, true)
         };
         Assert.Equal(155_250m, economic.EvaluateTaxRule("TPU_ECO", serviceAttrs));
     }
@@ -176,5 +191,45 @@ public class DefaultAssetTypesTests
             var asset = assetTypes.First(a => a.Name == name);
             Assert.Equal(LiquidationMode.Individual, asset.LiquidationMode);
         }
+    }
+
+    [Fact]
+    public void Ternary_Expressions_Are_Supported_By_Evaluator()
+    {
+        var assetType = AssetType.Create("Test Asset");
+        assetType.AddExpectedAttribute(AttributeDefinition.Create("Value", "Value", AttributeDataType.Number, true));
+        assetType.AddTaxRule(new TaxRule { Key = "R1", Label = "Rule", Expression = "[Value]>0?1:2" });
+
+        var attrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("Value", "5", AttributeDataType.Number, true)
+        };
+
+        var result = assetType.EvaluateTaxRule("R1", attrs);
+        Assert.Equal(1m, result);
+    }
+
+    [Fact]
+    public void Ternary_Expressions_Can_Span_Multiple_Lines()
+    {
+        var assetType = AssetType.Create("Test Multi");
+        assetType.AddExpectedAttribute(AttributeDefinition.Create("Code", "Code", AttributeDataType.String, true));
+        assetType.AddTaxRule(new TaxRule
+        {
+            Key = "Multi",
+            Label = "Multi",
+            Expression = """
+            ([Code]=="A"?1:0) +
+            ([Code]=="B"?2:0)
+            """
+        });
+
+        var attrs = new Collection<ExtendedAttribute>
+        {
+            ExtendedAttribute.Create("Code", "B", AttributeDataType.String, true)
+        };
+
+        var result = assetType.EvaluateTaxRule("Multi", attrs);
+        Assert.Equal(2m, result);
     }
 }

@@ -1,4 +1,5 @@
 using NCalc;
+using System.Text;
 
 namespace Core.Domain.Tax.Calculation;
 
@@ -19,7 +20,8 @@ public sealed class NCalcExpressionEvaluator : IExpressionEvaluator
 
         try
         {
-            var expr = new Expression(expression);
+            var normalizedExpression = NormalizeExpression(expression);
+            var expr = new Expression(normalizedExpression);
             var missingParameters = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             // Set parameters
@@ -49,6 +51,15 @@ public sealed class NCalcExpressionEvaluator : IExpressionEvaluator
         }
     }
 
+    internal static string NormalizeExpression(string expression)
+    {
+        if (expression is null)
+            return string.Empty;
+
+        var sanitized = RemoveNumericSeparators(expression);
+        return sanitized.ReplaceLineEndings(" ").Trim();
+    }
+
     private static decimal? ConvertToDecimal(object? result)
     {
         return result switch
@@ -61,5 +72,40 @@ public sealed class NCalcExpressionEvaluator : IExpressionEvaluator
             long l => l,
             _ => decimal.TryParse(result.ToString(), out var parsed) ? parsed : null
         };
+    }
+
+    private static string RemoveNumericSeparators(string expression)
+    {
+        var sb = new StringBuilder(expression.Length);
+        var inString = false;
+        char stringDelimiter = '\0';
+
+        for (var i = 0; i < expression.Length; i++)
+        {
+            var c = expression[i];
+
+            if (inString)
+            {
+                sb.Append(c);
+                if (c == stringDelimiter && (i == 0 || expression[i - 1] != '\\'))
+                    inString = false;
+                continue;
+            }
+
+            if (c == '"' || c == '\'')
+            {
+                inString = true;
+                stringDelimiter = c;
+                sb.Append(c);
+                continue;
+            }
+
+            if (c == '_' && i > 0 && i < expression.Length - 1 && char.IsDigit(expression[i - 1]) && char.IsDigit(expression[i + 1]))
+                continue;
+
+            sb.Append(c);
+        }
+
+        return sb.ToString();
     }
 }

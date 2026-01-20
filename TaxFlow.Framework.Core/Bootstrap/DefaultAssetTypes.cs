@@ -126,15 +126,15 @@ public static class DefaultAssetTypes
             Description = "Barème forfaitaire selon la catégorie d'habitation.",
             ValidFrom = default,
             Expression = """
-            [RealEstateCategory]=="Appartement 1 pièce (studio)"?2_000:
-            [RealEstateCategory]=="Concession"?4_000:
-            [RealEstateCategory]=="Appartement 2 pièces"?6_000:
-            [RealEstateCategory]=="Appartement 3 pièces et plus"?9_000:
-            [RealEstateCategory]=="Villa / concession unique"?30_000:
-            [RealEstateCategory]=="Maison R+1"?40_000:
-            [RealEstateCategory]=="Maison R+2"?75_000:
-            [RealEstateCategory]=="Maison R+3 et plus"?100_000:
-            [RealEstateCategory]=="Étage > 600 m²"?100_000:0
+            ([RealEstateCategoryCode]=="STUDIO"?2000:0) +
+            ([RealEstateCategoryCode]=="CON"?4000:0) +
+            ([RealEstateCategoryCode]=="APT2"?6000:0) +
+            ([RealEstateCategoryCode]=="APT3P"?9000:0) +
+            ([RealEstateCategoryCode]=="VILLA"?30000:0) +
+            ([RealEstateCategoryCode]=="HOUSE_R1"?40000:0) +
+            ([RealEstateCategoryCode]=="HOUSE_R2"?75000:0) +
+            ([RealEstateCategoryCode]=="HOUSE_R3"?100000:0) +
+            ([RealEstateCategoryCode]=="ETG600"?100000:0)
             """
         };
 
@@ -145,18 +145,18 @@ public static class DefaultAssetTypes
             Description = "Taux proportionnel annuel de 7,5 % sur la valeur locative.",
             ValidFrom = default,
             Expression = """
-            [RealEstateType]=="Propriété Bâtie"?[LocativeValue]*7.5/100:0
+            [RealEstateTypeCode]=="PB"?[LocativeValue]*7.5/100:0
             """
         };
 
         yield return new TaxRule
         {
             Key = "TFPNB",
-            Label = "TAXE FONCIÈRE SUR PROPRIÉTÉS NON BÂTIES",
+            Label = "TAXE FONCIÈRE SUR PROPRIÉtÉS NON BÂTIES",
             Description = "Taux proportionnel annuel de 0,5 % sur la valeur vénale du terrain.",
             ValidFrom = default,
             Expression = """
-            [RealEstateType]=="Propriété Non Bâtie"?[ResidualValue]*0.5/100:0
+            [RealEstateTypeCode]=="PNB"?[ResidualValue]*0.5/100:0
             """
         };
 
@@ -233,60 +233,78 @@ public static class DefaultAssetTypes
             Label = "TPU – Transporteurs routiers",
             Description = "Taxe forfaitaire quadrimestrielle basée sur tonnage, sièges, âge et zone.",
             Expression = """
-            [TransportActivity]=="Transport de sable et gravats"?
-                ([VehicleTonnage]<=10?9_000:[VehicleTonnage]<=20?11_000:13_500):
-            [TransportActivity]=="Transport de marchandises"?
-                (([VehicleTonnage]<=5?6_000:[VehicleTonnage]<=10?9_000:[VehicleTonnage]<=20?12_000:15_000)*
-                 ([VehicleAgeYears]<=1?1.2:[VehicleAgeYears]<=3?1:[VehicleAgeYears]<=6?0.85:0.7)*
-                 ([OperationZone]=="Grande ville"?1:[OperationZone]=="Ville"?0.9:0.75)):
-            [TransportActivity]=="Transport de personnes"?
-                (([SeatCount]<=5?6_000:[SeatCount]<=15?10_000:[SeatCount]<=30?15_000:20_000)*
-                 ([VehicleAgeYears]<=2?1.1:[VehicleAgeYears]<=5?1:0.85)*
-                 ([OperationZone]=="Grande ville"?1:[OperationZone]=="Ville"?0.95:0.75)):
-            [TransportActivity]=="Taximoto"?
-                ([OperationZone]=="Zone rurale"?2_500:4_000):
-            [TransportActivity]=="Tricycle"?
-                ([OperationZone]=="Zone rurale"?6_000:8_000):
-            [TransportActivity]=="Pirogue"?
-                ([OperationZone]=="Zone rurale"?3_000:5_000):
-            [TransportActivity]=="Bateau"?
-                ([OperationZone]=="Zone rurale"?5_000:9_000):
-            0
+            ([TransportActivityCode]=="SABLE"?
+                ([VehicleTonnage]<=10?9000:([VehicleTonnage]<=20?11000:13500))
+            :0) +
+            ([TransportActivityCode]=="MARCHAND"?
+                (
+                    ([VehicleTonnage]<=5?6000:([VehicleTonnage]<=10?9000:([VehicleTonnage]<=20?12000:15000))) *
+                    ([VehicleAgeYears]<=1?1.2:([VehicleAgeYears]<=3?1:([VehicleAgeYears]<=6?0.85:0.7))) *
+                    ([OperationZoneCode]=="GRANDE"?1:([OperationZoneCode]=="VILLE"?0.9:0.75))
+                )
+            :0) +
+            ([TransportActivityCode]=="PERSONNES"?
+                (
+                    ([SeatCount]<=5?6000:([SeatCount]<=15?10000:([SeatCount]<=30?15000:20000))) *
+                    ([VehicleAgeYears]<=2?1.1:([VehicleAgeYears]<=5?1:0.85)) *
+                    ([OperationZoneCode]=="GRANDE"?1:([OperationZoneCode]=="VILLE"?0.95:0.75))
+                )
+            :0) +
+            ([TransportActivityCode]=="TAXIMOTO"?
+                ([OperationZoneCode]=="RURALE"?2500:4000)
+            :0) +
+            ([TransportActivityCode]=="TRICYCLE"?
+                ([OperationZoneCode]=="RURALE"?6000:8000)
+            :0) +
+            ([TransportActivityCode]=="PIROGUE"?
+                ([OperationZoneCode]=="RURALE"?3000:5000)
+            :0) +
+            ([TransportActivityCode]=="BATEAU"?
+                ([OperationZoneCode]=="RURALE"?5000:9000)
+            :0)
             """
         };
 
-        rule.ConfigureObligationSchedule(CreateQuadrimesterSchedule());
+        rule.ConfigureObligationSchedule(CreateQuarterlySchedule());
         yield return rule;
     }
 
-    private static TaxObligationSchedule CreateQuadrimesterSchedule()
+    private static TaxObligationSchedule CreateQuarterlySchedule()
     {
         var year = DateTimeOffset.UtcNow.Year;
-        var schedule = TaxObligationSchedule.Create("TPU-TR quadrimestriel", year);
+        var schedule = TaxObligationSchedule.Create("TPU-TR trimestriel", year);
 
         schedule.AddPaymentDeadline(PaymentDeadline.Create(
-            "TPU_TR_Q1",
-            "Quadrimestre 1",
-            new DateTimeOffset(year, 4, 30, 0, 0, 0, TimeSpan.Zero),
-            0.34m,
+            "TPU_TR_T1",
+            "Trimestre 1",
+            new DateTimeOffset(year, 3, 31, 0, 0, 0, TimeSpan.Zero),
+            0.25m,
             1,
-            Duration.Days(15)));
+            Duration.Months(1)));
 
         schedule.AddPaymentDeadline(PaymentDeadline.Create(
-            "TPU_TR_Q2",
-            "Quadrimestre 2",
-            new DateTimeOffset(year, 8, 31, 0, 0, 0, TimeSpan.Zero),
-            0.33m,
+            "TPU_TR_T2",
+            "Trimestre 2",
+            new DateTimeOffset(year, 6, 30, 0, 0, 0, TimeSpan.Zero),
+            0.25m,
             2,
-            Duration.Days(15)));
+            Duration.Months(1)));
 
         schedule.AddPaymentDeadline(PaymentDeadline.Create(
-            "TPU_TR_Q3",
-            "Quadrimestre 3",
-            new DateTimeOffset(year, 12, 31, 0, 0, 0, TimeSpan.Zero),
-            0.33m,
+            "TPU_TR_T3",
+            "Trimestre 3",
+            new DateTimeOffset(year, 9, 30, 0, 0, 0, TimeSpan.Zero),
+            0.25m,
             3,
-            Duration.Days(15)));
+            Duration.Months(1)));
+
+        schedule.AddPaymentDeadline(PaymentDeadline.Create(
+            "TPU_TR_T4",
+            "Trimestre 4",
+            new DateTimeOffset(year, 12, 31, 0, 0, 0, TimeSpan.Zero),
+            0.25m,
+            4,
+            Duration.Months(1)));
 
         return schedule;
     }
@@ -343,31 +361,35 @@ public static class DefaultAssetTypes
             Label = "TPU – Activités économiques",
             Description = "Barème forfaitaire commerce/services et montants différenciés artisans/ambulants.",
             Expression = """
-            [HasFranchise]==true?0:
-            [ActivityNature]=="Commerce"?
-                ([AnnualTurnover]<=2_500_000?10_000:
-                 [AnnualTurnover]<=5_000_000?40_000:
-                 [AnnualTurnover]<=10_000_000?115_000:
-                 [AnnualTurnover]<=15_000_000?190_000:
-                 [AnnualTurnover]<=20_000_000?265_000:
-                 [AnnualTurnover]<=25_000_000?340_000:
-                 [AnnualTurnover]<=30_000_000?415_000:500_000):
-            [ActivityNature]=="Services"?
-                (([AnnualTurnover]<=2_500_000?10_000:
-                  [AnnualTurnover]<=5_000_000?40_000:
-                  [AnnualTurnover]<=10_000_000?115_000:
-                  [AnnualTurnover]<=15_000_000?190_000:
-                  [AnnualTurnover]<=20_000_000?265_000:
-                  [AnnualTurnover]<=25_000_000?340_000:
-                  [AnnualTurnover]<=30_000_000?415_000:500_000)*1.35):
-            [ActivityNature]=="Artisan"?
-                (([UsesMechanicalMeans]==true?30_000:15_000)*
-                 ([LocationCategory]=="Urbain"?1:[LocationCategory]=="Semi-urbain"?0.85:0.65)):
-            [ActivityNature]=="Ambulant"?
-                (10_000*([LocationCategory]=="Urbain"?1:[LocationCategory]=="Semi-urbain"?0.9:0.7)):
-            [ActivityNature]=="Eleveur"?
-                (8_000*([LocationCategory]=="Urbain"?1:[LocationCategory]=="Semi-urbain"?0.85:0.6)):
-            0
+            [HasFranchise]?0:
+            (
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]<=2500000)?10000:0) +
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]>2500000 and [AnnualTurnover]<=5000000)?40000:0) +
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]>5000000 and [AnnualTurnover]<=10000000)?115000:0) +
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]>10000000 and [AnnualTurnover]<=15000000)?190000:0) +
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]>15000000 and [AnnualTurnover]<=20000000)?265000:0) +
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]>20000000 and [AnnualTurnover]<=25000000)?340000:0) +
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]>25000000 and [AnnualTurnover]<=30000000)?415000:0) +
+                (([ActivityNatureCode]=="COM" and [AnnualTurnover]>30000000)?500000:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]<=2500000)?10000*1.35:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]>2500000 and [AnnualTurnover]<=5000000)?40000*1.35:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]>5000000 and [AnnualTurnover]<=10000000)?115000*1.35:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]>10000000 and [AnnualTurnover]<=15000000)?190000*1.35:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]>15000000 and [AnnualTurnover]<=20000000)?265000*1.35:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]>20000000 and [AnnualTurnover]<=25000000)?340000*1.35:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]>25000000 and [AnnualTurnover]<=30000000)?415000*1.35:0) +
+                (([ActivityNatureCode]=="SRV" and [AnnualTurnover]>30000000)?500000*1.35:0) +
+                ([ActivityNatureCode]=="ART"?
+                    (([UsesMechanicalMeans]?30000:15000)*
+                     ([LocationCategoryCode]=="URB"?1:([LocationCategoryCode]=="SEMI"?0.85:0.65)))
+                :0) +
+                ([ActivityNatureCode]=="AMB"?
+                    (10000*([LocationCategoryCode]=="URB"?1:([LocationCategoryCode]=="SEMI"?0.9:0.7)))
+                :0) +
+                ([ActivityNatureCode]=="ELV"?
+                    (8000*([LocationCategoryCode]=="URB"?1:([LocationCategoryCode]=="SEMI"?0.85:0.6)))
+                :0)
+            )
             """
         };
     }
@@ -433,9 +455,16 @@ public static class DefaultAssetTypes
             Label = "IMPÔT SUR PENSIONS ET RENTES",
             Description = "Tranches 2,4-3,6M à 25 %, au-delà 50 %.",
             Expression = """
-            [PensionAmount]<=2_400_000?0:
-            [PensionAmount]<=3_600_000?([PensionAmount]-2_400_000)*0.25:
-            ((3_600_000-2_400_000)*0.25)+([PensionAmount]-3_600_000)*0.50
+            (
+                [PensionAmount]<=2400000?0:
+                (
+                    [PensionAmount]<=3600000?
+                        ([PensionAmount]-2400000)*0.25:
+                        (
+                            (3600000-2400000)*0.25 + ([PensionAmount]-3600000)*0.50
+                        )
+                )
+            )
             """
         };
 
@@ -494,7 +523,7 @@ public static class DefaultAssetTypes
             Label = "PÉNALITÉ DE RECOUVREMENT",
             Description = "Taux proportionnel de 10 % avec plancher 1 000.",
             Expression = """
-            ([OutstandingTaxAmount]*0.10)<1_000?1_000:[OutstandingTaxAmount]*0.10
+            (([OutstandingTaxAmount]*0.10)<1000?1000:[OutstandingTaxAmount]*0.10)
             """
         };
     }
@@ -502,12 +531,12 @@ public static class DefaultAssetTypes
     private static string BuildIrppScaleExpression(string variableName) =>
         $"""
         (
-            (([{variableName}]>900_000?([{variableName}]<3_000_000?[{variableName}]:3_000_000):900_000)-900_000)*0.10 +
-            (([{variableName}]>3_000_000?([{variableName}]<9_000_000?[{variableName}]:9_000_000):3_000_000)-3_000_000)*0.15 +
-            (([{variableName}]>9_000_000?([{variableName}]<12_000_000?[{variableName}]:12_000_000):9_000_000)-9_000_000)*0.20 +
-            (([{variableName}]>12_000_000?([{variableName}]<15_000_000?[{variableName}]:15_000_000):12_000_000)-12_000_000)*0.25 +
-            (([{variableName}]>15_000_000?([{variableName}]<20_000_000?[{variableName}]:20_000_000):15_000_000)-15_000_000)*0.30 +
-            (([{variableName}]>20_000_000?[{variableName}]:20_000_000)-20_000_000)*0.35
+            (([{variableName}]>900000?([{variableName}]<3000000?[{variableName}]:3000000):900000)-900000)*0.10 +
+            (([{variableName}]>3000000?([{variableName}]<9000000?[{variableName}]:9000000):3000000)-3000000)*0.15 +
+            (([{variableName}]>9000000?([{variableName}]<12000000?[{variableName}]:12000000):9000000)-9000000)*0.20 +
+            (([{variableName}]>12000000?([{variableName}]<15000000?[{variableName}]:15000000):12000000)-12000000)*0.25 +
+            (([{variableName}]>15000000?([{variableName}]<20000000?[{variableName}]:20000000):15000000)-15000000)*0.30 +
+            (([{variableName}]>20000000?[{variableName}]:20000000)-20000000)*0.35
         )
         """;
 }
