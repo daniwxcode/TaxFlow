@@ -325,10 +325,14 @@ var result = TaxEngine.EvaluateForPeriod(
 
 | Classe | Description |
 |--------|-------------|
-| `TaxObligationSchedule` | Calendrier des obligations fiscales |
-| `DeclarationDeadline` | Échéance de déclaration |
-| `PaymentDeadline` | Échéance de paiement avec fraction du montant |
+| `TaxObligationSchedule` | Calendrier des obligations fiscales (multiples déclarations et paiements) |
+| `DeclarationDeadline` | Échéance de déclaration avec périodicité et régime |
+| `PaymentDeadline` | Échéance de paiement avec type (acompte, solde) et fraction |
 | `Duration` | Durée flexible (jours, semaines, mois, années) |
+| `LegalReference` | Référence légale justifiant une obligation |
+| `DeadlinePeriodicity` | Périodicité (mensuelle, trimestrielle, annuelle, événementielle) |
+| `TaxRegime` | Régime fiscal (général, simplifié, réel, micro) |
+| `PaymentType` | Type de paiement (acompte, versement, solde) |
 | `ObligationPenaltyCalculator` | Calcule les pénalités basées sur les obligations |
 
 ### Diagramme de Classes - Obligations
@@ -336,16 +340,20 @@ var result = TaxEngine.EvaluateForPeriod(
 ```mermaid
 classDiagram
     class TaxObligationSchedule {
-        +DeclarationDeadline DeclarationDeadline
+        +IReadOnlyList~DeclarationDeadline~ DeclarationDeadlines
         +IReadOnlyList~PaymentDeadline~ PaymentDeadlines
+        +IReadOnlyList~LegalReference~ LegalReferences
+        +int DeclarationCount
         +int InstallmentCount
-        +bool HasDeclarationDeadline
-        +bool HasPaymentDeadlines
-        +Create() TaxObligationSchedule
-        +WithDeclarationDeadline(deadline) TaxObligationSchedule
+        +bool HasMultipleDeclarations
+        +bool HasFractionalPayments
+        +Create(name, fiscalYear) TaxObligationSchedule
+        +AddDeclarationDeadline(deadline) TaxObligationSchedule
         +AddPaymentDeadline(deadline) TaxObligationSchedule
+        +GetPaymentsForDeclaration(key) IReadOnlyList
+        +GetAdvancePayments() IReadOnlyList
+        +GetBalancePayments() IReadOnlyList
         +Validate() ValidationResult
-        +GetOverdueDeadlines(asOf) IReadOnlyList~TaxDeadline~
     }
     
     class TaxDeadline {
@@ -355,159 +363,233 @@ classDiagram
         +DeadlineType Type
         +DateTimeOffset DueDate
         +Duration GracePeriod
-        +DateTimeOffset EffectiveDueDate
-        +bool Enabled
+        +DeadlinePeriodicity Periodicity
+        +TaxRegime Regime
+        +int Order
+        +IReadOnlyList~LegalReference~ LegalReferences
+        +string ConditionExpression
         +IsOverdue(asOf) bool
-        +GetDaysLate(asOf) int
+        +GetNextOccurrence(after) DateTimeOffset
+        +GetOccurrences(from, to) IEnumerable
+        +AddLegalReference(ref) TaxDeadline
     }
     
     class DeclarationDeadline {
         +DeadlineType Type = Declaration
         +PenaltyDefinition PenaltyDefinition
-        +Create(key, label, dueDate, gracePeriod) DeclarationDeadline
+        +DeclarationType DeclarationType
+        +string FormReference
+        +Create(...) DeclarationDeadline
         +WithPenalty(definition) DeclarationDeadline
+        +WithDeclarationType(type) DeclarationDeadline
     }
     
     class PaymentDeadline {
         +DeadlineType Type = Payment
         +decimal Fraction
-        +int Order
-        +PenaltyDefinition PenaltyDefinition
-        +Create(key, label, dueDate, fraction, order, gracePeriod) PaymentDeadline
-        +WithPenalty(definition) PaymentDeadline
-        +GetAmountDue(totalTaxAmount) decimal
+        +PaymentType PaymentType
+        +string LinkedDeclarationKey
+        +decimal FixedAmount
+        +CreateAdvance(...) PaymentDeadline
+        +CreateBalance(...) PaymentDeadline
+        +LinkedToDeclaration(key) PaymentDeadline
+        +GetAmountDue(total) decimal
     }
     
-    class Duration {
-        <<struct>>
-        +int Value
-        +TimeUnit Unit
-        +Days(value) Duration
-        +Weeks(value) Duration
-        +Months(value) Duration
-        +Years(value) Duration
-        +AddTo(date) DateTimeOffset
-        +ToDays() int
+    class LegalReference {
+        +LegalTextType TextType
+        +string Reference
+        +string Title
+        +string Article
+        +DateOnly PublicationDate
+        +Create(...) LegalReference
+        +GetCitation() string
+    }
+    
+    class DeadlinePeriodicity {
+        <<enumeration>>
+        OneTime
+        Monthly
+        Quarterly
+        SemiAnnual
+        Annual
+        EventDriven
+    }
+    
+    class TaxRegime {
+        <<enumeration>>
+        General
+        Simplified
+        Real
+        Micro
+        Conditional
+        Exempt
+    }
+    
+    class PaymentType {
+        <<enumeration>>
+        Full
+        Advance
+        Installment
+        Balance
+        Withholding
     }
     
     TaxDeadline <|-- DeclarationDeadline
     TaxDeadline <|-- PaymentDeadline
-    TaxObligationSchedule "1" o-- "0..1" DeclarationDeadline
+    TaxObligationSchedule "1" o-- "*" DeclarationDeadline
     TaxObligationSchedule "1" o-- "*" PaymentDeadline
-    TaxDeadline --> Duration : GracePeriod
+    TaxObligationSchedule "1" o-- "*" LegalReference
+    TaxDeadline "1" o-- "*" LegalReference
+    PaymentDeadline ..> DeclarationDeadline : linkedTo
 ```
 
-### Duration
+### Pluralité des Échéances
 
-Type flexible pour les périodes :
-
-```csharp
-// Différentes unités de temps
-var grace1 = Duration.Days(10);      // 10 jours
-var grace2 = Duration.Weeks(2);      // 2 semaines
-var grace3 = Duration.Months(1);     // 1 mois
-var grace4 = Duration.Years(1);      // 1 an
-
-// Opérations
-var futureDate = grace1.AddTo(DateTimeOffset.Now);
-var approximateDays = grace3.ToDays(); // ~30 jours
-
-// Affichage
-Console.WriteLine(grace3); // "1 mois"
-```
-
-### TaxObligationSchedule
-
-Définit le calendrier complet des obligations :
+Le système supporte désormais plusieurs échéances de déclaration et de paiement par taxe :
 
 ```csharp
-var schedule = TaxObligationSchedule.Create()
-    // Échéance de déclaration
-    .WithDeclarationDeadline(
+// Exemple : TVA avec déclarations mensuelles et paiements fractionnés
+var schedule = TaxObligationSchedule.Create("TVA 2025", fiscalYear: 2025)
+    // Référence légale au niveau du calendrier
+    .AddLegalReference(LegalReference.Create(
+        LegalTextType.TaxCode,
+        "CGI Art. 287",
+        "Déclarations et paiements de TVA",
+        "287"))
+    
+    // Déclaration mensuelle de janvier
+    .AddDeclarationDeadline(
         DeclarationDeadline.Create(
-            key: "DECL_ANNUELLE",
-            label: "Déclaration Annuelle",
-            dueDate: new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero),
-            gracePeriod: Duration.Days(15))
+            "TVA_M01",
+            "Déclaration TVA Janvier",
+            new DateTimeOffset(2025, 2, 20, 0, 0, 0, TimeSpan.Zero),
+            DeadlinePeriodicity.Monthly,
+            TaxRegime.General,
+            Duration.Zero,
+            order: 1)
+        .WithFormReference("CA3")
+        .AddLegalReference(LegalReference.Create(
+            LegalTextType.TaxCode, "CGI Art. 287-1", "Déclaration mensuelle")))
+    
+    // Déclaration mensuelle de février
+    .AddDeclarationDeadline(
+        DeclarationDeadline.Create(
+            "TVA_M02",
+            "Déclaration TVA Février",
+            new DateTimeOffset(2025, 3, 20, 0, 0, 0, TimeSpan.Zero),
+            DeadlinePeriodicity.Monthly,
+            TaxRegime.General,
+            Duration.Zero,
+            order: 2))
+    
+    // Acompte (1er versement - 25%)
+    .AddPaymentDeadline(
+        PaymentDeadline.CreateAdvance(
+            "TVA_ADV_Q1",
+            "Acompte TVA T1",
+            new DateTimeOffset(2025, 4, 15, 0, 0, 0, TimeSpan.Zero),
+            fraction: 0.25m,
+            order: 1)
+        .LinkedToDeclaration("TVA_M01")
         .WithPenalty(new PenaltyDefinition
         {
-            Type = PenaltyType.Assiette,
-            FixedAmount = 100_000m,
-            AnnualRate = 0.10m,
+            Type = PenaltyType.Recouvrement,
+            AnnualRate = 0.048m,
             Period = Duration.Months(1)
         }))
     
-    // Première échéance de paiement (50%)
+    // Solde (75% restant)
     .AddPaymentDeadline(
-        PaymentDeadline.Create(
-            key: "PAY_1",
-            label: "Premier Versement",
-            dueDate: new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero),
-            fraction: 0.5m,
-            order: 1,
-            gracePeriod: Duration.Days(5))
-        .WithPenalty(new PenaltyDefinition
-        {
-            Type = PenaltyType.Recouvrement,
-            AnnualRate = 0.12m,
-            Period = Duration.Days(30)
-        }))
-    
-    // Deuxième échéance de paiement (50%)
-    .AddPaymentDeadline(
-        PaymentDeadline.Create(
-            key: "PAY_2",
-            label: "Deuxième Versement",
-            dueDate: new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero),
-            fraction: 0.5m,
-            order: 2,
-            gracePeriod: Duration.Days(5))
-        .WithPenalty(new PenaltyDefinition
-        {
-            Type = PenaltyType.Recouvrement,
-            AnnualRate = 0.12m,
-            Period = Duration.Days(30)
-        }));
-
-// Validation du calendrier
-var validation = schedule.Validate();
-if (validation.HasErrors)
-{
-    throw new InvalidOperationException(validation.ErrorMessage);
-}
-
-// Association à une règle fiscale
-rule.ConfigureObligationSchedule(schedule);
+        PaymentDeadline.CreateBalance(
+            "TVA_BAL",
+            "Solde TVA",
+            new DateTimeOffset(2025, 5, 15, 0, 0, 0, TimeSpan.Zero),
+            fraction: 0.75m,
+            order: 2)
+        .LinkedToDeclaration("TVA_M01"));
 ```
 
-### Calcul des Pénalités d'Obligations
+### Caractéristiques des Échéances
+
+Chaque échéance est caractérisée par :
+
+| Propriété | Description |
+|-----------|-------------|
+| **Nature** | Déclaration ou paiement (`DeadlineType`) |
+| **Périodicité** | Mensuelle, trimestrielle, annuelle, événementielle (`DeadlinePeriodicity`) |
+| **Date** | Date d'échéance fixe ou calculée (`DueDate`) |
+| **Régime** | Général, simplifié, conditionnel (`TaxRegime`) |
+| **Base légale** | Références légales explicites (`LegalReference`) |
+
+### Paiements Fractionnés
 
 ```csharp
-var calculator = new ObligationPenaltyCalculator(new PenaltyPolicy 
-{ 
-    DaysInYear = 365 
-});
+// Système d'acomptes et solde pour l'IS
+var schedule = TaxObligationSchedule.Create("IS 2025")
+    // 4 acomptes trimestriels de 25%
+    .AddPaymentDeadline(PaymentDeadline.CreateAdvance(
+        "IS_ADV_Q1", "Acompte T1", dueQ1, 0.25m, 1))
+    .AddPaymentDeadline(PaymentDeadline.CreateAdvance(
+        "IS_ADV_Q2", "Acompte T2", dueQ2, 0.25m, 2))
+    .AddPaymentDeadline(PaymentDeadline.CreateAdvance(
+        "IS_ADV_Q3", "Acompte T3", dueQ3, 0.25m, 3))
+    .AddPaymentDeadline(PaymentDeadline.CreateAdvance(
+        "IS_ADV_Q4", "Acompte T4", dueQ4, 0.25m, 4))
+    
+    // Solde de régularisation (0% si acomptes = 100%)
+    .AddPaymentDeadline(PaymentDeadline.CreateBalance(
+        "IS_BAL", "Solde IS", dueBalance, 0m, 5));
 
-// Paiements effectués
-var payments = new Dictionary<string, decimal>
+// Vérifier la structure
+var advances = schedule.GetAdvancePayments();
+var balance = schedule.GetBalancePayments();
+Console.WriteLine($"Acomptes: {advances.Count}, Soldes: {balance.Count}");
+```
+
+### Références Légales
+
+```csharp
+// Référence légale complète
+var legalRef = LegalReference.Create(
+    LegalTextType.FinanceLaw,
+    "LF 2025 n°2024-1234",
+    "Loi de finances pour 2025",
+    article: "42")
+    .WithDates(
+        publicationDate: new DateOnly(2024, 12, 30),
+        effectiveDate: new DateOnly(2025, 1, 1))
+    .WithUrl("https://legifrance.gouv.fr/...);
+
+// Obtenir la citation
+Console.WriteLine(legalRef.GetCitation());
+// Output: "LF LF 2025 n°2024-1234, art. 42"
+
+// Ajouter à une échéance
+deadline.AddLegalReference(legalRef);
+```
+
+### Échéances Récurrentes
+
+```csharp
+// Déclaration mensuelle avec calcul des occurrences
+var monthlyDecl = DeclarationDeadline.Create(
+    "TVA_MENSUELLE",
+    "Déclaration TVA Mensuelle",
+    new DateTimeOffset(2025, 1, 20, 0, 0, 0, TimeSpan.Zero),
+    DeadlinePeriodicity.Monthly);
+
+// Prochaine occurrence après une date
+var next = monthlyDecl.GetNextOccurrence(DateTimeOffset.Now);
+
+// Toutes les occurrences dans une période
+var occurrences = monthlyDecl.GetOccurrences(
+    new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
+    new DateTimeOffset(2025, 12, 31, 0, 0, 0, TimeSpan.Zero));
+
+foreach (var date in occurrences)
 {
-    { "PAY_1", 250_000m }  // Paiement partiel sur la 1ère échéance
-};
-
-var result = calculator.Calculate(
-    rule,
-    taxAmount: 1_000_000m,
-    asOf: new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero),
-    payments);
-
-Console.WriteLine($"Pénalités de déclaration: {result.TotalDeclarationPenalty}");
-Console.WriteLine($"Pénalités de paiement: {result.TotalPaymentPenalty}");
-Console.WriteLine($"Total pénalités: {result.TotalAmount}");
-
-// Détail par échéance
-foreach (var (key, penalties) in result.PaymentPenalties)
-{
-    Console.WriteLine($"  {key}: {penalties.Sum(p => p.Amount)}");
+    Console.WriteLine($"Échéance: {date:yyyy-MM-dd}");
 }
 ```
 
@@ -977,11 +1059,11 @@ var schedule = TaxObligationSchedule.Create()
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_TF_2025_Q1",
-            "Paiement 1er Trimestre",
+            "Premier Versement",
             new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero),
-            fraction: 0.25m,
+            fraction: 0.5m,
             order: 1,
-            Duration.Days(10))
+            gracePeriod: Duration.Days(5))
         .WithPenalty(new PenaltyDefinition
         {
             Type = PenaltyType.Recouvrement,
@@ -991,11 +1073,11 @@ var schedule = TaxObligationSchedule.Create()
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_TF_2025_Q2",
-            "Paiement 2ème Trimestre",
+            "Deuxième Versement",
             new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero),
-            fraction: 0.25m,
+            fraction: 0.5m,
             order: 2,
-            Duration.Days(10))
+            gracePeriod: Duration.Days(5))
         .WithPenalty(new PenaltyDefinition
         {
             Type = PenaltyType.Recouvrement,
@@ -1005,11 +1087,11 @@ var schedule = TaxObligationSchedule.Create()
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_TF_2025_Q3",
-            "Paiement 3ème Trimestre",
+            "Troisième Versement",
             new DateTimeOffset(2025, 10, 31, 0, 0, 0, TimeSpan.Zero),
-            fraction: 0.25m,
+            fraction: 0.5m,
             order: 3,
-            Duration.Days(10))
+            gracePeriod: Duration.Days(5))
         .WithPenalty(new PenaltyDefinition
         {
             Type = PenaltyType.Recouvrement,
@@ -1019,11 +1101,11 @@ var schedule = TaxObligationSchedule.Create()
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_TF_2025_Q4",
-            "Paiement 4ème Trimestre",
+            "Quatrième Versement",
             new DateTimeOffset(2026, 1, 31, 0, 0, 0, TimeSpan.Zero),
-            fraction: 0.25m,
+            fraction: 0.5m,
             order: 4,
-            Duration.Days(10))
+            gracePeriod: Duration.Days(5))
         .WithPenalty(new PenaltyDefinition
         {
             Type = PenaltyType.Recouvrement,
@@ -1120,7 +1202,7 @@ graph TB
 ```mermaid
 flowchart LR
     A[TaxableAsset] --> B[TaxEngine]
-    B --> C{Pour chaque TaxRule}
+    B --> C{Pour chaque TaxRule active}
     C -->|Active| D[TaxRuleEvaluator]
     C -->|Inactive| E[Skip]
     D --> F[NCalcExpressionEvaluator]
