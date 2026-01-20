@@ -1,7 +1,8 @@
 using Core.Domain.Contracts.Abstracts;
 
 using System;
-namespace Core.Domain.Tax;
+
+namespace Core.Domain.Tax.Calculation;
 
 /// <summary>
 /// Represents the result line of a tax calculation for a single rule.

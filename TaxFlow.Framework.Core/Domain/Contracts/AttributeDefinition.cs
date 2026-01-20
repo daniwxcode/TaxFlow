@@ -1,5 +1,6 @@
 ﻿using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Enums;
+using Core.Domain.Localization;
 
 namespace Core.Domain.Contracts;
 
@@ -87,9 +88,9 @@ public class AttributeDefinition : AuditableEntity
         , string regexPattern = null)
     {
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException("La clé de l'attribut ne doit pas être vide.", nameof(key));
+            throw new ArgumentException(ExceptionMessages.AttributeKeyCannotBeEmpty.Format(), nameof(key));
         if (string.IsNullOrWhiteSpace(label))
-            throw new ArgumentException("Le label de l'attribut ne doit pas être vide.", nameof(label));
+            throw new ArgumentException(ExceptionMessages.AttributeLabelCannotBeEmpty.Format(), nameof(label));
         return new AttributeDefinition
         {
             Key = key.Trim(),
@@ -109,7 +110,7 @@ public class AttributeDefinition : AuditableEntity
     public static AttributeDefinition Create(EnumDefinition enumDefinition, bool isRequired = true)
     {
         if (enumDefinition == null)
-            throw new ArgumentNullException(nameof(enumDefinition), "La définition d'énumération ne doit pas être nulle.");
+            throw new ArgumentNullException(nameof(enumDefinition), ExceptionMessages.EnumDefinitionCannotBeNull.Format());
         return new AttributeDefinition
         {
             Key = enumDefinition.Key,
@@ -129,7 +130,8 @@ public class AttributeDefinition : AuditableEntity
     /// <returns>The same instance for fluent usage.</returns>
     public AttributeDefinition UpdateLabel(string label)
     {
-        if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Le label ne doit pas être vide.", nameof(label));
+        if (string.IsNullOrWhiteSpace(label))
+            throw new ArgumentException(ExceptionMessages.LabelCannotBeEmpty.Format(), nameof(label));
         Label = label.Trim();
         return this;
     }

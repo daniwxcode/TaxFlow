@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Core.Domain.Tax;
+namespace Core.Domain.Tax.Calculation;
 
 /// <summary>
 /// Represents a detailed evaluation result for a tax rule.

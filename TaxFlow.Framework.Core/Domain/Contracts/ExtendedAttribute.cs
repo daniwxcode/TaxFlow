@@ -16,7 +16,7 @@ public class ExtendedAttribute : SoftAuditableEntity, ITemporalValiditable
     public string Key { get; protected set; } = string.Empty;
 
     /// <summary>
-    /// Attribute value as stored (string representation). Conversion/validation depends on <see cref="DataType"/>.
+    /// Attribute value as stored (string representation).
     /// </summary>
     public string Value { get; protected set; } = string.Empty;
 
@@ -31,7 +31,7 @@ public class ExtendedAttribute : SoftAuditableEntity, ITemporalValiditable
     public bool IsRequired { get; protected set; }
 
     /// <summary>
-    /// Typed view of the data type stored in <see cref="DataTypeValue"/>.
+    /// Typed view of the data type.
     /// </summary>
     [NotMapped]
     public AttributeDataType DataType
@@ -41,34 +41,34 @@ public class ExtendedAttribute : SoftAuditableEntity, ITemporalValiditable
     }
 
     /// <summary>
-    /// Start of temporal validity for this attribute.
+    /// Start of temporal validity.
     /// </summary>
     public DateTimeOffset ValidFrom { get; set; }
 
     /// <summary>
-    /// End of temporal validity for this attribute (nullable for open-ended validity).
+    /// End of temporal validity (nullable for open-ended).
     /// </summary>
     public DateTimeOffset? ValidTo { get; set; }
 
     /// <summary>
-    /// Protected parameterless constructor for ORM and infrastructure.
+    /// Protected parameterless constructor for ORM.
     /// </summary>
     protected ExtendedAttribute() { }
 
     /// <summary>
-    /// Factory method to create a new ExtendedAttribute instance with validation for the key.
+    /// Factory method to create a new ExtendedAttribute instance.
     /// </summary>
-    /// <param name="key">Attribute key; must not be empty.</param>
-    /// <param name="value">Attribute value.</param>
-    /// <param name="dataType">Attribute data type.</param>
-    /// <param name="isRequired">Whether the attribute is required.</param>
-    /// <param name="validFrom">Optional validity start time; defaults to UTC now.</param>
-    /// <param name="validTo">Optional validity end time.</param>
-    /// <returns>A new <see cref="ExtendedAttribute"/> instance.</returns>
-    public static ExtendedAttribute Create(string key, string value, AttributeDataType dataType, bool isRequired = false, DateTimeOffset? validFrom = null, DateTimeOffset? validTo = null)
+    public static ExtendedAttribute Create(
+        string key,
+        string value,
+        AttributeDataType dataType,
+        bool isRequired = false,
+        DateTimeOffset? validFrom = null,
+        DateTimeOffset? validTo = null)
     {
-        if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Key must not be empty", nameof(key));
-        var attr = new ExtendedAttribute
+        ArgumentException.ThrowIfNullOrWhiteSpace(key, nameof(key));
+
+        return new ExtendedAttribute
         {
             Key = key.Trim(),
             Value = value ?? string.Empty,
@@ -77,15 +77,11 @@ public class ExtendedAttribute : SoftAuditableEntity, ITemporalValiditable
             ValidFrom = validFrom ?? DateTimeOffset.UtcNow,
             ValidTo = validTo
         };
-        return attr;
     }
 
     /// <summary>
-    /// Update value and metadata for the attribute in a single domain-intent method.
+    /// Update value and metadata for the attribute.
     /// </summary>
-    /// <param name="value">The new value.</param>
-    /// <param name="dataType">The data type for the value.</param>
-    /// <param name="isRequired">Whether the attribute is required.</param>
     public void UpdateValue(string value, AttributeDataType dataType, bool isRequired = false)
     {
         Value = value ?? string.Empty;
@@ -98,30 +94,35 @@ public class ExtendedAttribute : SoftAuditableEntity, ITemporalValiditable
     /// <summary>
     /// Validates the stored string value against the <see cref="DataType"/>.
     /// </summary>
-    /// <returns>True if the value is valid given the data type and required flag; otherwise false.</returns>
     public bool IsValidValue()
     {
         if (string.IsNullOrWhiteSpace(Value))
-        {
             return !IsRequired;
-        }
 
-        return DataType.Name switch
+        return DataType.Value switch
         {
-            "Number" => double.TryParse(Value, out _),
-            "Boolean" => bool.TryParse(Value, out _),
-            "Date" => DateTimeOffset.TryParse(Value, out _),
-            "Enum" => true,
-            "Json" => IsValidJson(Value),
+            var v when v == AttributeDataType.Number.Value => double.TryParse(Value, out _),
+            var v when v == AttributeDataType.Boolean.Value => bool.TryParse(Value, out _),
+            var v when v == AttributeDataType.Date.Value => DateTimeOffset.TryParse(Value, out _),
+            var v when v == AttributeDataType.Enum.Value => true,
+            var v when v == AttributeDataType.Json.Value => IsValidJson(Value),
             _ => true,
         };
-
     }
-    private bool IsValidJson(string value)
+
+    /// <summary>
+    /// Checks if the attribute is currently valid at the given date.
+    /// </summary>
+    public bool IsValidAt(DateTimeOffset date)
+    {
+        return ValidFrom <= date && (ValidTo == null || ValidTo >= date);
+    }
+
+    private static bool IsValidJson(string value)
     {
         try
         {
-            var _ = System.Text.Json.JsonDocument.Parse(value);
+            using var _ = System.Text.Json.JsonDocument.Parse(value);
             return true;
         }
         catch
