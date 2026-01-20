@@ -1,3 +1,4 @@
+using Core.Domain.Localization;
 using Core.Domain.Tax.Penalties;
 
 namespace Core.Domain.Tax.Obligations;
@@ -69,10 +70,10 @@ public sealed class PaymentDeadline : TaxDeadline
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
 
         if (fraction <= 0 || fraction > 1)
-            throw new ArgumentOutOfRangeException(nameof(fraction), "Fraction must be between 0 (exclusive) and 1 (inclusive).");
+            throw new ArgumentOutOfRangeException(nameof(fraction), ExceptionMessages.FractionOutOfRange.Format());
 
         if (order < 1)
-            throw new ArgumentOutOfRangeException(nameof(order), "Order must be at least 1.");
+            throw new ArgumentOutOfRangeException(nameof(order), ExceptionMessages.OrderMustBePositive.Format());
 
         return new PaymentDeadline
         {
@@ -103,7 +104,7 @@ public sealed class PaymentDeadline : TaxDeadline
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
 
         if (fraction <= 0 || fraction > 1)
-            throw new ArgumentOutOfRangeException(nameof(fraction), "Fraction must be between 0 (exclusive) and 1 (inclusive).");
+            throw new ArgumentOutOfRangeException(nameof(fraction), ExceptionMessages.FractionOutOfRange.Format());
 
         return new PaymentDeadline
         {

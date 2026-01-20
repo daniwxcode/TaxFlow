@@ -1,5 +1,6 @@
 using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Contracts.Validation;
+using Core.Domain.Localization;
 
 namespace Core.Domain.Tax.Obligations;
 
@@ -117,7 +118,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
         ArgumentNullException.ThrowIfNull(deadline);
 
         if (_declarationDeadlines.Any(d => d.Key.Equals(deadline.Key, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException($"A declaration deadline with key '{deadline.Key}' already exists.");
+            throw new InvalidOperationException(ExceptionMessages.DeclarationDeadlineAlreadyExists.Format(("key", deadline.Key)));
 
         _declarationDeadlines.Add(deadline);
         return this;
@@ -142,7 +143,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
         ArgumentNullException.ThrowIfNull(deadline);
 
         if (_paymentDeadlines.Any(p => p.Key.Equals(deadline.Key, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException($"A payment deadline with key '{deadline.Key}' already exists.");
+            throw new InvalidOperationException(ExceptionMessages.PaymentDeadlineAlreadyExists.Format(("key", deadline.Key)));
 
         _paymentDeadlines.Add(deadline);
         return this;
@@ -290,7 +291,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
         {
             errors.Add(new ValidationError(
                 "DUPLICATE_DECLARATION_KEY",
-                $"Multiple declaration deadlines have the same key: '{key}'.",
+                ValidationMessages.DuplicateDeclarationKey.Format(("key", key)),
                 nameof(DeclarationDeadlines)));
         }
 
@@ -307,12 +308,9 @@ public sealed class TaxObligationSchedule : AuditableEntity
                 var totalFraction = group.Sum(p => p.Fraction);
                 if (totalFraction > 1.0m)
                 {
-                    var context = group.Key == "__unlinked__"
-                        ? "unlinked payments"
-                        : $"payments linked to '{group.Key}'";
                     errors.Add(new ValidationError(
                         "INVALID_FRACTION_TOTAL",
-                        $"Total payment fractions ({totalFraction:P0}) exceed 100% for {context}.",
+                        ValidationMessages.InvalidFractionTotal.Format(("total", totalFraction.ToString("P0"))),
                         nameof(PaymentDeadlines)));
                 }
             }
@@ -328,14 +326,18 @@ public sealed class TaxObligationSchedule : AuditableEntity
             {
                 errors.Add(new ValidationError(
                     "INVALID_LINKED_DECLARATION",
-                    $"Payment '{payment.Key}' references non-existent declaration '{payment.LinkedDeclarationKey}'.",
+                    ValidationMessages.InvalidLinkedDeclaration.Format(
+                        ("paymentKey", payment.Key),
+                        ("declarationKey", payment.LinkedDeclarationKey ?? "")),
                     nameof(PaymentDeadlines)));
             }
             else if (linkedDeclaration.DueDate > payment.DueDate)
             {
                 errors.Add(new ValidationError(
                     "DECLARATION_AFTER_PAYMENT",
-                    $"Declaration '{linkedDeclaration.Key}' must be before or equal to its linked payment '{payment.Key}'.",
+                    ValidationMessages.DeclarationAfterPayment.Format(
+                        ("declarationKey", linkedDeclaration.Key),
+                        ("paymentKey", payment.Key)),
                     nameof(DeclarationDeadlines)));
             }
         }
@@ -351,7 +353,9 @@ public sealed class TaxObligationSchedule : AuditableEntity
         {
             errors.Add(new ValidationError(
                 "DUPLICATE_DECLARATION_ORDER",
-                $"Multiple declaration deadlines have the same order: {order}.",
+                ValidationMessages.DuplicateOrder.Format(
+                    ("deadlineType", ValidationMessages.GetDeadlineTypeName("declaration").GetValue()),
+                    ("order", order)),
                 nameof(DeclarationDeadlines)));
         }
 
@@ -365,12 +369,11 @@ public sealed class TaxObligationSchedule : AuditableEntity
         {
             errors.Add(new ValidationError(
                 "DUPLICATE_PAYMENT_ORDER",
-                $"Multiple payment deadlines have the same order: {order}.",
+                ValidationMessages.DuplicateOrder.Format(
+                    ("deadlineType", ValidationMessages.GetDeadlineTypeName("payment").GetValue()),
+                    ("order", order)),
                 nameof(PaymentDeadlines)));
         }
-
-        // Validate advance payments have corresponding balance (warning, not error)
-        // This validation is informational only
 
         return errors.Count == 0 ? ValidationResult.Success() : ValidationResult.Failure(errors);
     }

@@ -1,4 +1,5 @@
 using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Localization;
 
 namespace Core.Domain.Tax.Obligations;
 
@@ -109,7 +110,18 @@ public sealed class LegalReference : AuditableEntity
     /// </summary>
     public string GetCitation()
     {
-        var citation = $"{TextType.GetDisplayName()} {Reference}";
+        var citation = $"{TextType.GetShortDisplayName()} {Reference}";
+        if (!string.IsNullOrWhiteSpace(Article))
+            citation += $", art. {Article}";
+        return citation;
+    }
+
+    /// <summary>
+    /// Gets a formatted citation string in the specified culture.
+    /// </summary>
+    public string GetCitation(string? culture)
+    {
+        var citation = $"{TextType.GetShortDisplayName(culture)} {Reference}";
         if (!string.IsNullOrWhiteSpace(Article))
             citation += $", art. {Article}";
         return citation;
@@ -180,20 +192,56 @@ public enum LegalTextType
 public static class LegalTextTypeExtensions
 {
     /// <summary>
-    /// Gets the display name for a legal text type.
+    /// Gets the display name for a legal text type using current culture.
     /// </summary>
-    public static string GetDisplayName(this LegalTextType type) => type switch
+    public static string GetDisplayName(this LegalTextType type) => type.GetLabel().GetValue();
+
+    /// <summary>
+    /// Gets the display name for a legal text type in a specific culture.
+    /// </summary>
+    public static string GetDisplayName(this LegalTextType type, string? culture) => type.GetLabel().GetValue(culture);
+
+    /// <summary>
+    /// Gets the short display name (abbreviation) for a legal text type for citations.
+    /// </summary>
+    public static string GetShortDisplayName(this LegalTextType type) => GetShortDisplayName(type, null);
+
+    /// <summary>
+    /// Gets the short display name (abbreviation) for a legal text type for citations in a specific culture.
+    /// </summary>
+    public static string GetShortDisplayName(this LegalTextType type, string? culture) => type switch
     {
-        LegalTextType.Law => "Loi",
-        LegalTextType.Decree => "Décret",
-        LegalTextType.Order => "Arrêté",
-        LegalTextType.Circular => "Circulaire",
-        LegalTextType.Instruction => "Instruction",
-        LegalTextType.TaxCode => "CGI",
-        LegalTextType.FinanceLaw => "LF",
-        LegalTextType.Regulation => "Règlement",
-        LegalTextType.Convention => "Convention",
-        LegalTextType.Other => "Texte",
-        _ => type.ToString()
+        LegalTextType.TaxCode => GetTaxCodeShortLabel().GetValue(culture),
+        LegalTextType.FinanceLaw => GetFinanceLawShortLabel().GetValue(culture),
+        _ => type.GetLabel().GetValue(culture)
     };
+
+    /// <summary>
+    /// Gets the localized label for a legal text type.
+    /// </summary>
+    public static LocalizedString GetLabel(this LegalTextType type) => type switch
+    {
+        LegalTextType.Law => ObligationLabels.LegalLaw,
+        LegalTextType.Decree => ObligationLabels.LegalDecree,
+        LegalTextType.Order => ObligationLabels.LegalOrder,
+        LegalTextType.Circular => ObligationLabels.LegalCircular,
+        LegalTextType.Instruction => ObligationLabels.LegalInstruction,
+        LegalTextType.TaxCode => ObligationLabels.LegalTaxCode,
+        LegalTextType.FinanceLaw => ObligationLabels.LegalFinanceLaw,
+        LegalTextType.Regulation => ObligationLabels.LegalRegulation,
+        LegalTextType.Convention => ObligationLabels.LegalConvention,
+        LegalTextType.Other => ObligationLabels.LegalOther,
+        _ => LocalizedString.Create(type.ToString())
+    };
+
+    // Short labels for citations
+    private static LocalizedString GetTaxCodeShortLabel() => LocalizedString.Create("CGI")
+        .En("TC")
+        .Ar("?.?")
+        .Pt("CT");
+
+    private static LocalizedString GetFinanceLawShortLabel() => LocalizedString.Create("LF")
+        .En("FL")
+        .Ar("?.?")
+        .Pt("LF");
 }

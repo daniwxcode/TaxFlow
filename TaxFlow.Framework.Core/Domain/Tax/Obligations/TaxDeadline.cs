@@ -1,4 +1,5 @@
 using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Localization;
 using Core.Domain.Tax.Penalties;
 
 namespace Core.Domain.Tax.Obligations;
@@ -30,9 +31,24 @@ public abstract class TaxDeadline : AuditableEntity
     public string Key { get; init; } = string.Empty;
 
     /// <summary>
-    /// Human-readable label for the deadline.
+    /// Human-readable label for the deadline (default culture).
     /// </summary>
     public string Label { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Localized labels for the deadline.
+    /// </summary>
+    public LocalizedString? LocalizedLabel { get; private set; }
+
+    /// <summary>
+    /// Gets the label in the current culture.
+    /// </summary>
+    public string GetLabel(string? culture = null)
+    {
+        if (LocalizedLabel is not null)
+            return LocalizedLabel.GetValue(culture);
+        return Label;
+    }
 
     /// <summary>
     /// Type of deadline.
@@ -60,6 +76,21 @@ public abstract class TaxDeadline : AuditableEntity
     /// Optional description for this deadline.
     /// </summary>
     public string? Description { get; init; }
+
+    /// <summary>
+    /// Localized descriptions for the deadline.
+    /// </summary>
+    public LocalizedString? LocalizedDescription { get; private set; }
+
+    /// <summary>
+    /// Gets the description in the current culture.
+    /// </summary>
+    public string? GetDescription(string? culture = null)
+    {
+        if (LocalizedDescription is not null)
+            return LocalizedDescription.GetValue(culture);
+        return Description;
+    }
 
     /// <summary>
     /// Whether this deadline is enabled.
@@ -102,6 +133,24 @@ public abstract class TaxDeadline : AuditableEntity
     /// Period within the fiscal year (1-12 for months, 1-4 for quarters, etc.).
     /// </summary>
     public int? Period { get; init; }
+
+    /// <summary>
+    /// Sets the localized label for this deadline.
+    /// </summary>
+    public TaxDeadline WithLocalizedLabel(LocalizedString localizedLabel)
+    {
+        LocalizedLabel = localizedLabel;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the localized description for this deadline.
+    /// </summary>
+    public TaxDeadline WithLocalizedDescription(LocalizedString localizedDescription)
+    {
+        LocalizedDescription = localizedDescription;
+        return this;
+    }
 
     /// <summary>
     /// Checks if the deadline is overdue as of the given date.
