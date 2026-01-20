@@ -4,14 +4,15 @@
 
 1. [Vue d'Ensemble](#vue-densemble)
 2. [Architecture du Domaine](#architecture-du-domaine)
-3. [Module Assets](#module-assets)
-4. [Module Calculation](#module-calculation)
-5. [Module Obligations](#module-obligations)
-6. [Module Penalties](#module-penalties)
-7. [Module Payments](#module-payments)
-8. [Validation](#validation)
-9. [Exemples Complets](#exemples-complets)
-10. [Diagrammes](#diagrammes)
+3. [Module Localization](#module-localization)
+4. [Module Assets](#module-assets)
+5. [Module Calculation](#module-calculation)
+6. [Module Obligations](#module-obligations)
+7. [Module Penalties](#module-penalties)
+8. [Module Payments](#module-payments)
+9. [Validation](#validation)
+10. [Exemples Complets](#exemples-complets)
+11. [Diagrammes](#diagrammes)
 
 ---
 
@@ -25,6 +26,7 @@ TaxFlow est un framework de gestion fiscale qui permet de :
 - **Gérer les échéances** de déclaration et de paiement
 - **Calculer les pénalités** en cas de retard (assiette et recouvrement)
 - **Suivre les paiements** et leur allocation aux échéances
+- **Localiser tous les messages** (erreurs, avertissements, libellés) pour éviter les *magic strings*
 
 ### Principes de Conception
 
@@ -32,6 +34,7 @@ TaxFlow est un framework de gestion fiscale qui permet de :
 - **SOLID** : Classes à responsabilité unique, injection de dépendances
 - **Immutabilité** : Utilisation de records et propriétés `init`
 - **Validation riche** : Types structurés pour les erreurs de validation
+- **Localisation centralisée** : Tous les messages passent par `LocalizedString`/`LocalizedTemplate`
 
 ---
 
@@ -53,6 +56,11 @@ graph TB
             Penalties[Penalties<br/>PenaltyCalculator<br/>PenaltyDefinition]
             Payments[Payments<br/>PaymentSchedule<br/>Installment]
         end
+
+        subgraph "Localization"
+            LocStrings[LocalizedString<br/>LocalizedTemplate]
+            LocMessages[ValidationMessages<br/>ExceptionMessages<br/>ObligationLabels]
+        end
     end
     
     Assets --> Calculation
@@ -63,7 +71,61 @@ graph TB
     Abstracts --> Assets
     Validation --> Assets
     Events --> Assets
+
+    LocStrings --> LocMessages
+    LocMessages --> Assets
+    LocMessages --> Calculation
+    LocMessages --> Obligations
 ```
+
+---
+
+## Module Localization
+
+### Objectifs
+
+- Éliminer les *magic strings* dans le domaine fiscal.
+- Centraliser toutes les traductions pour assurer la cohérence UI/API.
+- Supporter plusieurs cultures (fr-FR par défaut, en-US, ar-SA, pt-PT, es-ES).
+
+### Composants
+
+| Classe/Objet | Description |
+|--------------|-------------|
+| `LocalizedString` | Valeur localisée (fluent API `.En()`, `.Ar()`, `.Pt()`, `.Es()`). |
+| `LocalizedTemplate` | Message paramétré avec placeholders nommés (`{attributeKey}`). |
+| `LocalizationContext` | Gestion du contexte de culture courant (scope `WithCulture`). |
+| `ValidationMessages` | Messages standardisés pour `ValidationResult`. |
+| `ExceptionMessages` | Messages d'exception prêts à l'emploi (attributs, règles, obligations, dates). |
+| `ObligationLabels` | Libellés localisés pour les enums (périodicité, régimes, pénalités, textes légaux). |
+
+### Exemple
+
+```csharp
+// Chaîne localisée avec traductions additionnelles
+var paymentLabel = LocalizedString.Create("Paiement")
+    .En("Payment")
+    .Ar("دفع")
+    .Pt("Pagamento");
+
+// Message d'exception paramétré
+throw new ArgumentException(
+    ExceptionMessages.AttributeValidationFailed.Format(
+        ("errorMessage", validationResult.ErrorMessage)));
+
+// Utilisation d'un scope de culture
+using (LocalizationContext.WithCulture("en-US"))
+{
+    Console.WriteLine(paymentLabel.GetValue()); // "Payment"
+}
+```
+
+### Intégration dans le Domaine
+
+- **Attributs / Règles** : `AttributeDefinition`, `AssetType`, `TaxRuleEvaluator` utilisent `ExceptionMessages`.
+- **Obligations** : `TaxObligationSchedule`, `PaymentDeadline`, `LegalReference` s'appuient sur `ValidationMessages`/`ObligationLabels`.
+- **Moteur de calcul** : `TaxEngine` garantit des erreurs et warnings localisés.
+- **Tests** : vérifications adaptées pour accepter les nouvelles formulations localisées.
 
 ---
 
@@ -154,15 +216,15 @@ realEstate
                 new EnumItem { Code = "PB", Label = "Propriété Bâtie" },
                 new EnumItem { Code = "PNB", Label = "Propriété Non Bâtie" }
             }
-        }));
+        }))
 
-// Ajout d'une règle fiscale
-realEstate.AddTaxRule(new TaxRule
-{
-    Key = "TFB",
-    Label = "Taxe Foncière sur Propriété Bâtie",
-    Expression = "[TypePropriete] == 'Propriété Bâtie' ? [ValeurVenale] * 0.0075 : 0"
-});
+    // Ajout d'une règle fiscale
+    .AddTaxRule(new TaxRule
+    {
+        Key = "TFB",
+        Label = "Taxe Foncière sur Propriété Bâtie",
+        Expression = "[TypePropriete] == 'Propriété Bâtie' ? [ValeurVenale] * 0.0075 : 0"
+    });
 ```
 
 ### TaxableAsset
