@@ -7,22 +7,9 @@
     <!-- Generate XML documentation to ensure code is documented -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
-
   <ItemGroup>
-    <Compile Remove="Domain\Tax\Enums\**" />
-    <Compile Remove="Domain\Workflow\**" />
-    <Compile Remove="Features\**" />
-    <EmbeddedResource Remove="Domain\Tax\Enums\**" />
-    <EmbeddedResource Remove="Domain\Workflow\**" />
-    <EmbeddedResource Remove="Features\**" />
-    <None Remove="Domain\Tax\Enums\**" />
-    <None Remove="Domain\Workflow\**" />
-    <None Remove="Features\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Ardalis.SmartEnum" Version="8.2.0" />
-    <PackageReference Include="NCalcSync" Version="5.9.0" />
+    <PackageReference Include="Ardalis.SmartEnum"/>
+    <PackageReference Include="NCalcSync"/>
   </ItemGroup>
 
 </Project>

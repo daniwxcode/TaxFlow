@@ -69,7 +69,7 @@ public sealed class TransportOperatorAssetTypeDefinition : IAssetTypeDefinition
         {
             Key = "TPU_TR",
             Label = "TPU – Transporteurs routiers",
-            Description = "Taxe forfaitaire quadrimestrielle basée sur tonnage, sièges, âge et zone.",
+            Description = "Taxe forfaitaire trrimestrielle basée sur tonnage, sièges, âge et zone.",
             Expression = """
             ([TransportActivityCode]=="SABLE"?
                 ([VehicleTonnage]<=10?9000:([VehicleTonnage]<=20?11000:13500))
