@@ -5,5 +5,10 @@
 		<Nullable>enable</Nullable>
 		<!-- Generate XML documentation to ensure code is documented -->
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<!-- Analyse statique intégrée -->
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<RepositoryUrl>https://github.com/daniwxcode/TaxFlow</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 </Project>
