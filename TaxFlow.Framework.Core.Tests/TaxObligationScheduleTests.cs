@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Core.Domain.Contracts.Validation;
 using Core.Domain.Tax.Obligations;
 using Core.Domain.Tax.Penalties;
 
@@ -14,7 +15,7 @@ public class TaxObligationScheduleTests
     [Fact]
     public void Create_Returns_Empty_Schedule()
     {
-        var schedule = TaxObligationSchedule.Create();
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
 
         Assert.False(schedule.HasDeclarationDeadline);
         Assert.False(schedule.HasPaymentDeadlines);
@@ -24,8 +25,8 @@ public class TaxObligationScheduleTests
     [Fact]
     public void WithDeclarationDeadline_Sets_Declaration()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var deadline = DeclarationDeadline.Create("DECL", "Annual Declaration", new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero));
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        DeclarationDeadline deadline = DeclarationDeadline.Create("DECL", "Annual Declaration", new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero));
 
         schedule.WithDeclarationDeadline(deadline);
 
@@ -36,19 +37,19 @@ public class TaxObligationScheduleTests
     [Fact]
     public void AddDeclarationDeadline_Supports_Multiple_Declarations()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var decl1 = DeclarationDeadline.Create(
-            "DECL_Q1", 
-            "Q1 Declaration", 
-            new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        DeclarationDeadline decl1 = DeclarationDeadline.Create(
+            "DECL_Q1",
+            "Q1 Declaration",
+            new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero),
             DeadlinePeriodicity.Quarterly,
             TaxRegime.General,
             Duration.Zero,
             order: 1);
-        var decl2 = DeclarationDeadline.Create(
-            "DECL_Q2", 
-            "Q2 Declaration", 
-            new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 
+        DeclarationDeadline decl2 = DeclarationDeadline.Create(
+            "DECL_Q2",
+            "Q2 Declaration",
+            new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero),
             DeadlinePeriodicity.Quarterly,
             TaxRegime.General,
             Duration.Zero,
@@ -63,9 +64,9 @@ public class TaxObligationScheduleTests
     [Fact]
     public void AddPaymentDeadline_Adds_To_Collection()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1);
-        var payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        PaymentDeadline payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1);
+        PaymentDeadline payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
 
         schedule.AddPaymentDeadline(payment1).AddPaymentDeadline(payment2);
 
@@ -76,9 +77,9 @@ public class TaxObligationScheduleTests
     [Fact]
     public void AddPaymentDeadline_Throws_On_Duplicate_Key()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var payment1 = PaymentDeadline.Create("PAY", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero));
-        var payment2 = PaymentDeadline.Create("PAY", "Duplicate Payment", new DateTimeOffset(2025, 5, 31, 0, 0, 0, TimeSpan.Zero));
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        PaymentDeadline payment1 = PaymentDeadline.Create("PAY", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero));
+        PaymentDeadline payment2 = PaymentDeadline.Create("PAY", "Duplicate Payment", new DateTimeOffset(2025, 5, 31, 0, 0, 0, TimeSpan.Zero));
 
         schedule.AddPaymentDeadline(payment1);
 
@@ -88,12 +89,12 @@ public class TaxObligationScheduleTests
     [Fact]
     public void Validate_Detects_Fraction_Exceeds_100Percent()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.6m, 1);
-        var payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        PaymentDeadline payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.6m, 1);
+        PaymentDeadline payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
 
         schedule.AddPaymentDeadline(payment1).AddPaymentDeadline(payment2);
-        var result = schedule.Validate();
+        ValidationResult result = schedule.Validate();
 
         Assert.True(result.HasErrors);
         Assert.Contains(result.Errors, e => e.Code == "INVALID_FRACTION_TOTAL");
@@ -102,13 +103,13 @@ public class TaxObligationScheduleTests
     [Fact]
     public void Validate_Detects_Declaration_After_LinkedPayment()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var declaration = DeclarationDeadline.Create("DECL", "Late Declaration", new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero));
-        var payment = PaymentDeadline.Create("PAY", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero))
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        DeclarationDeadline declaration = DeclarationDeadline.Create("DECL", "Late Declaration", new DateTimeOffset(2025, 6, 1, 0, 0, 0, TimeSpan.Zero));
+        PaymentDeadline payment = PaymentDeadline.Create("PAY", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero))
             .LinkedToDeclaration("DECL");
 
         schedule.WithDeclarationDeadline(declaration).AddPaymentDeadline(payment);
-        var result = schedule.Validate();
+        ValidationResult result = schedule.Validate();
 
         Assert.True(result.HasErrors);
         Assert.Contains(result.Errors, e => e.Code == "DECLARATION_AFTER_PAYMENT");
@@ -117,12 +118,12 @@ public class TaxObligationScheduleTests
     [Fact]
     public void Validate_Detects_Invalid_Linked_Declaration()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var payment = PaymentDeadline.Create("PAY", "Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero))
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        PaymentDeadline payment = PaymentDeadline.Create("PAY", "Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero))
             .LinkedToDeclaration("NON_EXISTENT");
 
         schedule.AddPaymentDeadline(payment);
-        var result = schedule.Validate();
+        ValidationResult result = schedule.Validate();
 
         Assert.True(result.HasErrors);
         Assert.Contains(result.Errors, e => e.Code == "INVALID_LINKED_DECLARATION");
@@ -131,12 +132,12 @@ public class TaxObligationScheduleTests
     [Fact]
     public void Validate_Detects_Duplicate_Orders()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1);
-        var payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 1); // Same order
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        PaymentDeadline payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1);
+        PaymentDeadline payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 1); // Same order
 
         schedule.AddPaymentDeadline(payment1).AddPaymentDeadline(payment2);
-        var result = schedule.Validate();
+        ValidationResult result = schedule.Validate();
 
         Assert.True(result.HasErrors);
         Assert.Contains(result.Errors, e => e.Code == "DUPLICATE_PAYMENT_ORDER");
@@ -145,16 +146,16 @@ public class TaxObligationScheduleTests
     [Fact]
     public void Validate_Succeeds_For_Valid_Schedule()
     {
-        var schedule = TaxObligationSchedule.Create();
-        var declaration = DeclarationDeadline.Create("DECL", "Declaration", new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero));
-        var payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1);
-        var payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create();
+        DeclarationDeadline declaration = DeclarationDeadline.Create("DECL", "Declaration", new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero));
+        PaymentDeadline payment1 = PaymentDeadline.Create("PAY1", "First Payment", new DateTimeOffset(2025, 4, 30, 0, 0, 0, TimeSpan.Zero), 0.5m, 1);
+        PaymentDeadline payment2 = PaymentDeadline.Create("PAY2", "Second Payment", new DateTimeOffset(2025, 7, 31, 0, 0, 0, TimeSpan.Zero), 0.5m, 2);
 
         schedule.WithDeclarationDeadline(declaration)
                 .AddPaymentDeadline(payment1)
                 .AddPaymentDeadline(payment2);
 
-        var result = schedule.Validate();
+        ValidationResult result = schedule.Validate();
 
         Assert.True(result.IsValid);
     }
@@ -264,7 +265,7 @@ public class TaxObligationScheduleTests
             .AddLegalReference(LegalReference.Create(
                 LegalTextType.TaxCode,
                 "CGI Art. 123",
-                "Obligation de déclaration annuelle",
+                "Obligation de dÃ©claration annuelle",
                 "123"));
 
         Assert.True(declaration.HasLegalBasis);

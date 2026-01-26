@@ -34,14 +34,14 @@ public sealed class RealEstateAssetTypeDefinition : IAssetTypeDefinition
     /// <returns></returns>
     public AssetType Build()
     {
-        var assetType = AssetType.Create(Name, Description, LiquidationMode);
+        AssetType assetType = AssetType.Create(Name, Description, LiquidationMode);
 
-        foreach (var attr in GetAttributes())
+        foreach (AttributeDefinition attr in GetAttributes())
         {
             assetType.AddExpectedAttribute(attr);
         }
 
-        foreach (var rule in GetTaxRules())
+        foreach (TaxRule rule in GetTaxRules())
         {
             assetType.AddTaxRule(rule);
         }

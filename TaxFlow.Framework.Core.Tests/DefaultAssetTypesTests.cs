@@ -20,8 +20,8 @@ public class DefaultAssetTypesTests
     [Fact]
     public void InitialData_Exposes_All_Default_AssetTypes()
     {
-        var assetTypes = DefaultAssetTypes.InitialData().ToList();
-        var expected = new[] {
+        List<AssetType> assetTypes = DefaultAssetTypes.InitialData().ToList();
+        string[] expected = new[] {
             "Real Estate",
             "Transport Operators",
             "Economic Activity",
@@ -30,13 +30,13 @@ public class DefaultAssetTypesTests
             "Recovery Penalties"
         };
 
-        foreach (var name in expected)
+        foreach (string name in expected)
         {
             Assert.Contains(assetTypes, a => a.Name == name);
         }
 
-        var realEstate = assetTypes.First(a => a.Name == "Real Estate");
-        var requiredAttributes = new[] {
+        AssetType realEstate = assetTypes.First(a => a.Name == "Real Estate");
+        string[] requiredAttributes = new[] {
             "ResidualValue",
             "LocativeValue",
             "NetRentalIncome",
@@ -44,12 +44,12 @@ public class DefaultAssetTypesTests
             "RealEstateCategory"
         };
 
-        foreach (var key in requiredAttributes)
+        foreach (string key in requiredAttributes)
         {
             Assert.Contains(realEstate.ExpectedAttributes, attr => attr.Key == key);
         }
 
-        var realEstateRuleKeys = realEstate.TaxRules.Select(r => r.Key).ToList();
+        List<string> realEstateRuleKeys = realEstate.TaxRules.Select(r => r.Key).ToList();
         Assert.Contains("TH", realEstateRuleKeys);
         Assert.Contains("TFPB", realEstateRuleKeys);
         Assert.Contains("TFPNB", realEstateRuleKeys);
@@ -62,42 +62,42 @@ public class DefaultAssetTypesTests
     [Fact]
     public void RealEstateRules_Follow_Specified_Grids()
     {
-        var realEstate = DefaultAssetTypes.InitialData().First(a => a.Name == "Real Estate");
+        AssetType realEstate = DefaultAssetTypes.InitialData().First(a => a.Name == "Real Estate");
 
-        var thAttrs = new Collection<ExtendedAttribute>
+        Collection<ExtendedAttribute> thAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("RealEstateCategory", "APT2", AttributeDataType.Enum, true)
         };
-        var thResult = realEstate.EvaluateTaxRuleDetailed("TH", thAttrs);
+        TaxRuleEvaluationResult thResult = realEstate.EvaluateTaxRuleDetailed("TH", thAttrs);
         Assert.True(thResult.IsSuccess, thResult.ErrorMessage ?? string.Empty);
         Assert.True(thResult.Value.HasValue, $"Warnings: {string.Join(", ", thResult.Warnings)}");
         Assert.Equal(6_000m, thResult.Value.Value);
 
-        var tfpbAttrs = new Collection<ExtendedAttribute>
+        Collection<ExtendedAttribute> tfpbAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("LocativeValue", "1200000", AttributeDataType.Number, true),
             ExtendedAttribute.Create("RealEstateType", "PB", AttributeDataType.Enum, true)
         };
-        var tfpbResult = realEstate.EvaluateTaxRuleDetailed("TFPB", tfpbAttrs);
+        TaxRuleEvaluationResult tfpbResult = realEstate.EvaluateTaxRuleDetailed("TFPB", tfpbAttrs);
         Assert.True(tfpbResult.IsSuccess, tfpbResult.ErrorMessage ?? string.Empty);
         Assert.True(tfpbResult.Value.HasValue, $"Warnings: {string.Join(", ", tfpbResult.Warnings)}");
         Assert.Equal(90_000m, tfpbResult.Value.Value);
 
-        var tfpnbAttrs = new Collection<ExtendedAttribute>
+        Collection<ExtendedAttribute> tfpnbAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("ResidualValue", "800000", AttributeDataType.Number, true),
             ExtendedAttribute.Create("RealEstateType", "PNB", AttributeDataType.Enum, true)
         };
-        var tfpnbResult = realEstate.EvaluateTaxRuleDetailed("TFPNB", tfpnbAttrs);
+        TaxRuleEvaluationResult tfpnbResult = realEstate.EvaluateTaxRuleDetailed("TFPNB", tfpnbAttrs);
         Assert.True(tfpnbResult.IsSuccess, tfpnbResult.ErrorMessage ?? string.Empty);
         Assert.True(tfpnbResult.Value.HasValue, $"Warnings: {string.Join(", ", tfpnbResult.Warnings)}");
         Assert.Equal(4_000m, tfpnbResult.Value.Value);
 
-        var irfAttrs = new Collection<ExtendedAttribute>
+        Collection<ExtendedAttribute> irfAttrs = new Collection<ExtendedAttribute>
         {
             ExtendedAttribute.Create("NetRentalIncome", "12500000", AttributeDataType.Number, true)
         };
-        var irfResult = realEstate.EvaluateTaxRuleDetailed("IRF", irfAttrs);
+        TaxRuleEvaluationResult irfResult = realEstate.EvaluateTaxRuleDetailed("IRF", irfAttrs);
         Assert.True(irfResult.IsSuccess, irfResult.ErrorMessage ?? string.Empty);
         Assert.True(irfResult.Value.HasValue, $"Warnings: {string.Join(", ", irfResult.Warnings)}");
         Assert.Equal(1_835_000m, irfResult.Value.Value);
@@ -108,15 +108,15 @@ public class DefaultAssetTypesTests
     [Fact]
     public void TransportRule_Calculates_Forfeits_By_Activity()
     {
-        var transport = DefaultAssetTypes.InitialData().First(a => a.Name == "Transport Operators");
+        AssetType transport = DefaultAssetTypes.InitialData().First(a => a.Name == "Transport Operators");
 
-        var sandAttrs = new Collection<ExtendedAttribute>
-        {
+        Collection<ExtendedAttribute> sandAttrs =
+        [
             ExtendedAttribute.Create("TransportActivity", "SABLE", AttributeDataType.Enum, true),
             ExtendedAttribute.Create("VehicleTonnage", "18", AttributeDataType.Number, true)
-        };
-        var tax = transport.EvaluateTaxRule("TPU_TR", sandAttrs);
-        Assert.Equal(11_000m, tax.Value);
+        ];
+        decimal? tax = transport.EvaluateTaxRule("TPU_TR", sandAttrs);
+        Assert.Equal(11_000m, tax!.Value);
 
         var motoAttrs = new Collection<ExtendedAttribute>
         {

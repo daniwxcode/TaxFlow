@@ -16,7 +16,7 @@ public class AttributeDefinitionTests
     [Fact]
     public void Create_WithValidParameters_Succeeds()
     {
-        var def = AttributeDefinition.Create("Key","Label", AttributeDataType.String, true);
+        AttributeDefinition def = AttributeDefinition.Create("Key","Label", AttributeDataType.String, true);
         Assert.Equal("Key", def.Key);
         Assert.Equal("Label", def.Label);
         Assert.True(def.IsRequired);
@@ -37,20 +37,20 @@ public class AttributeDefinitionTests
     public void Create_WithEnumDefinition_SetsRegex()
     {
         // Create EnumDefinition and set internal properties via reflection because setters are internal
-        var ed = new EnumDefinition();
-        var t = typeof(EnumDefinition);
+        EnumDefinition ed = new EnumDefinition();
+        Type t = typeof(EnumDefinition);
         t.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!.SetValue(ed, "E");
         t.GetProperty("Label", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!.SetValue(ed, "E");
 
         // Create EnumItem and set internal properties via reflection
-        var item = new EnumItem();
-        var ti = typeof(EnumItem);
+        EnumItem item = new EnumItem();
+        Type ti = typeof(EnumItem);
         ti.GetProperty("Code", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!.SetValue(item, "A");
         ti.GetProperty("Label", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!.SetValue(item, "Alpha");
 
         ed.Items.Add(item);
 
-        var def = AttributeDefinition.Create(ed);
+        AttributeDefinition def = AttributeDefinition.Create(ed);
         Assert.Equal("E", def.Key);
         Assert.Equal(AttributeDataType.Enum, def.DataType);
         Assert.NotNull(def.RegexPattern);

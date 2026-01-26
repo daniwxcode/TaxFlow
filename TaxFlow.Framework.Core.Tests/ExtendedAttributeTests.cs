@@ -15,7 +15,7 @@ public class ExtendedAttributeTests
     [Fact]
     public void Create_WithValidParameters_SetsProperties()
     {
-        var a = ExtendedAttribute.Create("K","123", AttributeDataType.Number, true);
+        ExtendedAttribute a = ExtendedAttribute.Create("K","123", AttributeDataType.Number, true);
         Assert.Equal("K", a.Key);
         Assert.Equal("123", a.Value);
         Assert.Equal(AttributeDataType.Number, a.DataType);
@@ -39,7 +39,7 @@ public class ExtendedAttributeTests
     [InlineData("abc", false)]
     public void IsValidValue_NumberChecks(string value, bool expected)
     {
-        var a = ExtendedAttribute.Create("K", value, AttributeDataType.Number);
+        ExtendedAttribute a = ExtendedAttribute.Create("K", value, AttributeDataType.Number);
         Assert.Equal(expected, a.IsValidValue());
     }
     /// <summary>
@@ -53,7 +53,7 @@ public class ExtendedAttributeTests
     [InlineData("x", false)]
     public void IsValidValue_BooleanChecks(string value, bool expected)
     {
-        var a = ExtendedAttribute.Create("K", value, AttributeDataType.Boolean);
+        ExtendedAttribute a = ExtendedAttribute.Create("K", value, AttributeDataType.Boolean);
         Assert.Equal(expected, a.IsValidValue());
     }
     /// <summary>
@@ -66,7 +66,7 @@ public class ExtendedAttributeTests
     [InlineData("notadate", false)]
     public void IsValidValue_DateChecks(string value, bool expected)
     {
-        var a = ExtendedAttribute.Create("K", value, AttributeDataType.Date);
+        ExtendedAttribute a = ExtendedAttribute.Create("K", value, AttributeDataType.Date);
         Assert.Equal(expected, a.IsValidValue());
     }
     /// <summary>
@@ -75,7 +75,7 @@ public class ExtendedAttributeTests
     [Fact]
     public void UpdateValue_ChangesFields()
     {
-        var a = ExtendedAttribute.Create("K","1", AttributeDataType.Number);
+        ExtendedAttribute a = ExtendedAttribute.Create("K","1", AttributeDataType.Number);
         a.UpdateValue("2", AttributeDataType.Number, true);
         Assert.Equal("2", a.Value);
         Assert.True(a.IsRequired);
