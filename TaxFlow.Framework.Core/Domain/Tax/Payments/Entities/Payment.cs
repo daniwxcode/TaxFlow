@@ -7,15 +7,30 @@ namespace Core.Domain.Tax.Payments;
 /// </summary>
 public sealed class Payment
 {
+    /// <summary>
+    /// Create a new payment.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="amount"></param>
+    /// <param name="paidOn"></param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public Payment(Guid id, decimal amount, DateTimeOffset paidOn)
     {
-        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amount);
         Id = id == Guid.Empty ? Guid.NewGuid() : id;
         Amount = amount;
         PaidOn = paidOn;
     }
-
+    /// <summary>
+    /// identifier of the payment.
+    /// </summary>
     public Guid Id { get; }
+    /// <summary>
+    /// Amount paid.
+    /// </summary>
     public decimal Amount { get; }
+    /// <summary>
+    /// Occurrence date of the payment.
+    /// </summary>
     public DateTimeOffset PaidOn { get; }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace Core.Domain.Tax.Payments;
@@ -20,8 +18,8 @@ public sealed class Installment
     /// <param name="graceDays">Grace period in days.</param>
     public Installment(Guid id, decimal amountDue, DateTimeOffset dueDate, int graceDays = 0)
     {
-        if (amountDue < 0) throw new ArgumentOutOfRangeException(nameof(amountDue));
-        if (graceDays < 0) throw new ArgumentOutOfRangeException(nameof(graceDays));
+        ArgumentOutOfRangeException.ThrowIfNegative(amountDue);
+        ArgumentOutOfRangeException.ThrowIfNegative(graceDays);
 
         Id = id == Guid.Empty ? Guid.NewGuid() : id;
         AmountDue = amountDue;
@@ -65,9 +63,11 @@ public sealed class Installment
     /// <param name="allocation">Allocation to apply.</param>
     public void ApplyAllocation(PaymentAllocation allocation)
     {
-        if (allocation is null) throw new ArgumentNullException(nameof(allocation));
-        if (allocation.Amount <= 0) return;
-        _allocations.Add(allocation);
+        ArgumentNullException.ThrowIfNull(allocation);
+        if (allocation.Amount > 0)
+        {
+            _allocations.Add(allocation);
+        }
     }
 
     /// <summary>
@@ -76,12 +76,14 @@ public sealed class Installment
     /// <param name="upTo">Upper bound date for payments.</param>
     public decimal GetPaidAmount(DateTimeOffset? upTo = null)
     {
-        var total = 0m;
+        decimal total = 0m;
         for (var i = 0; i < _allocations.Count; i++)
         {
             var a = _allocations[i];
             if (upTo == null || a.AppliedOn <= upTo)
+            {
                 total += a.Amount;
+            }
         }
         return total;
     }
@@ -98,7 +100,9 @@ public sealed class Installment
         {
             var a = _allocations[i];
             if (a.AppliedOn <= deadline && (upTo == null || a.AppliedOn <= upTo))
+            {
                 total += a.Amount;
+            }
         }
         return total;
     }

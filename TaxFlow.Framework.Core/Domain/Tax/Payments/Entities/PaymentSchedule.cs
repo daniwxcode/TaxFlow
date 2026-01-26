@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Core.Domain.Tax.Payments;
 
@@ -18,7 +15,7 @@ public sealed class PaymentSchedule
     /// <param name="installments">Installments in the schedule.</param>
     public PaymentSchedule(IEnumerable<Installment> installments)
     {
-        if (installments is null) throw new ArgumentNullException(nameof(installments));
+        ArgumentNullException.ThrowIfNull(installments);
         _installments.AddRange(installments);
         DeclarationId = Guid.Empty;
         LiquidationId = null;
@@ -32,7 +29,7 @@ public sealed class PaymentSchedule
     /// <param name="installments">Installments in the schedule.</param>
     public PaymentSchedule(Guid declarationId, Guid? liquidationId, IEnumerable<Installment> installments)
     {
-        if (installments is null) throw new ArgumentNullException(nameof(installments));
+        ArgumentNullException.ThrowIfNull(installments);
         DeclarationId = declarationId == Guid.Empty ? Guid.NewGuid() : declarationId;
         LiquidationId = liquidationId;
         _installments.AddRange(installments);
@@ -65,11 +62,14 @@ public sealed class PaymentSchedule
     /// <param name="strategy">Allocation strategy.</param>
     public void ApplyPayment(Payment payment, AllocationStrategy strategy = AllocationStrategy.FifoByDueDate)
     {
-        if (payment is null) throw new ArgumentNullException(nameof(payment));
-        if (_installments.Count == 0) return;
+        ArgumentNullException.ThrowIfNull(payment);
+        if (_installments.Count == 0)
+        {
+            return;
+        }
 
-        var remaining = payment.Amount;
-        var ordered = strategy switch
+        decimal remaining = payment.Amount;
+        List<Installment> ordered = strategy switch
         {
             AllocationStrategy.FifoByDueDate => _installments.OrderBy(i => i.DueDate).ToList(),
             _ => _installments.OrderBy(i => i.DueDate).ToList()
@@ -77,11 +77,14 @@ public sealed class PaymentSchedule
 
         for (var i = 0; i < ordered.Count && remaining > 0; i++)
         {
-            var inst = ordered[i];
-            var outstanding = inst.GetOutstanding();
-            if (outstanding <= 0) continue;
+            Installment inst = ordered[i];
+            decimal outstanding = inst.GetOutstanding();
+            if (outstanding <= 0)
+            {
+                continue;
+            }
 
-            var allocated = remaining > outstanding ? outstanding : remaining;
+            decimal allocated = remaining > outstanding ? outstanding : remaining;
             inst.ApplyAllocation(new PaymentAllocation(payment.Id, inst.Id, allocated, payment.PaidOn));
             remaining -= allocated;
         }
