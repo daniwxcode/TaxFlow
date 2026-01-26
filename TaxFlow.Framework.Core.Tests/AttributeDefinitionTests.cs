@@ -5,9 +5,14 @@ using Core.Domain.Enums;
 using Xunit;
 
 namespace TaxFlow.Framework.Core.Tests;
-
+/// <summary>
+/// Teste la classe AttributeDefinition.
+/// </summary>
 public class AttributeDefinitionTests
 {
+    /// <summary>
+    /// Mets en test la création d'une instance d'AttributeDefinition avec des paramètres valides.
+    /// </summary>
     [Fact]
     public void Create_WithValidParameters_Succeeds()
     {
@@ -17,13 +22,17 @@ public class AttributeDefinitionTests
         Assert.True(def.IsRequired);
         Assert.Equal(AttributeDataType.String, def.DataType);
     }
-
+    /// <summary>
+    /// Teste la création d'une instance d'AttributeDefinition avec une clé vide.
+    /// </summary>
     [Fact]
     public void Create_WithEmptyKey_Throws()
     {
         Assert.Throws<ArgumentException>(() => AttributeDefinition.Create("","Label", AttributeDataType.String));
     }
-
+    /// <summary>
+    /// Teste la création d'une instance d'AttributeDefinition avec une étiquette vide.
+    /// </summary>
     [Fact]
     public void Create_WithEnumDefinition_SetsRegex()
     {

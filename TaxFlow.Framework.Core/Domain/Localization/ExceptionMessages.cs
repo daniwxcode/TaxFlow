@@ -1,5 +1,3 @@
-using Core.Domain.Localization;
-
 namespace Core.Domain.Localization;
 
 /// <summary>
@@ -10,200 +8,279 @@ public static class ExceptionMessages
     // ============================================
     // GENERAL VALIDATION MESSAGES
     // ============================================
-
+    /// <summary>
+    /// Message indicating that the name cannot be empty.
+    /// </summary>
     public static readonly LocalizedTemplate NameCannotBeEmpty = LocalizedTemplate.Create(
-        "Le nom ne doit pas �tre vide.",
+        "Le nom ne doit pas être vide.",
         ("en-US", "The name cannot be empty."),
-        ("ar-SA", "?? ???? ?? ???? ????? ??????."),
-        ("pt-PT", "O nome n�o pode estar vazio."));
-
+        ("ar-SA", "لا يمكن أن يكون الاسم فارغًا."),
+        ("pt-PT", "O nome não pode estar vazio."));
+    /// <summary>
+    /// Message indicating that the key cannot be empty.
+    /// </summary>
     public static readonly LocalizedTemplate KeyCannotBeEmpty = LocalizedTemplate.Create(
-        "La cl� ne doit pas �tre vide.",
+        "La clé ne doit pas être vide.",
         ("en-US", "The key cannot be empty."),
-        ("ar-SA", "?? ???? ?? ???? ??????? ??????."),
-        ("pt-PT", "A chave n�o pode estar vazia."));
-
+        ("ar-SA", "لا يمكن أن يكون المفتاح فارغًا."),
+        ("pt-PT", "A chave não pode estar vazia."));
+    /// <summary>
+    /// Message indicating that the label cannot be empty.
+    /// </summary>
     public static readonly LocalizedTemplate LabelCannotBeEmpty = LocalizedTemplate.Create(
-        "Le label ne doit pas �tre vide.",
+        "Le label ne doit pas être vide.",
         ("en-US", "The label cannot be empty."),
-        ("ar-SA", "?? ???? ?? ???? ?????? ??????."),
-        ("pt-PT", "O r�tulo n�o pode estar vazio."));
-
+        ("ar-SA", "لا يمكن أن تكون التسمية فارغة."),
+        ("pt-PT", "O rótulo não pode estar vazio."));
+    /// <summary>
+    /// Message indicating that the value cannot be null.
+    /// </summary>
     public static readonly LocalizedTemplate ValueCannotBeNull = LocalizedTemplate.Create(
-        "La valeur ne peut pas �tre nulle.",
+        "La valeur ne peut pas être nulle.",
         ("en-US", "The value cannot be null."),
-        ("ar-SA", "?? ???? ?? ???? ?????? ?????."),
-        ("pt-PT", "O valor n�o pode ser nulo."));
+        ("ar-SA", "لا يمكن أن تكون القيمة فارغة."),
+        ("pt-PT", "O valor não pode ser nulo."));
 
     // ============================================
     // ATTRIBUTE MESSAGES
     // ============================================
-
+    /// <summary>
+    /// Message indicating that the attribute key cannot be empty.
+    /// </summary>
     public static readonly LocalizedTemplate AttributeKeyCannotBeEmpty = LocalizedTemplate.Create(
-        "La cl� de l'attribut ne doit pas �tre vide.",
+        "La clé de l'attribut ne doit pas être vide.",
         ("en-US", "The attribute key cannot be empty."),
-        ("ar-SA", "?? ???? ?? ???? ????? ????? ??????."),
-        ("pt-PT", "A chave do atributo n�o pode estar vazia."));
-
+        ("ar-SA", "لا يمكن أن يكون مفتاح السمة فارغًا."),
+        ("pt-PT", "A chave do atributo não pode estar vazia."));
+    /// <summary>
+    /// Message indicating that the attribute label cannot be empty.
+    /// </summary>
     public static readonly LocalizedTemplate AttributeLabelCannotBeEmpty = LocalizedTemplate.Create(
-        "Le label de l'attribut ne doit pas �tre vide.",
+        "Le label de l'attribut ne doit pas être vide.",
         ("en-US", "The attribute label cannot be empty."),
-        ("ar-SA", "?? ???? ?? ???? ???? ????? ??????."),
-        ("pt-PT", "O r�tulo do atributo n�o pode estar vazio."));
-
+        ("ar-SA", "لا يمكن أن تكون تسمية السمة فارغة."),
+        ("pt-PT", "O rótulo do atributo não pode estar vazio."));
+    /// <summary>
+    /// Message indicating that the expected attribute key cannot be empty.
+    /// </summary>
     public static readonly LocalizedTemplate ExpectedAttributeKeyCannotBeEmpty = LocalizedTemplate.Create(
-        "La cl� de l'attribut attendu ne doit pas �tre vide.",
+        "La clé de l'attribut attendu ne doit pas être vide.",
         ("en-US", "The expected attribute key cannot be empty."),
-        ("ar-SA", "?? ???? ?? ???? ????? ????? ???????? ??????."),
-        ("pt-PT", "A chave do atributo esperado n�o pode estar vazia."));
-
+        ("ar-SA", "لا يمكن أن يكون مفتاح السمة المتوقعة فارغًا."),
+        ("pt-PT", "A chave do atributo esperado não pode estar vazia."));
+    /// <summary>
+    /// Message indicating that the expected attribute already exists.
+    /// </summary>
     public static readonly LocalizedTemplate ExpectedAttributeAlreadyExists = LocalizedTemplate.Create(
-        "L'attribut attendu '{attributeKey}' existe d�j�.",
+        "L'attribut attendu '{attributeKey}' existe déjà.",
         ("en-US", "The expected attribute '{attributeKey}' already exists."),
-        ("ar-SA", "????? ???????? '{attributeKey}' ?????? ??????."),
-        ("pt-PT", "O atributo esperado '{attributeKey}' j� existe."));
+        ("ar-SA", "السمة المتوقعة '{attributeKey}' موجودة بالفعل."),
+        ("pt-PT", "O atributo esperado '{attributeKey}' já existe."));
 
+    /// <summary>
+    /// Message indicating that the enum definition cannot be null.
+    /// </summary>
     public static readonly LocalizedTemplate EnumDefinitionCannotBeNull = LocalizedTemplate.Create(
-        "La d�finition d'�num�ration ne doit pas �tre nulle.",
+        "La définition d'énumération ne doit pas être nulle.",
         ("en-US", "The enum definition cannot be null."),
-        ("ar-SA", "?? ???? ?? ???? ????? ??????? ??????."),
-        ("pt-PT", "A defini��o de enumera��o n�o pode ser nula."));
+        ("ar-SA", "لا يمكن أن يكون تعريف التعداد فارغًا."),
+        ("pt-PT", "A definição de enumeração não pode ser nula."));
 
+    /// <summary>
+    /// Message indicating that a duplicate attribute has been detected.
+    /// </summary>
     public static readonly LocalizedTemplate DuplicateAttributeDetected = LocalizedTemplate.Create(
-        "Attribut dupliqu� d�tect� pour la cl� '{key}'.",
+        "Attribut dupliqué détecté pour la clé '{key}'.",
         ("en-US", "Duplicate attribute detected for key '{key}'."),
-        ("ar-SA", "?? ?????? ??? ????? ??????? '{key}'."),
+        ("ar-SA", "تم اكتشاف سمة مكررة للمفتاح '{key}'."),
         ("pt-PT", "Atributo duplicado detectado para a chave '{key}'."));
 
+    /// <summary>
+    /// Message indicating attribute validation failed.
+    /// </summary>
     public static readonly LocalizedTemplate AttributeValidationFailed = LocalizedTemplate.Create(
-        "La validation des attributs a �chou�: {errorMessage}",
+        "La validation des attributs a échoué: {errorMessage}",
         ("en-US", "Attributes validation failed: {errorMessage}"),
-        ("ar-SA", "??? ?????? ?? ??? ??????: {errorMessage}"),
-        ("pt-PT", "A valida��o dos atributos falhou: {errorMessage}"));
+        ("ar-SA", "فشلت عملية التحقق من السمات: {errorMessage}"),
+        ("pt-PT", "A validação dos atributos falhou: {errorMessage}"));
 
     // ============================================
     // TAX RULE MESSAGES
     // ============================================
 
+    /// <summary>
+    /// Message indicating that the tax rule key cannot be empty.
+    /// </summary>
     public static readonly LocalizedTemplate TaxRuleKeyCannotBeEmpty = LocalizedTemplate.Create(
-        "La cl� de la r�gle fiscale ne doit pas �tre vide.",
+        "La clé de la règle fiscale ne doit pas être vide.",
         ("en-US", "The tax rule key cannot be empty."),
-        ("ar-SA", "?? ???? ?? ???? ????? ??????? ???????? ??????."),
-        ("pt-PT", "A chave da regra fiscal n�o pode estar vazia."));
+        ("ar-SA", "لا يمكن أن يكون مفتاح قاعدة الضريبة فارغًا."),
+        ("pt-PT", "A chave da regra fiscal não pode estar vazia."));
 
+    /// <summary>
+    /// Message indicating that a tax rule already exists.
+    /// </summary>
     public static readonly LocalizedTemplate TaxRuleAlreadyExists = LocalizedTemplate.Create(
-        "Une r�gle fiscale avec la cl� '{ruleKey}' existe d�j�.",
+        "Une règle fiscale avec la clé '{ruleKey}' existe déjà.",
         ("en-US", "A tax rule with key '{ruleKey}' already exists."),
-        ("ar-SA", "???? ?????? ????? ?????? ???????? '{ruleKey}'."),
-        ("pt-PT", "J� existe uma regra fiscal com a chave '{ruleKey}'."));
+        ("ar-SA", "قاعدة ضريبية بالمفتاح '{ruleKey}' موجودة بالفعل."),
+        ("pt-PT", "Já existe uma regra fiscal com a chave '{ruleKey}'."));
 
+    /// <summary>
+    /// Message indicating that a rule cannot be null.
+    /// </summary>
     public static readonly LocalizedTemplate RuleCannotBeNull = LocalizedTemplate.Create(
-        "La r�gle ne peut pas �tre nulle.",
+        "La règle ne peut pas être nulle.",
         ("en-US", "Rule cannot be null."),
-        ("ar-SA", "?? ???? ?? ???? ??????? ?????."),
-        ("pt-PT", "A regra n�o pode ser nula."));
+        ("ar-SA", "لا يمكن أن تكون القاعدة فارغة."),
+        ("pt-PT", "A regra não pode ser nula."));
 
+    /// <summary>
+    /// Message indicating that a rule key must not be empty.
+    /// </summary>
     public static readonly LocalizedTemplate RuleKeyMustNotBeEmpty = LocalizedTemplate.Create(
-        "La cl� de la r�gle ne doit pas �tre vide.",
+        "La clé de la règle ne doit pas être vide.",
         ("en-US", "Rule key must not be empty."),
-        ("ar-SA", "??? ??? ???? ????? ??????? ??????."),
-        ("pt-PT", "A chave da regra n�o pode estar vazia."));
+        ("ar-SA", "يجب ألا يكون مفتاح القاعدة فارغًا."),
+        ("pt-PT", "A chave da regra não pode estar vazia."));
 
+    /// <summary>
+    /// Message indicating that a rule is disabled.
+    /// </summary>
     public static readonly LocalizedTemplate RuleDisabled = LocalizedTemplate.Create(
-        "R�gle d�sactiv�e.",
+        "Règle désactivée.",
         ("en-US", "Rule disabled."),
-        ("ar-SA", "??????? ?????."),
+        ("ar-SA", "تم تعطيل القاعدة."),
         ("pt-PT", "Regra desativada."));
 
+    /// <summary>
+    /// Message indicating that rule evaluation failed.
+    /// </summary>
     public static readonly LocalizedTemplate RuleEvaluationFailed = LocalizedTemplate.Create(
-        "R�gle '{ruleKey}': {error}",
+        "Règle '{ruleKey}': {error}",
         ("en-US", "Rule '{ruleKey}': {error}"),
-        ("ar-SA", "??????? '{ruleKey}': {error}"),
+        ("ar-SA", "القاعدة '{ruleKey}': {error}"),
         ("pt-PT", "Regra '{ruleKey}': {error}"));
 
+    /// <summary>
+    /// Message indicating that evaluation failed.
+    /// </summary>
     public static readonly LocalizedTemplate EvaluationFailed = LocalizedTemplate.Create(
-        "L'�valuation a �chou�.",
+        "L'évaluation a échoué.",
         ("en-US", "Evaluation failed."),
-        ("ar-SA", "??? ???????."),
-        ("pt-PT", "A avalia��o falhou."));
+        ("ar-SA", "فشلت عملية التقييم."),
+        ("pt-PT", "A avaliação falhou."));
 
+    /// <summary>
+    /// Message indicating that required parameters are missing.
+    /// </summary>
     public static readonly LocalizedTemplate MissingParameters = LocalizedTemplate.Create(
-        "Param�tres manquants: {parameters}",
+        "Paramètres manquants: {parameters}",
         ("en-US", "Missing parameters: {parameters}"),
-        ("ar-SA", "?????? ??????: {parameters}"),
-        ("pt-PT", "Par�metros em falta: {parameters}"));
+        ("ar-SA", "المعاملات المفقودة: {parameters}"),
+        ("pt-PT", "Parâmetros em falta: {parameters}"));
 
+    /// <summary>
+    /// Message indicating that an obligation schedule is invalid.
+    /// </summary>
     public static readonly LocalizedTemplate InvalidObligationSchedule = LocalizedTemplate.Create(
         "Calendrier d'obligations invalide: {errorMessage}",
         ("en-US", "Invalid obligation schedule: {errorMessage}"),
-        ("ar-SA", "???? ?????????? ??? ????: {errorMessage}"),
-        ("pt-PT", "Calend�rio de obriga��es inv�lido: {errorMessage}"));
+        ("ar-SA", "جدول الالتزامات غير صالح: {errorMessage}"),
+        ("pt-PT", "Calendário de obrigações inválido: {errorMessage}"));
 
+    /// <summary>
+    /// Message indicating that a tax rule expression is invalid.
+    /// </summary>
     public static readonly LocalizedTemplate InvalidTaxRuleExpression = LocalizedTemplate.Create(
-        "Expression invalide pour la r�gle '{ruleKey}': {error}",
+        "Expression invalide pour la règle '{ruleKey}': {error}",
         ("en-US", "Invalid expression for rule '{ruleKey}': {error}"),
-        ("ar-SA", "???? ??? ????? '{ruleKey}': {error}"),
-        ("pt-PT", "Express�o inv�lida para a regra '{ruleKey}': {error}"));
+        ("ar-SA", "التعبير غير صالح للقاعدة '{ruleKey}': {error}"),
+        ("pt-PT", "Expressão inválida para a regra '{ruleKey}': {error}"));
 
     // ============================================
     // ASSET MESSAGES
     // ============================================
 
+    /// <summary>
+    /// Message indicating that an asset type must be set.
+    /// </summary>
     public static readonly LocalizedTemplate AssetTypeMustBeSet = LocalizedTemplate.Create(
-        "Le type d'actif doit �tre d�fini.",
+        "Le type d'actif doit être défini.",
         ("en-US", "AssetType must be set."),
-        ("ar-SA", "??? ????? ??? ?????."),
+        ("ar-SA", "يجب تحديد نوع الأصل."),
         ("pt-PT", "O tipo de ativo deve ser definido."));
 
+    /// <summary>
+    /// Message indicating that an asset type must be set to evaluate taxes.
+    /// </summary>
     public static readonly LocalizedTemplate AssetTypeMustBeSetToEvaluate = LocalizedTemplate.Create(
-        "Le type d'actif doit �tre d�fini pour �valuer les taxes.",
+        "Le type d'actif doit être défini pour évaluer les taxes.",
         ("en-US", "AssetType must be set to evaluate taxes."),
-        ("ar-SA", "??? ????? ??? ????? ?????? ???????."),
+        ("ar-SA", "يجب تحديد نوع الأصل لحساب الضرائب."),
         ("pt-PT", "O tipo de ativo deve ser definido para avaliar os impostos."));
 
     // ============================================
     // DEADLINE MESSAGES
     // ============================================
 
+    /// <summary>
+    /// Message indicating a duplicate declaration deadline.
+    /// </summary>
     public static readonly LocalizedTemplate DeclarationDeadlineAlreadyExists = LocalizedTemplate.Create(
-        "Une �ch�ance de d�claration avec la cl� '{key}' existe d�j�.",
+        "Une échéance de déclaration avec la clé '{key}' existe déjà.",
         ("en-US", "A declaration deadline with key '{key}' already exists."),
-        ("ar-SA", "???? ?????? ???? ????? ???????? '{key}'."),
-        ("pt-PT", "J� existe um prazo de declara��o com a chave '{key}'."));
+        ("ar-SA", "يوجد بالفعل موعد نهائي للتصريح بالمفتاح '{key}'."),
+        ("pt-PT", "Já existe um prazo de declaração com a chave '{key}'."));
 
+    /// <summary>
+    /// Message indicating a duplicate payment deadline.
+    /// </summary>
     public static readonly LocalizedTemplate PaymentDeadlineAlreadyExists = LocalizedTemplate.Create(
-        "Une �ch�ance de paiement avec la cl� '{key}' existe d�j�.",
+        "Une échéance de paiement avec la clé '{key}' existe déjà.",
         ("en-US", "A payment deadline with key '{key}' already exists."),
-        ("ar-SA", "???? ?????? ???? ??? ???????? '{key}'."),
-        ("pt-PT", "J� existe um prazo de pagamento com a chave '{key}'."));
+        ("ar-SA", "يوجد بالفعل موعد نهائي للدفع بالمفتاح '{key}'."),
+        ("pt-PT", "Já existe um prazo de pagamento com a chave '{key}'."));
 
+    /// <summary>
+    /// Message indicating that the fraction must be within the allowed range.
+    /// </summary>
     public static readonly LocalizedTemplate FractionOutOfRange = LocalizedTemplate.Create(
-        "La fraction doit �tre comprise entre 0 (exclusif) et 1 (inclusif).",
+        "La fraction doit être comprise entre 0 (exclusif) et 1 (inclusif).",
         ("en-US", "Fraction must be between 0 (exclusive) and 1 (inclusive)."),
-        ("ar-SA", "??? ?? ???? ????? ??? 0 (????) ? 1 (????)."),
-        ("pt-PT", "A fra��o deve estar entre 0 (exclusivo) e 1 (inclusivo)."));
+        ("ar-SA", "يجب أن تكون النسبة بين 0 (حصري) و1 (شامل)."),
+        ("pt-PT", "A fração deve estar entre 0 (exclusivo) e 1 (inclusivo)."));
 
+    /// <summary>
+    /// Message indicating that order values must be positive.
+    /// </summary>
     public static readonly LocalizedTemplate OrderMustBePositive = LocalizedTemplate.Create(
-        "L'ordre doit �tre au minimum 1.",
+        "L'ordre doit être au minimum 1.",
         ("en-US", "Order must be at least 1."),
-        ("ar-SA", "??? ?? ???? ??????? 1 ??? ?????."),
+        ("ar-SA", "يجب أن يكون الترتيب على الأقل 1."),
         ("pt-PT", "A ordem deve ser pelo menos 1."));
 
     // ============================================
     // DATE/PERIOD MESSAGES
     // ============================================
 
+    /// <summary>
+    /// Message indicating that the end date must be greater than or equal to the start date.
+    /// </summary>
     public static readonly LocalizedTemplate EndDateMustBeGreaterOrEqual = LocalizedTemplate.Create(
-        "La date de fin doit �tre sup�rieure ou �gale � la date de d�but.",
+        "La date de fin doit être supérieure ou égale à la date de début.",
         ("en-US", "The end date must be greater than or equal to the start date."),
-        ("ar-SA", "??? ?? ???? ????? ???????? ???? ?? ?? ????? ????? ?????."),
-        ("pt-PT", "A data de fim deve ser maior ou igual � data de in�cio."));
+        ("ar-SA", "يجب أن يكون تاريخ الانتهاء أكبر من أو مساويًا لتاريخ البدء."),
+        ("pt-PT", "A data de fim deve ser maior ou igual à data de início."));
 
+    /// <summary>
+    /// Message indicating that days in a year must be positive.
+    /// </summary>
     public static readonly LocalizedTemplate DaysInYearMustBePositive = LocalizedTemplate.Create(
-        "Le nombre de jours par an doit �tre sup�rieur � 0.",
+        "Le nombre de jours par an doit être supérieur à 0.",
         ("en-US", "daysInYear must be greater than 0."),
-        ("ar-SA", "??? ?? ???? ??? ?????? ?? ????? ???? ?? 0."),
-        ("pt-PT", "O n�mero de dias por ano deve ser maior que 0."));
+        ("ar-SA", "يجب أن يكون عدد الأيام في السنة أكبر من 0."),
+        ("pt-PT", "O número de dias por ano deve ser maior que 0."));
 
     // ============================================
     // HELPER METHODS

@@ -33,6 +33,10 @@ public sealed record ValidationError
     /// </summary>
     public string? PropertyName { get; }
 
+    /// <summary>
+    /// Returns a string representation of the validation error.
+    /// </summary>
+    /// <returns></returns>
     public override string ToString() => PropertyName is null
         ? $"[{Code}] {Message}"
         : $"[{Code}] {PropertyName}: {Message}";

@@ -1,16 +1,22 @@
 using System.Collections.ObjectModel;
-using System.Linq;
+
 using Core.Bootstrap;
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Core.Domain.Tax.Assets;
 using Core.Domain.Tax.Calculation;
+
 using Xunit;
 
 namespace TaxFlow.Framework.Core.Tests;
-
+/// <summary>
+/// Teste la classe DefaultAssetTypes.
+/// </summary>
 public class DefaultAssetTypesTests
 {
+    /// <summary>
+    /// Verifie que la méthode InitialData expose tous les types d'actifs par défaut attendus.
+    /// </summary>
     [Fact]
     public void InitialData_Exposes_All_Default_AssetTypes()
     {
@@ -25,7 +31,9 @@ public class DefaultAssetTypesTests
         };
 
         foreach (var name in expected)
+        {
             Assert.Contains(assetTypes, a => a.Name == name);
+        }
 
         var realEstate = assetTypes.First(a => a.Name == "Real Estate");
         var requiredAttributes = new[] {
@@ -37,7 +45,9 @@ public class DefaultAssetTypesTests
         };
 
         foreach (var key in requiredAttributes)
+        {
             Assert.Contains(realEstate.ExpectedAttributes, attr => attr.Key == key);
+        }
 
         var realEstateRuleKeys = realEstate.TaxRules.Select(r => r.Key).ToList();
         Assert.Contains("TH", realEstateRuleKeys);
@@ -46,7 +56,9 @@ public class DefaultAssetTypesTests
         Assert.Contains("IRF", realEstateRuleKeys);
         Assert.Contains("RSL", realEstateRuleKeys);
     }
-
+    /// <summary>
+    /// Verifie que les règles fiscales pour les biens immobiliers suivent les grilles spécifiées.
+    /// </summary>
     [Fact]
     public void RealEstateRules_Follow_Specified_Grids()
     {
@@ -90,7 +102,9 @@ public class DefaultAssetTypesTests
         Assert.True(irfResult.Value.HasValue, $"Warnings: {string.Join(", ", irfResult.Warnings)}");
         Assert.Equal(1_835_000m, irfResult.Value.Value);
     }
-
+    /// <summary>
+    /// Vérifie que les règles fiscales pour les transporteurs calculent les forfaits selon l'activité.
+    /// </summary>
     [Fact]
     public void TransportRule_Calculates_Forfeits_By_Activity()
     {
@@ -111,7 +125,9 @@ public class DefaultAssetTypesTests
         };
         Assert.Equal(2_500m, transport.EvaluateTaxRule("TPU_TR", motoAttrs));
     }
-
+    /// <summary>
+    /// Vérifie que les règles fiscales pour les activités économiques appliquent les barèmes commerciaux et de services.
+    /// </summary>
     [Fact]
     public void EconomicActivityRule_Applies_Commercial_And_Service_Baremes()
     {
@@ -131,7 +147,9 @@ public class DefaultAssetTypesTests
         };
         Assert.Equal(155_250m, economic.EvaluateTaxRule("TPU_ECO", serviceAttrs));
     }
-
+    /// <summary>
+    /// Vérifie que les règles fiscales pour les revenus et pénalités respectent les barèmes spécifiés.
+    /// </summary>
     [Fact]
     public void Income_And_Penalty_Rules_Respect_Specified_Scales()
     {
@@ -168,7 +186,9 @@ public class DefaultAssetTypesTests
         };
         Assert.Equal(1_000m, penalties.EvaluateTaxRule("PENAR", penaltyAttrs));
     }
-
+    /// <summary>
+    /// Vérifie que les types d'actifs configurent correctement les modes de liquidation.
+    /// </summary>
     [Fact]
     public void AssetTypes_Configure_Liquidation_Modes()
     {
@@ -192,7 +212,9 @@ public class DefaultAssetTypesTests
             Assert.Equal(LiquidationMode.Individual, asset.LiquidationMode);
         }
     }
-
+    /// <summary>
+    /// Vérifie que les expressions ternaires sont prises en charge par l'évaluateur.
+    /// </summary>
     [Fact]
     public void Ternary_Expressions_Are_Supported_By_Evaluator()
     {
@@ -208,7 +230,9 @@ public class DefaultAssetTypesTests
         var result = assetType.EvaluateTaxRule("R1", attrs);
         Assert.Equal(1m, result);
     }
-
+    /// <summary>
+    /// Vérifie que les expressions ternaires peuvent s'étendre sur plusieurs lignes.
+    /// </summary>
     [Fact]
     public void Ternary_Expressions_Can_Span_Multiple_Lines()
     {

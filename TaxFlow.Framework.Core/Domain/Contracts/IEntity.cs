@@ -1,4 +1,4 @@
-﻿using Core.Domain.Contracts.Event;
+using Core.Domain.Contracts.Event;
 
 using System.Collections.ObjectModel;
 
@@ -13,7 +13,10 @@ public interface IEntity
     /// </summary>
     Collection<IDomainEvent> DomainEvents { get; }
 }
-
+/// <summary>
+/// Interface defining an entity with a typed unique identifier.
+/// </summary>
+/// <typeparam name="TId"></typeparam>
 public interface IEntity<out TId> : IEntity
 {
     /// <summary>

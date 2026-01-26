@@ -3,18 +3,26 @@ using Core.Domain.Localization;
 using Xunit;
 
 namespace TaxFlow.Framework.Core.Tests.Localization;
+/// <summary>
+/// Localization tests for LocalizedString and LocalizedTemplate classes.
+/// </summary>
 
 public class LocalizationTests
 {
+    /// <summary>
+    /// Tests that LocalizedString returns the default value when no culture is specified.
+    /// </summary>
     [Fact]
     public void LocalizedString_ReturnsDefaultValue_WhenCultureNotSpecified()
     {
-        var label = LocalizedString.Create("Déclaration");
+        var label = LocalizedString.Create("DÃ©claration");
 
-        Assert.Equal("Déclaration", label.GetValue());
-        Assert.Equal("Déclaration", label.GetValue("de-DE"));
+        Assert.Equal("DÃ©claration", label.GetValue());
+        Assert.Equal("DÃ©claration", label.GetValue("de-DE"));
     }
-
+    /// <summary>
+    /// Tests that LocalizedString returns the correct translation based on the current culture scope.
+    /// </summary>
     [Fact]
     public void LocalizedString_UsesTranslations_WhenCultureScopeIsSet()
     {
@@ -37,12 +45,14 @@ public class LocalizationTests
             Assert.Equal("Paiement", label.GetValue());
         }
     }
-
+    /// <summary>
+    /// Tests that LocalizedTemplate formats values according to culture-specific formatting rules.
+    /// </summary>
     [Fact]
     public void LocalizedTemplate_Format_UsesCultureSpecificFormatting()
     {
         var template = LocalizedTemplate.Create(
-            "Montant dû: {amount}",
+            "Montant dÃ»: {amount}",
             ("en-US", "Amount due: {amount}"));
 
         var amount = 1234.5m;
@@ -52,7 +62,7 @@ public class LocalizationTests
         var fr = template.Format("fr-FR", ("amount", amount));
         var en = template.Format("en-US", ("amount", amount));
 
-        Assert.Equal($"Montant dû: {frExpected}", fr);
+        Assert.Equal($"Montant dÃ»: {frExpected}", fr);
         Assert.Equal($"Amount due: {enExpected}", en);
     }
 }

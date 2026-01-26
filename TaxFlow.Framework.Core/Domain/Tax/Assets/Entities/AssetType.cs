@@ -7,9 +7,6 @@ using Core.Domain.Tax.Calculation;
 using Core.Domain.Tax.Calculation.Services;
 using Core.Domain.Tax.Events;
 
-using System;
-using System.Linq;
-
 namespace Core.Domain.Tax.Assets;
 
 /// <summary>
@@ -61,7 +58,9 @@ public class AssetType : SoftAuditableEntity
         assetType.UpdateLiquidationMode(liquidationMode);
 
         if (!string.IsNullOrWhiteSpace(description))
+        {
             assetType.UpdateDescription(description);
+        }
 
         return assetType;
     }
@@ -72,7 +71,9 @@ public class AssetType : SoftAuditableEntity
     public void Rename(string newName)
     {
         if (string.IsNullOrWhiteSpace(newName))
+        {
             throw new ArgumentException(ExceptionMessages.NameCannotBeEmpty.Format(), nameof(newName));
+        }
 
         Name = newName.Trim();
         QueueDomainEvent(new AssetTypeRenamedDomainEvent(Id, newName));
@@ -92,7 +93,9 @@ public class AssetType : SoftAuditableEntity
     public void UpdateLiquidationMode(LiquidationMode mode)
     {
         if (!Enum.IsDefined(typeof(LiquidationMode), mode))
+        {
             throw new ArgumentOutOfRangeException(nameof(mode));
+        }
 
         LiquidationMode = mode;
     }
@@ -107,10 +110,14 @@ public class AssetType : SoftAuditableEntity
         ArgumentNullException.ThrowIfNull(definition);
 
         if (string.IsNullOrWhiteSpace(definition.Key))
+        {
             throw new ArgumentException(ExceptionMessages.ExpectedAttributeKeyCannotBeEmpty.Format(), nameof(definition));
+        }
 
         if (HasExpectedAttribute(definition.Key))
+        {
             throw new InvalidOperationException(ExceptionMessages.ExpectedAttributeAlreadyExists.Format(("attributeKey", definition.Key)));
+        }
 
         _expectedAttributes.Add(definition);
         return this;
@@ -130,10 +137,9 @@ public class AssetType : SoftAuditableEntity
     /// </summary>
     public bool RemoveExpectedAttribute(string key)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException(ExceptionMessages.KeyCannotBeEmpty.Format(), nameof(key));
-
-        return _expectedAttributes.RemoveAll(a => a.Key.Equals(key, StringComparison.OrdinalIgnoreCase)) > 0;
+        return string.IsNullOrWhiteSpace(key)
+            ? throw new ArgumentException(ExceptionMessages.KeyCannotBeEmpty.Format(), nameof(key))
+            : _expectedAttributes.RemoveAll(a => a.Key.Equals(key, StringComparison.OrdinalIgnoreCase)) > 0;
     }
 
     /// <summary>
@@ -141,10 +147,7 @@ public class AssetType : SoftAuditableEntity
     /// </summary>
     public bool HasExpectedAttribute(string key)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            return false;
-
-        return _expectedAttributes.Any(a => a.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+        return !string.IsNullOrWhiteSpace(key) && _expectedAttributes.Any(a => a.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion
@@ -159,10 +162,14 @@ public class AssetType : SoftAuditableEntity
         ArgumentNullException.ThrowIfNull(rule);
 
         if (string.IsNullOrWhiteSpace(rule.Key))
+        {
             throw new ArgumentException(ExceptionMessages.TaxRuleKeyCannotBeEmpty.Format(), nameof(rule));
+        }
 
         if (_taxRules.Any(r => r.Key.Equals(rule.Key, StringComparison.OrdinalIgnoreCase)))
+        {
             throw new InvalidOperationException(ExceptionMessages.TaxRuleAlreadyExists.Format(("ruleKey", rule.Key)));
+        }
 
         TaxRuleExpressionValidator.Validate(rule);
 
@@ -175,10 +182,9 @@ public class AssetType : SoftAuditableEntity
     /// </summary>
     public bool RemoveTaxRule(string key)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException(ExceptionMessages.KeyCannotBeEmpty.Format(), nameof(key));
-
-        return _taxRules.RemoveAll(r => r.Key.Equals(key, StringComparison.OrdinalIgnoreCase)) > 0;
+        return string.IsNullOrWhiteSpace(key)
+            ? throw new ArgumentException(ExceptionMessages.KeyCannotBeEmpty.Format(), nameof(key))
+            : _taxRules.RemoveAll(r => r.Key.Equals(key, StringComparison.OrdinalIgnoreCase)) > 0;
     }
 
     /// <summary>
@@ -186,10 +192,9 @@ public class AssetType : SoftAuditableEntity
     /// </summary>
     public TaxRule? FindTaxRule(string ruleKey)
     {
-        if (string.IsNullOrWhiteSpace(ruleKey))
-            return null;
-
-        return _taxRules.FirstOrDefault(r => r.Key.Equals(ruleKey, StringComparison.OrdinalIgnoreCase));
+        return string.IsNullOrWhiteSpace(ruleKey)
+            ? null
+            : _taxRules.FirstOrDefault(r => r.Key.Equals(ruleKey, StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion
@@ -213,13 +218,14 @@ public class AssetType : SoftAuditableEntity
         decimal? amount = null)
     {
         if (string.IsNullOrWhiteSpace(ruleKey))
+        {
             return TaxRuleEvaluationResult.CreateFailure(ruleKey ?? string.Empty, "ruleKey must not be empty.");
+        }
 
-        var rule = FindTaxRule(ruleKey);
-        if (rule is null)
-            return TaxRuleEvaluationResult.CreateFailure(ruleKey, $"Rule '{ruleKey}' not found.");
-
-        return ((DefaultTaxRuleEvaluator)DefaultTaxRuleEvaluator.Default).Evaluate(rule, attributes, _expectedAttributes, amount);
+        TaxRule? rule = FindTaxRule(ruleKey);
+        return rule is null
+            ? TaxRuleEvaluationResult.CreateFailure(ruleKey, $"Rule '{ruleKey}' not found.")
+            : ((DefaultTaxRuleEvaluator)DefaultTaxRuleEvaluator.Default).Evaluate(rule, attributes, _expectedAttributes, amount);
     }
 
     #endregion

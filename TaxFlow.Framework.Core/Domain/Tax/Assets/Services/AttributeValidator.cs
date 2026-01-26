@@ -27,8 +27,8 @@ public sealed class AttributeValidator
     {
         ArgumentNullException.ThrowIfNull(attributes);
 
-        var errors = new List<ValidationError>();
-        var attributesByKey = GroupAndValidateDuplicates(attributes, errors);
+        List<ValidationError> errors = [];
+        Dictionary<string, ExtendedAttribute> attributesByKey = GroupAndValidateDuplicates(attributes, errors);
 
         foreach (var expected in expectedAttributes)
         {
@@ -47,7 +47,7 @@ public sealed class AttributeValidator
             .GroupBy(a => a.Key, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        foreach (var group in groups.Where(g => g.Count() > 1))
+        foreach (IGrouping<string, ExtendedAttribute>? group in groups.Where(g => g.Count() > 1))
         {
             errors.Add(new ValidationError(
                 ValidationErrorCodes.DuplicateAttribute,
@@ -97,7 +97,9 @@ public sealed class AttributeValidator
         List<ValidationError> errors)
     {
         if (expected.DataType is null)
+        {
             return;
+        }
 
         if (provided.DataTypeValue != expected.DataType.Value)
         {
@@ -148,7 +150,9 @@ public sealed class AttributeValidator
         var isValidLabel = enumDef.TryGetLabel(providedValue, out _);
 
         if (isValidCode || isValidLabel)
+        {
             return;
+        }
 
         var allowedValues = GetAllowedEnumValues(enumDef);
         errors.Add(new ValidationError(
@@ -162,12 +166,12 @@ public sealed class AttributeValidator
 
     private static string GetAllowedEnumValues(EnumDefinition enumDef)
     {
-        var codes = enumDef.Items
+        IEnumerable<string> codes = enumDef.Items
             .Select(i => i.Code)
             .Where(c => !string.IsNullOrWhiteSpace(c))
             .Select(c => c!.Trim());
 
-        var labels = enumDef.Items
+        IEnumerable<string> labels = enumDef.Items
             .Select(i => i.Label)
             .Where(l => !string.IsNullOrWhiteSpace(l))
             .Select(l => l!.Trim());
@@ -181,7 +185,9 @@ public sealed class AttributeValidator
         List<ValidationError> errors)
     {
         if (string.IsNullOrWhiteSpace(expected.RegexPattern))
+        {
             return;
+        }
 
         try
         {

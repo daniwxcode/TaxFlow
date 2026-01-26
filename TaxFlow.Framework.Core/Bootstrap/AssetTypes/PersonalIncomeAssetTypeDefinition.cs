@@ -4,14 +4,32 @@ using Core.Domain.Tax.Assets;
 using Core.Domain.Tax.Calculation;
 
 namespace Core.Bootstrap.AssetTypes;
-
+/// <summary>
+/// Personal Income asset type definition.
+/// </summary>
 public sealed class PersonalIncomeAssetTypeDefinition : IAssetTypeDefinition
 {
+    /// <summary>
+    /// Gets the unique identifier for this asset type.
+    /// </summary>
     public string AssetTypeKey => "PERSONAL_INCOME";
+    /// <summary>
+    /// Gets the human-readable name of the asset type.
+    /// </summary>
     public string Name => "Household Income";
-    public string Description => "Impôts personnels IRF/IRTS/IRPRV/IRCM/IRGM";
+    /// <summary>
+    /// Gets the description of the asset type.
+    /// </summary>
+    public string Description => "ImpÃ´ts personnels IRF/IRTS/IRPRV/IRCM/IRGM";
+    /// <summary>
+    /// Gets the liquidation mode for this asset type.
+    /// </summary>
     public LiquidationMode LiquidationMode => LiquidationMode.Grouped;
 
+    /// <summary>
+    /// Builds the asset type definition.
+    /// </summary>
+    /// <returns></returns>
     public AssetType Build()
     {
         var assetType = AssetType.Create(Name, Description, LiquidationMode);
@@ -23,7 +41,7 @@ public sealed class PersonalIncomeAssetTypeDefinition : IAssetTypeDefinition
         assetType.AddExpectedAttribute(AttributeDefinition.Create(
             "CapitalIncomeAmount", "Revenus de capitaux mobiliers", AttributeDataType.Number));
         assetType.AddExpectedAttribute(AttributeDefinition.Create(
-            "ManagerRemuneration", "Rémunérations de gérance", AttributeDataType.Number));
+            "ManagerRemuneration", "RÃ©munÃ©rations de gÃ©rance", AttributeDataType.Number));
 
         foreach (var rule in GetTaxRules())
             assetType.AddTaxRule(rule);
@@ -36,8 +54,8 @@ public sealed class PersonalIncomeAssetTypeDefinition : IAssetTypeDefinition
         yield return new TaxRule
         {
             Key = "IRPRV",
-            Label = "IMPÔT SUR PENSIONS ET RENTES",
-            Description = "Tranches 2,4-3,6M à 25 %, au-delà 50 %.",
+            Label = "IMPÃ”T SUR PENSIONS ET RENTES",
+            Description = "Tranches 2,4-3,6M Ã  25 %, au-delÃ  50 %.",
             Expression = """
             (
                 [PensionAmount]<=2400000?0:
@@ -56,23 +74,23 @@ public sealed class PersonalIncomeAssetTypeDefinition : IAssetTypeDefinition
         {
             Key = "IRTS",
             Label = "IR SUR TRAITEMENTS ET SALAIRES",
-            Description = "Barème IRPP sur le revenu global.",
+            Description = "BarÃ¨me IRPP sur le revenu global.",
             Expression = BuildIrppScaleExpression("AnnualGlobalIncome")
         };
 
         yield return new TaxRule
         {
             Key = "IRCM",
-            Label = "IMPÔT SUR REVENUS DE CAPITAUX MOBILIERS",
-            Description = "Taxe proportionnelle de 15 % sur les revenus agrégés.",
+            Label = "IMPÃ”T SUR REVENUS DE CAPITAUX MOBILIERS",
+            Description = "Taxe proportionnelle de 15 % sur les revenus agrÃ©gÃ©s.",
             Expression = "[CapitalIncomeAmount]*0.15"
         };
 
         yield return new TaxRule
         {
             Key = "IRGM",
-            Label = "IMPÔT SUR REVENUS DE GÉRANTS",
-            Description = "Taxe proportionnelle de 10 % sur les rémunérations des gérants/associés.",
+            Label = "IMPÃ”T SUR REVENUS DE GÃ‰RANTS",
+            Description = "Taxe proportionnelle de 10 % sur les rÃ©munÃ©rations des gÃ©rants/associÃ©s.",
             Expression = "[ManagerRemuneration]*0.10"
         };
     }

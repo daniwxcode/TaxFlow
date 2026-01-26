@@ -11,66 +11,87 @@ public static class ValidationMessages
     // ATTRIBUTE VALIDATION MESSAGES
     // ============================================
 
+    /// <summary>
+    /// Message indicating a duplicated attribute.
+    /// </summary>
     public static readonly LocalizedTemplate DuplicateAttribute = LocalizedTemplate.Create(
         "L'attribut '{attributeKey}' est en double.",
         ("en-US", "The attribute '{attributeKey}' is duplicated."),
         ("ar-SA", "????? '{attributeKey}' ?????."),
-        ("pt-PT", "O atributo '{attributeKey}' está duplicado."));
-
+        ("pt-PT", "O atributo '{attributeKey}' estÃ¡ duplicado."));
+    /// <summary>
+    /// Message indicating a missing required attribute.
+    /// </summary>
     public static readonly LocalizedTemplate MissingRequiredAttribute = LocalizedTemplate.Create(
         "L'attribut requis '{attributeKey}' est manquant.",
         ("en-US", "The required attribute '{attributeKey}' is missing."),
         ("ar-SA", "????? ???????? '{attributeKey}' ??????."),
-        ("pt-PT", "O atributo obrigatório '{attributeKey}' está em falta."));
-
+        ("pt-PT", "O atributo obrigatÃ³rio '{attributeKey}' estÃ¡ em falta."));
+    /// <summary>
+    /// Message indicating an invalid data type for an attribute.
+    /// </summary>
     public static readonly LocalizedTemplate InvalidDataType = LocalizedTemplate.Create(
-        "Le type de données de l'attribut '{attributeKey}' est invalide. Attendu: {expectedType}, Reçu: {actualType}.",
+        "Le type de donnÃ©es de l'attribut '{attributeKey}' est invalide. Attendu: {expectedType}, ReÃ§u: {actualType}.",
         ("en-US", "The data type of attribute '{attributeKey}' is invalid. Expected: {expectedType}, Got: {actualType}."),
         ("ar-SA", "??? ???????? ????? '{attributeKey}' ??? ????. ?????: {expectedType}, ?? ?????? ???: {actualType}."),
-        ("pt-PT", "O tipo de dados do atributo '{attributeKey}' é inválido. Esperado: {expectedType}, Recebido: {actualType}."));
-
+        ("pt-PT", "O tipo de dados do atributo '{attributeKey}' Ã© invÃ¡lido. Esperado: {expectedType}, Recebido: {actualType}."));
+    /// <summary>
+    /// Message indicating an invalid value for an attribute.
+    /// </summary>
     public static readonly LocalizedTemplate InvalidValue = LocalizedTemplate.Create(
         "La valeur de l'attribut '{attributeKey}' est invalide: {reason}.",
         ("en-US", "The value of attribute '{attributeKey}' is invalid: {reason}."),
         ("ar-SA", "???? ????? '{attributeKey}' ??? ?????: {reason}."),
-        ("pt-PT", "O valor do atributo '{attributeKey}' é inválido: {reason}."));
-
+        ("pt-PT", "O valor do atributo '{attributeKey}' Ã© invÃ¡lido: {reason}."));
+    /// <summary>
+    /// Message indicating an invalid enum value for an attribute.
+    /// </summary>
     public static readonly LocalizedTemplate InvalidEnumValue = LocalizedTemplate.Create(
-        "La valeur '{value}' n'est pas valide pour l'énumération '{attributeKey}'. Valeurs acceptées: {validValues}.",
+        "La valeur '{value}' n'est pas valide pour l'Ã©numÃ©ration '{attributeKey}'. Valeurs acceptÃ©es: {validValues}.",
         ("en-US", "The value '{value}' is not valid for enumeration '{attributeKey}'. Valid values: {validValues}."),
         ("ar-SA", "?????? '{value}' ??? ????? ??????? '{attributeKey}'. ????? ???????: {validValues}."),
-        ("pt-PT", "O valor '{value}' não é válido para a enumeração '{attributeKey}'. Valores válidos: {validValues}."));
-
+        ("pt-PT", "O valor '{value}' nÃ£o Ã© vÃ¡lido para a enumeraÃ§Ã£o '{attributeKey}'. Valores vÃ¡lidos: {validValues}."));
+    /// <summary>
+    /// Message indicating a missing enum definition for an attribute.
+    /// </summary>
     public static readonly LocalizedTemplate MissingEnumDefinition = LocalizedTemplate.Create(
-        "La définition d'énumération est manquante pour l'attribut '{attributeKey}'.",
+        "La dÃ©finition d'Ã©numÃ©ration est manquante pour l'attribut '{attributeKey}'.",
         ("en-US", "The enum definition is missing for attribute '{attributeKey}'."),
         ("ar-SA", "????? ??????? ????? ????? '{attributeKey}'."),
-        ("pt-PT", "A definição de enumeração está em falta para o atributo '{attributeKey}'."));
-
+        ("pt-PT", "A definiÃ§Ã£o de enumeraÃ§Ã£o estÃ¡ em falta para o atributo '{attributeKey}'."));
+    /// <summary>
+    /// Message indicating a regex mismatch for an attribute.
+    /// </summary>
     public static readonly LocalizedTemplate RegexMismatch = LocalizedTemplate.Create(
         "La valeur de l'attribut '{attributeKey}' ne correspond pas au format attendu.",
         ("en-US", "The value of attribute '{attributeKey}' does not match the expected format."),
         ("ar-SA", "???? ????? '{attributeKey}' ?? ?????? ?? ??????? ???????."),
-        ("pt-PT", "O valor do atributo '{attributeKey}' não corresponde ao formato esperado."));
+        ("pt-PT", "O valor do atributo '{attributeKey}' nÃ£o corresponde ao formato esperado."));
 
     // ============================================
     // TAX RULE VALIDATION MESSAGES
     // ============================================
-
+    /// <summary>
+    /// Message indicating that a tax rule was not found.
+    /// </summary>
     public static readonly LocalizedTemplate RuleNotFound = LocalizedTemplate.Create(
-        "La règle fiscale '{ruleKey}' est introuvable.",
+        "La rÃ¨gle fiscale '{ruleKey}' est introuvable.",
         ("en-US", "The tax rule '{ruleKey}' was not found."),
         ("ar-SA", "??????? ???????? '{ruleKey}' ??? ??????."),
-        ("pt-PT", "A regra fiscal '{ruleKey}' não foi encontrada."));
-
+        ("pt-PT", "A regra fiscal '{ruleKey}' nÃ£o foi encontrada."));
+    /// <summary>
+    /// Message indicating that a tax rule is disabled.
+    /// </summary>
     public static readonly LocalizedTemplate RuleDisabled = LocalizedTemplate.Create(
-        "La règle fiscale '{ruleKey}' est désactivée.",
+        "La rÃ¨gle fiscale '{ruleKey}' est dÃ©sactivÃ©e.",
         ("en-US", "The tax rule '{ruleKey}' is disabled."),
         ("ar-SA", "??????? ???????? '{ruleKey}' ?????."),
-        ("pt-PT", "A regra fiscal '{ruleKey}' está desativada."));
-
+        ("pt-PT", "A regra fiscal '{ruleKey}' estÃ¡ desativada."));
+    /// <summary>
+    /// Message indicating that a tax rule evaluation failed.
+    /// </summary>
     public static readonly LocalizedTemplate RuleEvaluationFailed = LocalizedTemplate.Create(
-        "Erreur lors de l'évaluation de la règle '{ruleKey}': {error}.",
+        "Erreur lors de l'Ã©valuation de la rÃ¨gle '{ruleKey}': {error}.",
         ("en-US", "Error evaluating rule '{ruleKey}': {error}."),
         ("ar-SA", "??? ?? ????? ??????? '{ruleKey}': {error}."),
         ("pt-PT", "Erro ao avaliar a regra '{ruleKey}': {error}."));
@@ -80,68 +101,68 @@ public static class ValidationMessages
     // ============================================
 
     public static readonly LocalizedTemplate DuplicateDeclarationKey = LocalizedTemplate.Create(
-        "Plusieurs échéances de déclaration ont la même clé: '{key}'.",
+        "Plusieurs Ã©chÃ©ances de dÃ©claration ont la mÃªme clÃ©: '{key}'.",
         ("en-US", "Multiple declaration deadlines have the same key: '{key}'."),
         ("ar-SA", "??? ?????? ????? ??? ??? ???????: '{key}'."),
-        ("pt-PT", "Vários prazos de declaração têm a mesma chave: '{key}'."));
+        ("pt-PT", "VÃ¡rios prazos de declaraÃ§Ã£o tÃªm a mesma chave: '{key}'."));
 
     public static readonly LocalizedTemplate DuplicatePaymentKey = LocalizedTemplate.Create(
-        "Plusieurs échéances de paiement ont la même clé: '{key}'.",
+        "Plusieurs Ã©chÃ©ances de paiement ont la mÃªme clÃ©: '{key}'.",
         ("en-US", "Multiple payment deadlines have the same key: '{key}'."),
         ("ar-SA", "??? ?????? ??? ??? ??? ???????: '{key}'."),
-        ("pt-PT", "Vários prazos de pagamento têm a mesma chave: '{key}'."));
+        ("pt-PT", "VÃ¡rios prazos de pagamento tÃªm a mesma chave: '{key}'."));
 
     public static readonly LocalizedTemplate InvalidFractionTotal = LocalizedTemplate.Create(
-        "Le total des fractions de paiement ({total}) dépasse 100%.",
+        "Le total des fractions de paiement ({total}) dÃ©passe 100%.",
         ("en-US", "The total payment fractions ({total}) exceed 100%."),
         ("ar-SA", "?????? ????? ????? ({total}) ?????? 100%."),
-        ("pt-PT", "O total das frações de pagamento ({total}) excede 100%."));
+        ("pt-PT", "O total das fraÃ§Ãµes de pagamento ({total}) excede 100%."));
 
     public static readonly LocalizedTemplate DeclarationAfterPayment = LocalizedTemplate.Create(
-        "L'échéance de déclaration '{declarationKey}' doit être antérieure ou égale à l'échéance de paiement '{paymentKey}'.",
+        "L'Ã©chÃ©ance de dÃ©claration '{declarationKey}' doit Ãªtre antÃ©rieure ou Ã©gale Ã  l'Ã©chÃ©ance de paiement '{paymentKey}'.",
         ("en-US", "The declaration deadline '{declarationKey}' must be before or equal to the payment deadline '{paymentKey}'."),
         ("ar-SA", "???? ??????? '{declarationKey}' ??? ?? ???? ??? ?? ????? ???? ????? '{paymentKey}'."),
-        ("pt-PT", "O prazo de declaração '{declarationKey}' deve ser anterior ou igual ao prazo de pagamento '{paymentKey}'."));
+        ("pt-PT", "O prazo de declaraÃ§Ã£o '{declarationKey}' deve ser anterior ou igual ao prazo de pagamento '{paymentKey}'."));
 
     public static readonly LocalizedTemplate InvalidLinkedDeclaration = LocalizedTemplate.Create(
-        "Le paiement '{paymentKey}' fait référence à une déclaration inexistante: '{declarationKey}'.",
+        "Le paiement '{paymentKey}' fait rÃ©fÃ©rence Ã  une dÃ©claration inexistante: '{declarationKey}'.",
         ("en-US", "The payment '{paymentKey}' references a non-existent declaration: '{declarationKey}'."),
         ("ar-SA", "?????? '{paymentKey}' ???? ??? ????? ??? ?????: '{declarationKey}'."),
-        ("pt-PT", "O pagamento '{paymentKey}' referencia uma declaração inexistente: '{declarationKey}'."));
+        ("pt-PT", "O pagamento '{paymentKey}' referencia uma declaraÃ§Ã£o inexistente: '{declarationKey}'."));
 
     public static readonly LocalizedTemplate DuplicateOrder = LocalizedTemplate.Create(
-        "Plusieurs {deadlineType} ont le même ordre: {order}.",
+        "Plusieurs {deadlineType} ont le mÃªme ordre: {order}.",
         ("en-US", "Multiple {deadlineType} have the same order: {order}."),
         ("ar-SA", "??? {deadlineType} ??? ??? ???????: {order}."),
-        ("pt-PT", "Vários {deadlineType} têm a mesma ordem: {order}."));
+        ("pt-PT", "VÃ¡rios {deadlineType} tÃªm a mesma ordem: {order}."));
 
     public static readonly LocalizedTemplate MissingLegalBasis = LocalizedTemplate.Create(
-        "Les échéances multiples nécessitent des références légales explicites.",
+        "Les Ã©chÃ©ances multiples nÃ©cessitent des rÃ©fÃ©rences lÃ©gales explicites.",
         ("en-US", "Multiple deadlines require explicit legal references."),
         ("ar-SA", "???????? ???????? ????? ????? ??????? ?????."),
-        ("pt-PT", "Prazos múltiplos requerem referências legais explícitas."));
+        ("pt-PT", "Prazos mÃºltiplos requerem referÃªncias legais explÃ­citas."));
 
     public static readonly LocalizedTemplate MissingBalancePayment = LocalizedTemplate.Create(
-        "Le calendrier contient des acomptes mais aucun solde de régularisation.",
+        "Le calendrier contient des acomptes mais aucun solde de rÃ©gularisation.",
         ("en-US", "The schedule has advance payments but no balance payment."),
         ("ar-SA", "?????? ????? ??? ????? ????? ???? ?? ???? ???? ????."),
-        ("pt-PT", "O calendário tem pagamentos adiantados mas nenhum pagamento de saldo."));
+        ("pt-PT", "O calendÃ¡rio tem pagamentos adiantados mas nenhum pagamento de saldo."));
 
     // ============================================
     // PENALTY MESSAGES
     // ============================================
 
     public static readonly LocalizedTemplate PenaltyApplied = LocalizedTemplate.Create(
-        "Pénalité de {penaltyType} appliquée: {amount} ({rate} sur {baseAmount}).",
+        "PÃ©nalitÃ© de {penaltyType} appliquÃ©e: {amount} ({rate} sur {baseAmount}).",
         ("en-US", "Penalty of {penaltyType} applied: {amount} ({rate} on {baseAmount})."),
         ("ar-SA", "?? ????? ????? {penaltyType}: {amount} ({rate} ??? {baseAmount})."),
         ("pt-PT", "Penalidade de {penaltyType} aplicada: {amount} ({rate} sobre {baseAmount})."));
 
     public static readonly LocalizedTemplate DeadlineOverdue = LocalizedTemplate.Create(
-        "L'échéance '{deadlineLabel}' est en retard de {daysLate} jour(s).",
+        "L'Ã©chÃ©ance '{deadlineLabel}' est en retard de {daysLate} jour(s).",
         ("en-US", "The deadline '{deadlineLabel}' is {daysLate} day(s) overdue."),
         ("ar-SA", "?????? ??????? '{deadlineLabel}' ????? ?? {daysLate} ???(????)."),
-        ("pt-PT", "O prazo '{deadlineLabel}' está atrasado {daysLate} dia(s)."));
+        ("pt-PT", "O prazo '{deadlineLabel}' estÃ¡ atrasado {daysLate} dia(s)."));
 
     // ============================================
     // HELPER METHODS
@@ -152,11 +173,11 @@ public static class ValidationMessages
     /// </summary>
     public static LocalizedString GetDeadlineTypeName(string type) => type.ToLowerInvariant() switch
     {
-        "declaration" or "déclaration" => LocalizedString.Create("échéances de déclaration")
+        "declaration" or "dÃ©claration" => LocalizedString.Create("Ã©chÃ©ances de dÃ©claration")
             .En("declaration deadlines")
             .Ar("?????? ???????")
-            .Pt("prazos de declaração"),
-        "payment" or "paiement" => LocalizedString.Create("échéances de paiement")
+            .Pt("prazos de declaraÃ§Ã£o"),
+        "payment" or "paiement" => LocalizedString.Create("Ã©chÃ©ances de paiement")
             .En("payment deadlines")
             .Ar("?????? ?????")
             .Pt("prazos de pagamento"),
@@ -171,11 +192,11 @@ public static class ValidationMessages
         Tax.Penalties.PenaltyType.Assiette => LocalizedString.Create("assiette")
             .En("assessment")
             .Ar("???????")
-            .Pt("lançamento"),
+            .Pt("lanÃ§amento"),
         Tax.Penalties.PenaltyType.Recouvrement => LocalizedString.Create("recouvrement")
             .En("collection")
             .Ar("???????")
-            .Pt("cobrança"),
+            .Pt("cobranÃ§a"),
         _ => LocalizedString.Create(type.ToString())
     };
 }

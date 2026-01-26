@@ -75,34 +75,17 @@ public sealed class LocalizedTemplate
 
     private static string FormatValue(object? value, string? culture)
     {
-        if (value is null)
-            return string.Empty;
-
-        // Handle localized strings
-        if (value is LocalizedString localizedString)
-            return localizedString.GetValue(culture);
-
-        // Handle dates
-        if (value is DateTimeOffset dto)
-            return dto.ToString("d", GetCultureInfo(culture));
-
-        if (value is DateTime dt)
-            return dt.ToString("d", GetCultureInfo(culture));
-
-        if (value is DateOnly dateOnly)
-            return dateOnly.ToString("d", GetCultureInfo(culture));
-
-        // Handle numbers
-        if (value is decimal dec)
-            return dec.ToString("N2", GetCultureInfo(culture));
-
-        if (value is double dbl)
-            return dbl.ToString("N2", GetCultureInfo(culture));
-
-        if (value is int i)
-            return i.ToString("N0", GetCultureInfo(culture));
-
-        return value.ToString() ?? string.Empty;
+        return value switch
+        {
+            null => string.Empty,
+            LocalizedString localizedString => localizedString.GetValue(culture),
+            DateTimeOffset dto => dto.ToString("d", GetCultureInfo(culture)),
+            DateTime dt => dt.ToString("d", GetCultureInfo(culture)),
+            DateOnly dateOnly => dateOnly.ToString("d", GetCultureInfo(culture)),
+            decimal dec => dec.ToString("N2", GetCultureInfo(culture)),
+            double dbl => dbl.ToString("N2", GetCultureInfo(culture)),
+            _ => value is int i ? i.ToString("N0", GetCultureInfo(culture)) : value.ToString() ?? string.Empty,
+        };
     }
 
     private static System.Globalization.CultureInfo GetCultureInfo(string? culture)
@@ -121,6 +104,9 @@ public sealed class LocalizedTemplate
     /// Gets the raw template string.
     /// </summary>
     public LocalizedString Template => _template;
-
+    /// <summary>
+    /// To string override returns the default template.
+    /// </summary>
+    /// <returns></returns>
     public override string ToString() => _template.ToString();
 }

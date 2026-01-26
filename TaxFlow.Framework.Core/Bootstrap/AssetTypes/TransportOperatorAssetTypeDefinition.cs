@@ -12,10 +12,26 @@ namespace Core.Bootstrap.AssetTypes;
 /// </summary>
 public sealed class TransportOperatorAssetTypeDefinition : IAssetTypeDefinition
 {
+    /// <summary>
+    /// Gets the unique identifier for this asset type.
+    /// </summary>
     public string AssetTypeKey => "TRANSPORT_OPERATOR";
+    /// <summary>
+    /// Gets the human-readable name of the asset type.
+    /// </summary>
     public string Name => "Transport Operators";
-    public string Description => "Exploitants assujettis à la TPU-TR";
+    /// <summary>
+    /// Gets the description of the asset type.
+    /// </summary>
+    public string Description => "Exploitants assujettis Ã  la TPU-TR";
+    /// <summary>
+    /// Gets the liquidation mode for this asset type.
+    /// </summary>
     public LiquidationMode LiquidationMode => LiquidationMode.Individual;
+    /// <summary>
+    /// Builds the asset type with its attributes and tax rules.
+    /// </summary>
+    /// <returns></returns>
 
     public AssetType Build()
     {
@@ -48,8 +64,8 @@ public sealed class TransportOperatorAssetTypeDefinition : IAssetTypeDefinition
             }
         });
         yield return AttributeDefinition.Create("VehicleTonnage", "Tonnage (en tonnes)", AttributeDataType.Number);
-        yield return AttributeDefinition.Create("VehicleAgeYears", "Âge du véhicule (années)", AttributeDataType.Number);
-        yield return AttributeDefinition.Create("SeatCount", "Nombre de sièges", AttributeDataType.Number);
+        yield return AttributeDefinition.Create("VehicleAgeYears", "Ã‚ge du vÃ©hicule (annÃ©es)", AttributeDataType.Number);
+        yield return AttributeDefinition.Create("SeatCount", "Nombre de siÃ¨ges", AttributeDataType.Number);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "OperationZone",
@@ -68,8 +84,8 @@ public sealed class TransportOperatorAssetTypeDefinition : IAssetTypeDefinition
         var rule = new TaxRule
         {
             Key = "TPU_TR",
-            Label = "TPU – Transporteurs routiers",
-            Description = "Taxe forfaitaire trrimestrielle basée sur tonnage, sièges, âge et zone.",
+            Label = "TPU â€“ Transporteurs routiers",
+            Description = "Taxe forfaitaire trrimestrielle basÃ©e sur tonnage, siÃ¨ges, Ã¢ge et zone.",
             Expression = """
             ([TransportActivityCode]=="SABLE"?
                 ([VehicleTonnage]<=10?9000:([VehicleTonnage]<=20?11000:13500))

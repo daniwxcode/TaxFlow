@@ -1,4 +1,4 @@
-﻿using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Enums;
 
 using System.ComponentModel.DataAnnotations.Schema;
@@ -97,7 +97,9 @@ public class ExtendedAttribute : SoftAuditableEntity, ITemporalValiditable
     public bool IsValidValue()
     {
         if (string.IsNullOrWhiteSpace(Value))
+        {
             return !IsRequired;
+        }
 
         return DataType.Value switch
         {

@@ -10,14 +10,19 @@ namespace Application.Audit;
 /// </summary>
 public class TrailDto
 {
-    public Guid Id { get; set; }
+    /// <summary>
+    /// Identifiant unique de l’entrée de piste d’audit.
+    /// </summary>
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     /// <summary>
     /// Date et heure de l’opération (UTC).
     /// </summary>
-    public DateTimeOffset OccurredAt { get; set; }
-
-    public Guid UserId { get; set; }
+    public DateTimeOffset OccurredAt { get; set; } = DateTimeOffset.UtcNow;
+    /// <summary>
+    /// Identifiant de l’utilisateur à l’origine de l’opération.
+    /// </summary>
+    public Guid UserId { get; set; } = Guid.Empty;
 
     /// <summary>
     /// Clé(s) primaire(s) de l’entité affectée.

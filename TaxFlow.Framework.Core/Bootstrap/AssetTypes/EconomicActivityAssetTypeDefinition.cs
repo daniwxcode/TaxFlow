@@ -4,21 +4,45 @@ using Core.Domain.Tax.Assets;
 using Core.Domain.Tax.Calculation;
 
 namespace Core.Bootstrap.AssetTypes;
-
+/// <summary>
+/// Definition de l'actif pour les activitÃ©s Ã©conomiques soumises Ã  la TPU.
+/// </summary>
 public sealed class EconomicActivityAssetTypeDefinition : IAssetTypeDefinition
 {
+    /// <summary>
+    /// Gets the key that identifies the asset type as economic activity.
+    /// </summary>
     public string AssetTypeKey => "ECONOMIC_ACTIVITY";
+    /// <summary>
+    /// Gets the name of the asset type.
+    /// </summary>
     public string Name => "Economic Activity";
-    public string Description => "Activités économiques soumises à la TPU";
+    /// <summary>
+    /// Gets the description of the asset type.
+    /// </summary>
+    public string Description => "ActivitÃ©s Ã©conomiques soumises Ã  la TPU";
+    /// <summary>
+    /// Gets the liquidation mode for the asset type.
+    /// </summary>
     public LiquidationMode LiquidationMode => LiquidationMode.Individual;
 
+    /// <summary>
+    /// Builds the asset type definition.
+    /// </summary>
+    /// <returns></returns>
     public AssetType Build()
     {
         var assetType = AssetType.Create(Name, Description, LiquidationMode);
         foreach (var attr in GetAttributes())
+        {
             assetType.AddExpectedAttribute(attr);
+        }
+
         foreach (var rule in GetTaxRules())
+        {
             assetType.AddTaxRule(rule);
+        }
+
         return assetType;
     }
 
@@ -28,7 +52,7 @@ public sealed class EconomicActivityAssetTypeDefinition : IAssetTypeDefinition
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "ActivityNature",
-            Label = "Nature de l'activité",
+            Label = "Nature de l'activitÃ©",
             Items =
             {
                 new EnumItem { Code = "COM", Label = "Commerce", Order = 1 },
@@ -38,11 +62,11 @@ public sealed class EconomicActivityAssetTypeDefinition : IAssetTypeDefinition
                 new EnumItem { Code = "ELV", Label = "Eleveur", Order = 5 }
             }
         });
-        yield return AttributeDefinition.Create("UsesMechanicalMeans", "Utilise des moyens mécaniques", AttributeDataType.Boolean);
+        yield return AttributeDefinition.Create("UsesMechanicalMeans", "Utilise des moyens mÃ©caniques", AttributeDataType.Boolean);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "LocationCategory",
-            Label = "Catégorie de localisation",
+            Label = "CatÃ©gorie de localisation",
             Items =
             {
                 new EnumItem { Code = "URB", Label = "Urbain", Order = 1 },
@@ -50,7 +74,7 @@ public sealed class EconomicActivityAssetTypeDefinition : IAssetTypeDefinition
                 new EnumItem { Code = "RUR", Label = "Rural", Order = 3 }
             }
         }, false);
-        yield return AttributeDefinition.Create("HasFranchise", "Bénéficie d'une franchise", AttributeDataType.Boolean);
+        yield return AttributeDefinition.Create("HasFranchise", "BÃ©nÃ©ficie d'une franchise", AttributeDataType.Boolean);
     }
 
     private IEnumerable<TaxRule> GetTaxRules()
@@ -58,8 +82,8 @@ public sealed class EconomicActivityAssetTypeDefinition : IAssetTypeDefinition
         yield return new TaxRule
         {
             Key = "TPU_ECO",
-            Label = "TPU – Activités économiques",
-            Description = "Barème forfaitaire commerce/services et montants différenciés artisans/ambulants.",
+            Label = "TPU â€“ ActivitÃ©s Ã©conomiques",
+            Description = "BarÃ¨me forfaitaire commerce/services et montants diffÃ©renciÃ©s artisans/ambulants.",
             Expression = """
             [HasFranchise]?0:
             (

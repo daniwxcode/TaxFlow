@@ -1,4 +1,4 @@
-﻿using Core.Domain.Contracts.Event;
+using Core.Domain.Contracts.Event;
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -25,10 +25,12 @@ public abstract class BaseEntity<TId> : IEntity<TId>
     /// <summary>
     /// Queue a domain event for this entity if it is not already present in the collection.
     /// </summary>
-    /// <param name="@event">The domain event to queue.</param>
+    /// <param name="event">The domain event to queue.</param>
     public void QueueDomainEvent(IDomainEvent @event)
     {
         if (!DomainEvents.Contains(@event))
+        {
             DomainEvents.Add(@event);
+        }
     }
 }

@@ -10,8 +10,14 @@ using Xunit;
 
 namespace TaxFlow.Framework.Core.Tests;
 
+/// <summary>
+/// Contient des tests unitaires pour les types d'actifs et les actifs imposables.
+/// </summary>
 public class AssetTypeAndTaxableAssetTests
 {
+    /// <summary>
+    /// Vérifie l'ajout et la suppression d'un attribut attendu sur un type d'actif.
+    /// </summary>
     [Fact]
     public void AssetType_AddAndRemoveExpectedAttribute()
     {
@@ -22,6 +28,9 @@ public class AssetTypeAndTaxableAssetTests
         Assert.True(at.RemoveExpectedAttribute("K"));
     }
 
+    /// <summary>
+    /// Vérifie l'évaluation d'une règle fiscale avec un attribut numérique.
+    /// </summary>
     [Fact]
     public void EvaluateTaxRule_WithNumberAttribute_ReturnsValue()
     {
@@ -35,6 +44,9 @@ public class AssetTypeAndTaxableAssetTests
         Assert.Equal(1m, result);
     }
 
+    /// <summary>
+    /// Vérifie le calcul des lignes fiscales pour un actif imposable.
+    /// </summary>
     [Fact]
     public void TaxableAsset_CalculateTaxLines_ReturnsLines()
     {

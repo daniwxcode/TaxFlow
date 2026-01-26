@@ -24,6 +24,12 @@ namespace Application.Attributs;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
 public sealed class FeatureMarkerAttribute(string name, string version) : Attribute
 {
+    /// <summary>
+    /// Nom de la Feature.
+    /// </summary>
     public string Name { get; } = name;
+    /// <summary>
+    /// Version de la Feature.
+    /// </summary>
     public string Version { get; } = version;
 }

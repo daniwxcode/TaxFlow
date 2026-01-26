@@ -14,7 +14,7 @@ public abstract class ExtendedSoftAuditableEntity : SoftAuditableEntity
     /// <summary>
     /// Backing list of extended attributes. Use <see cref="Attributes"/> to access a read-only view.
     /// </summary>
-    protected List<ExtendedAttribute> _attributes = new();
+    protected List<ExtendedAttribute> _attributes = [];
 
     /// <summary>
     /// Read-only collection of extended attributes attached to this entity.
@@ -44,7 +44,7 @@ public abstract class ExtendedSoftAuditableEntity : SoftAuditableEntity
     /// <returns>The added or updated <see cref="ExtendedAttribute"/> instance.</returns>
     public ExtendedAttribute AddOrUpdateAttribute(string key, string value, AttributeDataType dataType, bool isRequired = false)
     {
-        var existing = GetAttribute(key);
+        ExtendedAttribute? existing = GetAttribute(key);
         if (existing != null)
         {
             existing.UpdateValue(value, dataType, isRequired);
@@ -66,7 +66,10 @@ public abstract class ExtendedSoftAuditableEntity : SoftAuditableEntity
         var attr = ExtendedAttribute.Create(key, value, dataType, isRequired, DateTimeOffset.UtcNow, null);
         // Prevent duplicates by key
         if (!_attributes.Any(a => a.Key.Equals(attr.Key, StringComparison.OrdinalIgnoreCase)))
+        {
             _attributes.Add(attr);
+        }
+
         return attr;
     }
 

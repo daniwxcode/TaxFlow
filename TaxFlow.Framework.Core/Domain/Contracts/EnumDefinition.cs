@@ -1,4 +1,4 @@
-﻿using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Enums;
 
 using System.Text.RegularExpressions;
@@ -31,7 +31,7 @@ public class EnumDefinition : AuditableEntity
     /// </summary>
     public string BuildLabelRegex()
     {
-        var labels = Items
+        IEnumerable<string> labels = Items
             .Select(i => (i.Label ?? string.Empty).Trim())
             .Where(l => !string.IsNullOrEmpty(l))
             // ordonner par longueur décroissante évite les conflits de préfixe (ex: "A" vs "AB")
@@ -46,7 +46,7 @@ public class EnumDefinition : AuditableEntity
     /// </summary>
     public string BuildCodeRegex()
     {
-        var codes = Items
+        IEnumerable<string> codes = Items
             .Select(i => (i.Code ?? string.Empty).Trim())
             .Where(c => !string.IsNullOrEmpty(c))
             .OrderByDescending(c => c.Length)
@@ -63,14 +63,21 @@ public class EnumDefinition : AuditableEntity
     public bool TryGetLabel(string? value, out string label)
     {
         label = string.Empty;
-        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
 
         var normalized = value.Trim();
-        var match = Items.FirstOrDefault(i =>
+        EnumItem? match = Items.FirstOrDefault(i =>
             string.Equals(i.Code, normalized, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(i.Label, normalized, StringComparison.OrdinalIgnoreCase));
 
-        if (match is null) return false;
+        if (match is null)
+        {
+            return false;
+        }
+
         label = match.Label ?? string.Empty;
         return !string.IsNullOrWhiteSpace(label);
     }
@@ -84,14 +91,21 @@ public class EnumDefinition : AuditableEntity
     public bool TryGetCode(string? value, out string code)
     {
         code = string.Empty;
-        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
 
         var normalized = value.Trim();
-        var match = Items.FirstOrDefault(i =>
+        EnumItem? match = Items.FirstOrDefault(i =>
             string.Equals(i.Code, normalized, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(i.Label, normalized, StringComparison.OrdinalIgnoreCase));
 
-        if (match is null) return false;
+        if (match is null)
+        {
+            return false;
+        }
+
         code = match.Code ?? string.Empty;
         return !string.IsNullOrWhiteSpace(code);
     }

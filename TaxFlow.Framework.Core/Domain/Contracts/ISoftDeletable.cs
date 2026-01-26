@@ -1,4 +1,4 @@
-﻿namespace Core.Domain.Contracts;
+namespace Core.Domain.Contracts;
 /// <summary>
 /// Interface defining soft deletion capabilities for entities.
 /// </summary>
@@ -30,8 +30,8 @@ public interface ISoftDeletable : IAuditable
     /// </summary>
     Guid? LastRecoveredBy { get; }
     /// <summary>
-    /// Marks the entity as deleted.
+    /// Recover the entity from soft-delete state.
     /// </summary>
-    /// <param name="deletedBy">The identifier of the user performing the deletion.</param
+    /// <param name="recoveredBy"></param>
     void Recover(Guid recoveredBy);
 }

@@ -1,39 +1,8 @@
-﻿using Core.Domain.Contracts.Abstracts;
+using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Enums;
 using Core.Domain.Localization;
 
 namespace Core.Domain.Contracts;
-
-/// <summary>
-/// Represents one item inside an EnumDefinition.
-/// </summary>
-public class EnumItem : AuditableEntity
-{
-    /// <summary>
-    /// The code used to identify the enum item (stored value).
-    /// </summary>
-    public string Code { get; internal set; } = default!;
-
-    /// <summary>
-    /// Human-readable label for the item.
-    /// </summary>
-    public string Label { get; internal set; } = default!;
-
-    /// <summary>
-    /// Order for presentation or sorting within the enum.
-    /// </summary>
-    public int Order { get; internal set; }
-
-    /// <summary>
-    /// Foreign key to the owning <see cref="EnumDefinition"/> - used by persistence.
-    /// </summary>
-    public int EnumDefinitionId { get; internal set; }
-
-    /// <summary>
-    /// Navigation property to the owning <see cref="EnumDefinition"/>.
-    /// </summary>
-    public EnumDefinition EnumDefinition { get; internal set; } = default!;
-}
 
 /// <summary>
 /// Describes an attribute expected by an asset type: key, label, datatype and optional enum definition or regex.
@@ -85,13 +54,16 @@ public class AttributeDefinition : AuditableEntity
     /// <param name="regexPattern">Optional regex pattern.</param>
     /// <returns>A configured <see cref="AttributeDefinition"/> instance.</returns>
     public static AttributeDefinition Create(string key, string label, AttributeDataType dataType, bool isRequired = false
-        , string regexPattern = null)
+        , string regexPattern = "")
     {
         if (string.IsNullOrWhiteSpace(key))
+        {
             throw new ArgumentException(ExceptionMessages.AttributeKeyCannotBeEmpty.Format(), nameof(key));
-        if (string.IsNullOrWhiteSpace(label))
-            throw new ArgumentException(ExceptionMessages.AttributeLabelCannotBeEmpty.Format(), nameof(label));
-        return new AttributeDefinition
+        }
+
+        return string.IsNullOrWhiteSpace(label)
+            ? throw new ArgumentException(ExceptionMessages.AttributeLabelCannotBeEmpty.Format(), nameof(label))
+            : new AttributeDefinition
         {
             Key = key.Trim(),
             Label = label.Trim(),
@@ -109,9 +81,9 @@ public class AttributeDefinition : AuditableEntity
     /// <returns>A configured <see cref="AttributeDefinition"/> instance.</returns> 
     public static AttributeDefinition Create(EnumDefinition enumDefinition, bool isRequired = true)
     {
-        if (enumDefinition == null)
-            throw new ArgumentNullException(nameof(enumDefinition), ExceptionMessages.EnumDefinitionCannotBeNull.Format());
-        return new AttributeDefinition
+        return enumDefinition == null
+            ? throw new ArgumentNullException(nameof(enumDefinition), ExceptionMessages.EnumDefinitionCannotBeNull.Format())
+            : new AttributeDefinition
         {
             Key = enumDefinition.Key,
             Label = enumDefinition.Label,
@@ -131,7 +103,10 @@ public class AttributeDefinition : AuditableEntity
     public AttributeDefinition UpdateLabel(string label)
     {
         if (string.IsNullOrWhiteSpace(label))
+        {
             throw new ArgumentException(ExceptionMessages.LabelCannotBeEmpty.Format(), nameof(label));
+        }
+
         Label = label.Trim();
         return this;
     }
