@@ -11,15 +11,21 @@ public static class ObligationLabels
     // DEADLINE TYPES
     // ============================================
 
-    public static readonly LocalizedString Declaration = LocalizedString.Create("D�claration")
+    /// <summary>
+    /// Localized label for declaration deadlines.
+    /// </summary>
+    public static readonly LocalizedString Declaration = LocalizedString.Create("Déclaration")
         .En("Declaration")
-        .Ar("?????")
-        .Pt("Declara��o")
-        .Es("Declaraci�n");
+        .Ar("تصريح")
+        .Pt("Declaração")
+        .Es("Declaración");
 
+    /// <summary>
+    /// Localized label for payment deadlines.
+    /// </summary>
     public static readonly LocalizedString Payment = LocalizedString.Create("Paiement")
         .En("Payment")
-        .Ar("???")
+        .Ar("دفع")
         .Pt("Pagamento")
         .Es("Pago");
 
@@ -27,39 +33,57 @@ public static class ObligationLabels
     // PERIODICITY
     // ============================================
 
+    /// <summary>
+    /// Localized label for one-time periodicity.
+    /// </summary>
     public static readonly LocalizedString OneTime = LocalizedString.Create("Unique")
         .En("One-time")
-        .Ar("??? ?????")
-        .Pt("�nico")
-        .Es("�nico");
+        .Ar("مرة واحدة")
+        .Pt("Único")
+        .Es("Único");
 
+    /// <summary>
+    /// Localized label for monthly periodicity.
+    /// </summary>
     public static readonly LocalizedString Monthly = LocalizedString.Create("Mensuel")
         .En("Monthly")
-        .Ar("????")
+        .Ar("شهري")
         .Pt("Mensal")
         .Es("Mensual");
 
+    /// <summary>
+    /// Localized label for quarterly periodicity.
+    /// </summary>
     public static readonly LocalizedString Quarterly = LocalizedString.Create("Trimestriel")
         .En("Quarterly")
-        .Ar("??? ????")
+        .Ar("ربع سنوي")
         .Pt("Trimestral")
         .Es("Trimestral");
 
+    /// <summary>
+    /// Localized label for semi-annual periodicity.
+    /// </summary>
     public static readonly LocalizedString SemiAnnual = LocalizedString.Create("Semestriel")
         .En("Semi-annual")
-        .Ar("??? ????")
+        .Ar("نصف سنوي")
         .Pt("Semestral")
         .Es("Semestral");
 
+    /// <summary>
+    /// Localized label for annual periodicity.
+    /// </summary>
     public static readonly LocalizedString Annual = LocalizedString.Create("Annuel")
         .En("Annual")
-        .Ar("????")
+        .Ar("سنوي")
         .Pt("Anual")
         .Es("Anual");
 
-    public static readonly LocalizedString EventDriven = LocalizedString.Create("�v�nementiel")
+    /// <summary>
+    /// Localized label for event-driven periodicity.
+    /// </summary>
+    public static readonly LocalizedString EventDriven = LocalizedString.Create("Événementiel")
         .En("Event-driven")
-        .Ar("??? ?????")
+        .Ar("مرتبط بحدث")
         .Pt("Por evento")
         .Es("Por evento");
 
@@ -67,39 +91,57 @@ public static class ObligationLabels
     // TAX REGIMES
     // ============================================
 
-    public static readonly LocalizedString RegimeGeneral = LocalizedString.Create("R�gime g�n�ral")
+    /// <summary>
+    /// Localized label for the general tax regime.
+    /// </summary>
+    public static readonly LocalizedString RegimeGeneral = LocalizedString.Create("Régime général")
         .En("General regime")
-        .Ar("?????? ?????")
+        .Ar("نظام عام")
         .Pt("Regime geral")
-        .Es("R�gimen general");
+        .Es("Régimen general");
 
-    public static readonly LocalizedString RegimeSimplified = LocalizedString.Create("R�gime simplifi�")
+    /// <summary>
+    /// Localized label for the simplified tax regime.
+    /// </summary>
+    public static readonly LocalizedString RegimeSimplified = LocalizedString.Create("Régime simplifié")
         .En("Simplified regime")
-        .Ar("?????? ??????")
+        .Ar("نظام مبسط")
         .Pt("Regime simplificado")
-        .Es("R�gimen simplificado");
+        .Es("Régimen simplificado");
 
-    public static readonly LocalizedString RegimeReal = LocalizedString.Create("R�gime r�el")
+    /// <summary>
+    /// Localized label for the real tax regime.
+    /// </summary>
+    public static readonly LocalizedString RegimeReal = LocalizedString.Create("Régime réel")
         .En("Real regime")
-        .Ar("?????? ???????")
+        .Ar("نظام فعلي")
         .Pt("Regime real")
-        .Es("R�gimen real");
+        .Es("Régimen real");
 
-    public static readonly LocalizedString RegimeMicro = LocalizedString.Create("R�gime micro")
+    /// <summary>
+    /// Localized label for the micro tax regime.
+    /// </summary>
+    public static readonly LocalizedString RegimeMicro = LocalizedString.Create("Régime micro")
         .En("Micro regime")
-        .Ar("???? ??????")
+        .Ar("نظام مصغر")
         .Pt("Regime micro")
-        .Es("R�gimen micro");
+        .Es("Régimen micro");
 
-    public static readonly LocalizedString RegimeConditional = LocalizedString.Create("R�gime conditionnel")
+    /// <summary>
+    /// Localized label for the conditional tax regime.
+    /// </summary>
+    public static readonly LocalizedString RegimeConditional = LocalizedString.Create("Régime conditionnel")
         .En("Conditional regime")
-        .Ar("???? ?????")
+        .Ar("نظام مشروط")
         .Pt("Regime condicional")
-        .Es("R�gimen condicional");
+        .Es("Régimen condicional");
 
-    public static readonly LocalizedString RegimeExempt = LocalizedString.Create("Exon�r�")
+    /// <summary>
+    /// Localized label for the exempt tax regime.
+    /// </summary>
+    public static readonly LocalizedString RegimeExempt = LocalizedString.Create("Exonéré")
         .En("Exempt")
-        .Ar("????")
+        .Ar("معفى")
         .Pt("Isento")
         .Es("Exento");
 
@@ -107,137 +149,200 @@ public static class ObligationLabels
     // PAYMENT TYPES
     // ============================================
 
-    public static readonly LocalizedString PaymentFull = LocalizedString.Create("Paiement int�gral")
+    /// <summary>
+    /// Localized label for a full payment.
+    /// </summary>
+    public static readonly LocalizedString PaymentFull = LocalizedString.Create("Paiement intégral")
         .En("Full payment")
-        .Ar("????? ??????")
+        .Ar("دفع كامل")
         .Pt("Pagamento integral")
         .Es("Pago completo");
 
+    /// <summary>
+    /// Localized label for an advance payment.
+    /// </summary>
     public static readonly LocalizedString PaymentAdvance = LocalizedString.Create("Acompte")
         .En("Advance payment")
-        .Ar("???? ?????")
+        .Ar("دفعة مقدمة")
         .Pt("Pagamento adiantado")
         .Es("Anticipo");
 
-    public static readonly LocalizedString PaymentInstallment = LocalizedString.Create("Versement �chelonn�")
+    /// <summary>
+    /// Localized label for installment payments.
+    /// </summary>
+    public static readonly LocalizedString PaymentInstallment = LocalizedString.Create("Versement échelonné")
         .En("Installment")
-        .Ar("???")
-        .Pt("Presta��o")
+        .Ar("تقسيط")
+        .Pt("Prestação")
         .Es("Cuota");
 
-    public static readonly LocalizedString PaymentBalance = LocalizedString.Create("Solde de r�gularisation")
+    /// <summary>
+    /// Localized label for balance payments.
+    /// </summary>
+    public static readonly LocalizedString PaymentBalance = LocalizedString.Create("Solde de régularisation")
         .En("Balance payment")
-        .Ar("???? ??????")
+        .Ar("دفع الرصيد")
         .Pt("Pagamento de saldo")
         .Es("Pago de saldo");
 
-    public static readonly LocalizedString PaymentWithholding = LocalizedString.Create("Retenue � la source")
+    /// <summary>
+    /// Localized label for withholding payments.
+    /// </summary>
+    public static readonly LocalizedString PaymentWithholding = LocalizedString.Create("Retenue à la source")
         .En("Withholding")
-        .Ar("?????????")
-        .Pt("Reten��o na fonte")
-        .Es("Retenci�n en la fuente");
+        .Ar("اقتطاع عند المصدر")
+        .Pt("Retenção na fonte")
+        .Es("Retención en la fuente");
 
     // ============================================
     // DECLARATION TYPES
     // ============================================
 
-    public static readonly LocalizedString DeclarationInitial = LocalizedString.Create("D�claration initiale")
+    /// <summary>
+    /// Localized label for an initial declaration.
+    /// </summary>
+    public static readonly LocalizedString DeclarationInitial = LocalizedString.Create("Déclaration initiale")
         .En("Initial declaration")
-        .Ar("??????? ??????")
-        .Pt("Declara��o inicial")
-        .Es("Declaraci�n inicial");
+        .Ar("تصريح أولي")
+        .Pt("Declaração inicial")
+        .Es("Declaración inicial");
 
-    public static readonly LocalizedString DeclarationCorrective = LocalizedString.Create("D�claration rectificative")
+    /// <summary>
+    /// Localized label for a corrective declaration.
+    /// </summary>
+    public static readonly LocalizedString DeclarationCorrective = LocalizedString.Create("Déclaration rectificative")
         .En("Corrective declaration")
-        .Ar("????? ??????")
-        .Pt("Declara��o corretiva")
-        .Es("Declaraci�n rectificativa");
+        .Ar("تصريح تصحيحي")
+        .Pt("Declaração corretiva")
+        .Es("Declaración rectificativa");
 
-    public static readonly LocalizedString DeclarationNull = LocalizedString.Create("D�claration n�ant")
+    /// <summary>
+    /// Localized label for a null declaration.
+    /// </summary>
+    public static readonly LocalizedString DeclarationNull = LocalizedString.Create("Déclaration néant")
         .En("Null declaration")
-        .Ar("????? ????")
-        .Pt("Declara��o nula")
-        .Es("Declaraci�n nula");
+        .Ar("تصريح صفري")
+        .Pt("Declaração nula")
+        .Es("Declaración nula");
 
-    public static readonly LocalizedString DeclarationProvisional = LocalizedString.Create("D�claration provisoire")
+    /// <summary>
+    /// Localized label for a provisional declaration.
+    /// </summary>
+    public static readonly LocalizedString DeclarationProvisional = LocalizedString.Create("Déclaration provisoire")
         .En("Provisional declaration")
-        .Ar("????? ????")
-        .Pt("Declara��o provis�ria")
-        .Es("Declaraci�n provisional");
+        .Ar("تصريح مؤقت")
+        .Pt("Declaração provisória")
+        .Es("Declaración provisional");
 
-    public static readonly LocalizedString DeclarationFinal = LocalizedString.Create("D�claration d�finitive")
+    /// <summary>
+    /// Localized label for a final declaration.
+    /// </summary>
+    public static readonly LocalizedString DeclarationFinal = LocalizedString.Create("Déclaration définitive")
         .En("Final declaration")
-        .Ar("??????? ???????")
-        .Pt("Declara��o definitiva")
-        .Es("Declaraci�n definitiva");
+        .Ar("تصريح نهائي")
+        .Pt("Declaração definitiva")
+        .Es("Declaración definitiva");
 
-    public static readonly LocalizedString DeclarationSupplementary = LocalizedString.Create("D�claration compl�mentaire")
+    /// <summary>
+    /// Localized label for a supplementary declaration.
+    /// </summary>
+    public static readonly LocalizedString DeclarationSupplementary = LocalizedString.Create("Déclaration complémentaire")
         .En("Supplementary declaration")
-        .Ar("????? ??????")
-        .Pt("Declara��o complementar")
-        .Es("Declaraci�n complementaria");
+        .Ar("تصريح تكميلي")
+        .Pt("Declaração complementar")
+        .Es("Declaración complementaria");
 
     // ============================================
     // LEGAL TEXT TYPES
     // ============================================
 
+    /// <summary>
+    /// Localized label for legal texts of type law.
+    /// </summary>
     public static readonly LocalizedString LegalLaw = LocalizedString.Create("Loi")
         .En("Law")
-        .Ar("?????")
+        .Ar("قانون")
         .Pt("Lei")
         .Es("Ley");
 
-    public static readonly LocalizedString LegalDecree = LocalizedString.Create("D�cret")
+    /// <summary>
+    /// Localized label for legal texts of type decree.
+    /// </summary>
+    public static readonly LocalizedString LegalDecree = LocalizedString.Create("Décret")
         .En("Decree")
-        .Ar("?????")
+        .Ar("مرسوم")
         .Pt("Decreto")
         .Es("Decreto");
 
-    public static readonly LocalizedString LegalOrder = LocalizedString.Create("Arr�t�")
+    /// <summary>
+    /// Localized label for legal texts of type order.
+    /// </summary>
+    public static readonly LocalizedString LegalOrder = LocalizedString.Create("Arrêté")
         .En("Order")
-        .Ar("????")
+        .Ar("قرار")
         .Pt("Portaria")
         .Es("Orden");
 
+    /// <summary>
+    /// Localized label for legal texts of type circular.
+    /// </summary>
     public static readonly LocalizedString LegalCircular = LocalizedString.Create("Circulaire")
         .En("Circular")
-        .Ar("?????")
+        .Ar("منشور")
         .Pt("Circular")
         .Es("Circular");
 
+    /// <summary>
+    /// Localized label for legal texts of type instruction.
+    /// </summary>
     public static readonly LocalizedString LegalInstruction = LocalizedString.Create("Instruction")
         .En("Instruction")
-        .Ar("???????")
-        .Pt("Instru��o")
-        .Es("Instrucci�n");
+        .Ar("تعليمات")
+        .Pt("Instrução")
+        .Es("Instrucción");
 
-    public static readonly LocalizedString LegalTaxCode = LocalizedString.Create("Code G�n�ral des Imp�ts")
+    /// <summary>
+    /// Localized label for the tax code reference.
+    /// </summary>
+    public static readonly LocalizedString LegalTaxCode = LocalizedString.Create("Code Général des Impôts")
         .En("Tax Code")
-        .Ar("????? ???????")
-        .Pt("C�digo Tribut�rio")
-        .Es("C�digo Tributario");
+        .Ar("مدونة الضرائب العامة")
+        .Pt("Código Tributário")
+        .Es("Código Tributario");
 
+    /// <summary>
+    /// Localized label for the finance law reference.
+    /// </summary>
     public static readonly LocalizedString LegalFinanceLaw = LocalizedString.Create("Loi de Finances")
         .En("Finance Law")
-        .Ar("????? ???????")
-        .Pt("Lei de Finan�as")
+        .Ar("قانون المالية")
+        .Pt("Lei de Finanças")
         .Es("Ley de Finanzas");
 
-    public static readonly LocalizedString LegalRegulation = LocalizedString.Create("R�glement")
+    /// <summary>
+    /// Localized label for regulatory texts.
+    /// </summary>
+    public static readonly LocalizedString LegalRegulation = LocalizedString.Create("Règlement")
         .En("Regulation")
-        .Ar("????")
+        .Ar("تنظيم")
         .Pt("Regulamento")
         .Es("Reglamento");
 
+    /// <summary>
+    /// Localized label for conventions and agreements.
+    /// </summary>
     public static readonly LocalizedString LegalConvention = LocalizedString.Create("Convention")
         .En("Convention")
-        .Ar("???????")
-        .Pt("Conven��o")
+        .Ar("اتفاقية")
+        .Pt("Convenção")
         .Es("Convenio");
 
+    /// <summary>
+    /// Localized label for other generic legal texts.
+    /// </summary>
     public static readonly LocalizedString LegalOther = LocalizedString.Create("Texte")
         .En("Text")
-        .Ar("??")
+        .Ar("نص")
         .Pt("Texto")
         .Es("Texto");
 
@@ -245,16 +350,22 @@ public static class ObligationLabels
     // PENALTY TYPES
     // ============================================
 
-    public static readonly LocalizedString PenaltyAssiette = LocalizedString.Create("P�nalit� d'assiette")
+    /// <summary>
+    /// Localized label for assessment penalties.
+    /// </summary>
+    public static readonly LocalizedString PenaltyAssiette = LocalizedString.Create("Pénalité d'assiette")
         .En("Assessment penalty")
-        .Ar("????? ???????")
-        .Pt("Penalidade de lan�amento")
-        .Es("Penalidad de evaluaci�n");
+        .Ar("غرامة الأساس")
+        .Pt("Penalidade de lançamento")
+        .Es("Penalidad de evaluación");
 
-    public static readonly LocalizedString PenaltyRecouvrement = LocalizedString.Create("P�nalit� de recouvrement")
+    /// <summary>
+    /// Localized label for collection penalties.
+    /// </summary>
+    public static readonly LocalizedString PenaltyRecouvrement = LocalizedString.Create("Pénalité de recouvrement")
         .En("Collection penalty")
-        .Ar("????? ???????")
-        .Pt("Penalidade de cobran�a")
+        .Ar("غرامة التحصيل")
+        .Pt("Penalidade de cobrança")
         .Es("Penalidad de cobro");
 
     // ============================================

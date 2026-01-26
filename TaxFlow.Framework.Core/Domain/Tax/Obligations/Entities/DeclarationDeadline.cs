@@ -12,7 +12,7 @@ public sealed class DeclarationDeadline : TaxDeadline
 
     /// <summary>
     /// Penalty definition applied when the declaration deadline is missed.
-    /// This typically represents "pénalité d'assiette" for late filing.
+    /// This typically represents "pÃ©nalitÃ© d'assiette" for late filing.
     /// </summary>
     public PenaltyDefinition? PenaltyDefinition { get; private set; }
 

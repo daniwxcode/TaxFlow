@@ -35,7 +35,10 @@ public sealed class ObligationPenaltyResult
         {
             var all = new List<PenaltyAccrual>(DeclarationPenalties);
             foreach (var penalties in PaymentPenalties.Values)
+            {
                 all.AddRange(penalties);
+            }
+
             return all.AsReadOnly();
         }
     }
@@ -112,10 +115,9 @@ public sealed class ObligationPenaltyCalculator
     {
         ArgumentNullException.ThrowIfNull(rule);
 
-        if (rule.ObligationSchedule is null)
-            return new ObligationPenaltyResult();
-
-        return Calculate(rule.ObligationSchedule, taxAmount, asOf, payments);
+        return rule.ObligationSchedule is null
+            ? new ObligationPenaltyResult()
+            : Calculate(rule.ObligationSchedule, taxAmount, asOf, payments);
     }
 
     /// <summary>
@@ -134,8 +136,8 @@ public sealed class ObligationPenaltyCalculator
         ArgumentNullException.ThrowIfNull(schedule);
         payments ??= new Dictionary<string, decimal>();
 
-        var declarationPenalties = CalculateAllDeclarationPenalties(schedule.DeclarationDeadlines, taxAmount, asOf);
-        var paymentPenalties = CalculatePaymentPenalties(schedule.PaymentDeadlines, taxAmount, asOf, payments);
+        Dictionary<string, IReadOnlyList<PenaltyAccrual>> declarationPenalties = CalculateAllDeclarationPenalties(schedule.DeclarationDeadlines, taxAmount, asOf);
+        Dictionary<string, IReadOnlyList<PenaltyAccrual>> paymentPenalties = CalculatePaymentPenalties(schedule.PaymentDeadlines, taxAmount, asOf, payments);
 
         return new ObligationPenaltyResult
         {
@@ -149,13 +151,15 @@ public sealed class ObligationPenaltyCalculator
         decimal taxAmount,
         DateTimeOffset asOf)
     {
-        var result = new Dictionary<string, IReadOnlyList<PenaltyAccrual>>();
+        Dictionary<string, IReadOnlyList<PenaltyAccrual>> result = new();
 
         foreach (var deadline in deadlines)
         {
-            var penalties = CalculateDeclarationPenalties(deadline, taxAmount, asOf);
+            List<PenaltyAccrual> penalties = CalculateDeclarationPenalties(deadline, taxAmount, asOf);
             if (penalties.Count > 0)
+            {
                 result[deadline.Key] = penalties.AsReadOnly();
+            }
         }
 
         return result;
@@ -166,14 +170,16 @@ public sealed class ObligationPenaltyCalculator
         decimal taxAmount,
         DateTimeOffset asOf)
     {
-        var penalties = new List<PenaltyAccrual>();
+        List<PenaltyAccrual> penalties = new();
 
         if (deadline.PenaltyDefinition is null || !deadline.IsOverdue(asOf))
+        {
             return penalties;
+        }
 
-        var definition = deadline.PenaltyDefinition;
-        var daysLate = deadline.GetDaysLate(asOf);
-        var declarationId = Guid.NewGuid();
+        PenaltyDefinition definition = deadline.PenaltyDefinition;
+        int daysLate = deadline.GetDaysLate(asOf);
+        Guid declarationId = Guid.NewGuid();
 
         // Fixed penalty
         if (definition.FixedAmount > 0)
@@ -203,16 +209,16 @@ public sealed class ObligationPenaltyCalculator
         // Periodic penalties
         if (definition.AnnualRate > 0)
         {
-            var periodDaysApprox = definition.Period.ToDays();
-            var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
-            var baseAmount = taxAmount;
+            int periodDaysApprox = definition.Period.ToDays();
+            int periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
+            decimal baseAmount = taxAmount;
 
             for (var period = 1; period <= periodCount; period++)
             {
-                var periodStart = definition.GetPeriodStartDate(deadline.EffectiveDueDate, period);
-                var periodEnd = definition.GetPeriodEndDate(deadline.EffectiveDueDate, period);
-                var cappedEnd = periodEnd < asOf ? periodEnd : asOf;
-                var daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
+                DateTimeOffset periodStart = definition.GetPeriodStartDate(deadline.EffectiveDueDate, period);
+                DateTimeOffset periodEnd = definition.GetPeriodEndDate(deadline.EffectiveDueDate, period);
+                DateTimeOffset cappedEnd = periodEnd < asOf ? periodEnd : asOf;
+                int daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
 
                 if (daysInPeriod == 0)
                     continue;

@@ -25,7 +25,7 @@ public sealed class PaymentDeadline : TaxDeadline
 
     /// <summary>
     /// Penalty definition applied when this payment deadline is missed.
-    /// This typically represents "pénalité de recouvrement" for late payment.
+    /// This typically represents "pÃ©nalitÃ© de recouvrement" for late payment.
     /// </summary>
     public PenaltyDefinition? PenaltyDefinition { get; private set; }
 
@@ -70,12 +70,13 @@ public sealed class PaymentDeadline : TaxDeadline
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
 
         if (fraction <= 0 || fraction > 1)
+        {
             throw new ArgumentOutOfRangeException(nameof(fraction), ExceptionMessages.FractionOutOfRange.Format());
+        }
 
-        if (order < 1)
-            throw new ArgumentOutOfRangeException(nameof(order), ExceptionMessages.OrderMustBePositive.Format());
-
-        return new PaymentDeadline
+        return order < 1
+            ? throw new ArgumentOutOfRangeException(nameof(order), ExceptionMessages.OrderMustBePositive.Format())
+            : new PaymentDeadline
         {
             Key = key.Trim(),
             Label = label.Trim(),
@@ -104,7 +105,9 @@ public sealed class PaymentDeadline : TaxDeadline
         ArgumentException.ThrowIfNullOrWhiteSpace(label);
 
         if (fraction <= 0 || fraction > 1)
+        {
             throw new ArgumentOutOfRangeException(nameof(fraction), ExceptionMessages.FractionOutOfRange.Format());
+        }
 
         return new PaymentDeadline
         {
@@ -223,12 +226,15 @@ public sealed class PaymentDeadline : TaxDeadline
     public decimal GetAmountDue(decimal totalTaxAmount)
     {
         if (FixedAmount.HasValue)
+        {
             return FixedAmount.Value;
+        }
 
-        if (totalTaxAmount < 0)
-            throw new ArgumentOutOfRangeException(nameof(totalTaxAmount));
-
-        return totalTaxAmount * Fraction;
+        return totalTaxAmount switch
+        {
+            < 0 => throw new ArgumentOutOfRangeException(nameof(totalTaxAmount)),
+            _ => totalTaxAmount * Fraction
+        };
     }
 
     /// <summary>

@@ -108,25 +108,17 @@ public sealed class LegalReference : AuditableEntity
     /// <summary>
     /// Gets a formatted citation string.
     /// </summary>
-    public string GetCitation()
-    {
-        var citation = $"{TextType.GetShortDisplayName()} {Reference}";
-        if (!string.IsNullOrWhiteSpace(Article))
-            citation += $", art. {Article}";
-        return citation;
-    }
+    public string GetCitation() => $"{TextType.GetShortDisplayName()} {Reference}{(string.IsNullOrWhiteSpace(Article) ? "" : $", art. {Article}")}";
+
 
     /// <summary>
     /// Gets a formatted citation string in the specified culture.
     /// </summary>
-    public string GetCitation(string? culture)
-    {
-        var citation = $"{TextType.GetShortDisplayName(culture)} {Reference}";
-        if (!string.IsNullOrWhiteSpace(Article))
-            citation += $", art. {Article}";
-        return citation;
-    }
-
+    public string GetCitation(string? culture) => $"{TextType.GetShortDisplayName(culture)} {Reference}{(string.IsNullOrWhiteSpace(Article) ? "" : $", art. {Article}")}";
+    /// <summary>
+    /// Overrides ToString to return the citation.
+    /// </summary>
+    /// <returns></returns>
     public override string ToString() => GetCitation();
 }
 
@@ -141,12 +133,12 @@ public enum LegalTextType
     Law = 1,
 
     /// <summary>
-    /// Decree (Décret).
+    /// Decree (DÃ©cret).
     /// </summary>
     Decree = 2,
 
     /// <summary>
-    /// Order (Arrêté).
+    /// Order (ArrÃªtÃ©).
     /// </summary>
     Order = 3,
 
@@ -161,7 +153,7 @@ public enum LegalTextType
     Instruction = 5,
 
     /// <summary>
-    /// Tax Code (Code Général des Impôts).
+    /// Tax Code (Code GÃ©nÃ©ral des ImpÃ´ts).
     /// </summary>
     TaxCode = 6,
 
@@ -171,7 +163,7 @@ public enum LegalTextType
     FinanceLaw = 7,
 
     /// <summary>
-    /// Regulation (Règlement).
+    /// Regulation (RÃ¨glement).
     /// </summary>
     Regulation = 8,
 

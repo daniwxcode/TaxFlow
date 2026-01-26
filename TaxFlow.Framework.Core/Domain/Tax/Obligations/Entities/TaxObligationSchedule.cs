@@ -118,7 +118,9 @@ public sealed class TaxObligationSchedule : AuditableEntity
         ArgumentNullException.ThrowIfNull(deadline);
 
         if (_declarationDeadlines.Any(d => d.Key.Equals(deadline.Key, StringComparison.OrdinalIgnoreCase)))
+        {
             throw new InvalidOperationException(ExceptionMessages.DeclarationDeadlineAlreadyExists.Format(("key", deadline.Key)));
+        }
 
         _declarationDeadlines.Add(deadline);
         return this;
@@ -143,7 +145,9 @@ public sealed class TaxObligationSchedule : AuditableEntity
         ArgumentNullException.ThrowIfNull(deadline);
 
         if (_paymentDeadlines.Any(p => p.Key.Equals(deadline.Key, StringComparison.OrdinalIgnoreCase)))
+        {
             throw new InvalidOperationException(ExceptionMessages.PaymentDeadlineAlreadyExists.Format(("key", deadline.Key)));
+        }
 
         _paymentDeadlines.Add(deadline);
         return this;
@@ -299,13 +303,13 @@ public sealed class TaxObligationSchedule : AuditableEntity
         if (_paymentDeadlines.Count > 0)
         {
             // Group by linked declaration and validate each group
-            var paymentGroups = _paymentDeadlines
+            List<IGrouping<string, PaymentDeadline>> paymentGroups = _paymentDeadlines
                 .GroupBy(p => p.LinkedDeclarationKey ?? "__unlinked__")
                 .ToList();
 
             foreach (var group in paymentGroups)
             {
-                var totalFraction = group.Sum(p => p.Fraction);
+                decimal totalFraction = group.Sum(p => p.Fraction);
                 if (totalFraction > 1.0m)
                 {
                     errors.Add(new ValidationError(
@@ -319,7 +323,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
         // Validate that declaration deadlines come before their linked payments
         foreach (var payment in _paymentDeadlines.Where(p => !string.IsNullOrEmpty(p.LinkedDeclarationKey)))
         {
-            var linkedDeclaration = _declarationDeadlines
+            DeclarationDeadline? linkedDeclaration = _declarationDeadlines
                 .FirstOrDefault(d => d.Key.Equals(payment.LinkedDeclarationKey, StringComparison.OrdinalIgnoreCase));
 
             if (linkedDeclaration is null)
@@ -343,7 +347,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
         }
 
         // Validate unique orders within each type
-        var duplicateDeclarationOrders = _declarationDeadlines
+        List<int> duplicateDeclarationOrders = _declarationDeadlines
             .GroupBy(d => d.Order)
             .Where(g => g.Count() > 1)
             .Select(g => g.Key)
@@ -359,7 +363,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
                 nameof(DeclarationDeadlines)));
         }
 
-        var duplicatePaymentOrders = _paymentDeadlines
+        List<int> duplicatePaymentOrders = _paymentDeadlines
             .GroupBy(p => p.Order)
             .Where(g => g.Count() > 1)
             .Select(g => g.Key)
@@ -383,7 +387,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
     /// </summary>
     public IReadOnlyList<TaxDeadline> GetOverdueDeadlines(DateTimeOffset asOf)
     {
-        var overdue = new List<TaxDeadline>();
+        List<TaxDeadline> overdue = new();
 
         overdue.AddRange(_declarationDeadlines.Where(d => d.IsOverdue(asOf)));
         overdue.AddRange(_paymentDeadlines.Where(p => p.IsOverdue(asOf)));
@@ -408,7 +412,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
     /// </summary>
     public TaxDeadline? GetNextDeadline(DateTimeOffset asOf)
     {
-        var allDeadlines = new List<TaxDeadline>();
+        List<TaxDeadline> allDeadlines = new ();
         allDeadlines.AddRange(_declarationDeadlines);
         allDeadlines.AddRange(_paymentDeadlines);
 
@@ -441,7 +445,7 @@ public sealed class TaxObligationSchedule : AuditableEntity
     /// </summary>
     public string GetLegalBasisSummary()
     {
-        var allReferences = new List<string>();
+        List<string> allReferences = new ();
 
         // Schedule-level references
         allReferences.AddRange(_legalReferences.Select(r => r.GetCitation()));

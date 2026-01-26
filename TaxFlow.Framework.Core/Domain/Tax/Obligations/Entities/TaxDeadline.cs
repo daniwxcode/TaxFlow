@@ -45,9 +45,7 @@ public abstract class TaxDeadline : AuditableEntity
     /// </summary>
     public string GetLabel(string? culture = null)
     {
-        if (LocalizedLabel is not null)
-            return LocalizedLabel.GetValue(culture);
-        return Label;
+        return LocalizedLabel is not null ? LocalizedLabel.GetValue(culture) : Label;
     }
 
     /// <summary>
@@ -87,9 +85,11 @@ public abstract class TaxDeadline : AuditableEntity
     /// </summary>
     public string? GetDescription(string? culture = null)
     {
-        if (LocalizedDescription is not null)
-            return LocalizedDescription.GetValue(culture);
-        return Description;
+        return LocalizedDescription switch
+        {
+            not null => LocalizedDescription.GetValue(culture),
+            _ => Description
+        };
     }
 
     /// <summary>
@@ -162,10 +162,7 @@ public abstract class TaxDeadline : AuditableEntity
     /// </summary>
     public int GetDaysLate(DateTimeOffset asOf)
     {
-        if (!IsOverdue(asOf))
-            return 0;
-
-        return (int)(asOf.Date - EffectiveDueDate.Date).TotalDays;
+        return !IsOverdue(asOf) ? 0 : (int)(asOf.Date - EffectiveDueDate.Date).TotalDays;
     }
 
     /// <summary>
@@ -173,10 +170,7 @@ public abstract class TaxDeadline : AuditableEntity
     /// </summary>
     public TimeSpan GetTimeOverdue(DateTimeOffset asOf)
     {
-        if (!IsOverdue(asOf))
-            return TimeSpan.Zero;
-
-        return asOf - EffectiveDueDate;
+        return !IsOverdue(asOf) ? TimeSpan.Zero : asOf - EffectiveDueDate;
     }
 
     /// <summary>
@@ -209,7 +203,9 @@ public abstract class TaxDeadline : AuditableEntity
     public string GetLegalBasisSummary()
     {
         if (_legalReferences.Count == 0)
+        {
             return string.Empty;
+        }
 
         return string.Join("; ", _legalReferences.Select(r => r.GetCitation()));
     }
@@ -222,7 +218,9 @@ public abstract class TaxDeadline : AuditableEntity
     public DateTimeOffset? GetNextOccurrence(DateTimeOffset after)
     {
         if (Periodicity == DeadlinePeriodicity.OneTime || Periodicity == DeadlinePeriodicity.EventDriven)
+        {
             return null;
+        }
 
         var current = DueDate;
         while (current <= after)
@@ -248,14 +246,19 @@ public abstract class TaxDeadline : AuditableEntity
         if (Periodicity == DeadlinePeriodicity.OneTime)
         {
             if (DueDate >= from && DueDate <= to)
+            {
                 yield return DueDate;
+            }
+
             yield break;
         }
 
         if (Periodicity == DeadlinePeriodicity.EventDriven)
+        {
             yield break;
+        }
 
-        var current = DueDate;
+        DateTimeOffset current = DueDate;
         
         // Find the first occurrence >= from
         while (current < from)
