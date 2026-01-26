@@ -1,6 +1,3 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk"> 
-  <ItemGroup>
-    <PackageReference Include="Ardalis.SmartEnum"/>
-    <PackageReference Include="NCalcSync"/>
-  </ItemGroup>
+  
 </Project>
