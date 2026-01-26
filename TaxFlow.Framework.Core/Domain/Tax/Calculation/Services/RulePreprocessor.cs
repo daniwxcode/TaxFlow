@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 
@@ -32,17 +30,21 @@ internal static class RulePreprocessor
     {
         var expression = context.Expression;
         if (string.IsNullOrEmpty(expression) || !expression.Contains('_'))
+        {
             return;
+        }
 
         var sanitized = RemoveNumericSeparatorsInternal(expression);
         if (!sanitized.Equals(expression, StringComparison.Ordinal))
+        {
             context.UpdateExpression(sanitized, "Removed numeric separators from numeric literals.");
+        }
     }
 
     private static string RemoveNumericSeparatorsInternal(string expression)
     {
-        var sb = new StringBuilder(expression.Length);
-        var inString = false;
+        StringBuilder sb = new(expression.Length);
+        bool inString = false;
         char delimiter = '\0';
 
         for (var i = 0; i < expression.Length; i++)
@@ -53,7 +55,10 @@ internal static class RulePreprocessor
             {
                 sb.Append(c);
                 if (c == delimiter && (i == 0 || expression[i - 1] != '\\'))
+                {
                     inString = false;
+                }
+
                 continue;
             }
 
@@ -66,7 +71,9 @@ internal static class RulePreprocessor
             }
 
             if (c == '_' && i > 0 && i < expression.Length - 1 && char.IsDigit(expression[i - 1]) && char.IsDigit(expression[i + 1]))
+            {
                 continue;
+            }
 
             sb.Append(c);
         }
@@ -78,7 +85,9 @@ internal static class RulePreprocessor
     {
         var expression = context.Expression;
         if (string.IsNullOrEmpty(expression))
+        {
             return;
+        }
 
         var replaced = expression.ReplaceLineEndings("\n");
         var sb = new StringBuilder(replaced.Length);
@@ -94,7 +103,10 @@ internal static class RulePreprocessor
             {
                 sb.Append(c);
                 if (c == delimiter && (i == 0 || replaced[i - 1] != '\\'))
+                {
                     inString = false;
+                }
+
                 continue;
             }
 
@@ -110,7 +122,9 @@ internal static class RulePreprocessor
             if (char.IsWhiteSpace(c))
             {
                 if (lastWasWhitespace)
+                {
                     continue;
+                }
 
                 sb.Append(' ');
                 lastWasWhitespace = true;
@@ -123,19 +137,23 @@ internal static class RulePreprocessor
 
         var normalized = sb.ToString().Trim();
         if (!normalized.Equals(expression, StringComparison.Ordinal))
+        {
             context.UpdateExpression(normalized, "Normalized whitespace and line endings.");
+        }
     }
 
     private static void NormalizeTernaryLineBreaks(RulePreprocessorContext context)
     {
         var expression = context.Expression;
         if (string.IsNullOrEmpty(expression))
+        {
             return;
+        }
 
-        var sb = new StringBuilder(expression.Length);
-        var inString = false;
+        StringBuilder sb = new(expression.Length);
+        bool inString = false;
         char delimiter = '\0';
-        var changed = false;
+        bool changed = false;
 
         for (var i = 0; i < expression.Length; i++)
         {
@@ -145,7 +163,10 @@ internal static class RulePreprocessor
             {
                 sb.Append(c);
                 if (c == delimiter && (i == 0 || expression[i - 1] != '\\'))
+                {
                     inString = false;
+                }
+
                 continue;
             }
 
@@ -170,7 +191,9 @@ internal static class RulePreprocessor
         }
 
         if (changed)
+        {
             context.UpdateExpression(sb.ToString(), "Flattened multi-line ternary operands.");
+        }
     }
 
     private static bool HasLineBreakImmediatelyAfter(string expression, int startIndex, out int skipLength)
@@ -213,11 +236,16 @@ internal static class RulePreprocessor
         {
             var newValue = expression ?? string.Empty;
             if (string.Equals(_expression, newValue, StringComparison.Ordinal))
+            {
                 return false;
+            }
 
             _expression = newValue;
             if (!string.IsNullOrWhiteSpace(reason))
+            {
                 _diagnostics.Add(RulePreprocessorDiagnostic.Info(reason));
+            }
+
             return true;
         }
 

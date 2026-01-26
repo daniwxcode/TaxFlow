@@ -11,17 +11,26 @@ public sealed class NCalcExpressionEvaluator : IExpressionEvaluator
     /// Singleton instance for convenience.
     /// </summary>
     public static readonly NCalcExpressionEvaluator Instance = new();
-
+    /// <summary>
+    /// Evaluates the given expression with the provided parameters.
+    /// </summary>
+    /// <param name="expression"></param>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
     public ExpressionEvaluationResult Evaluate(string expression, IDictionary<string, object?> parameters)
     {
         if (string.IsNullOrWhiteSpace(expression))
+        {
             return ExpressionEvaluationResult.Failure("Expression must not be empty.");
+        }
 
         try
         {
             var preprocessResult = RulePreprocessor.Process(expression);
             if (string.IsNullOrWhiteSpace(preprocessResult.Expression))
+            {
                 return ExpressionEvaluationResult.Failure("Expression must not be empty.");
+            }
 
             var expr = new Expression(preprocessResult.Expression);
             var missingParameters = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

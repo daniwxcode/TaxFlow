@@ -1,7 +1,5 @@
 using Core.Domain.Contracts.Abstracts;
 
-using System;
-
 namespace Core.Domain.Tax.Calculation;
 
 /// <summary>
@@ -83,7 +81,11 @@ public class TaxLine : AuditableEntity
 
     private static decimal? ComputeRoundedAmount(decimal amount, int? precision, MidpointRounding? rounding)
     {
-        if (!precision.HasValue) return null;
+        if (!precision.HasValue)
+        {
+            return null;
+        }
+
         var mode = rounding ?? MidpointRounding.AwayFromZero;
         return Math.Round(amount, precision.Value, mode);
     }

@@ -41,7 +41,10 @@ public sealed class DefaultTaxRuleEvaluator : ITaxRuleEvaluator
     /// Suffix for enum label parameters.
     /// </summary>
     public const string LabelSuffix = "Label";
-
+    /// <summary>
+    /// Default constructor.
+    /// </summary>
+    /// <param name="expressionEvaluator"></param>
     public DefaultTaxRuleEvaluator(IExpressionEvaluator? expressionEvaluator = null)
     {
         _expressionEvaluator = expressionEvaluator ?? NCalcExpressionEvaluator.Instance;
@@ -62,19 +65,27 @@ public sealed class DefaultTaxRuleEvaluator : ITaxRuleEvaluator
         decimal? amount = null)
     {
         if (rule is null)
+        {
             return TaxRuleEvaluationResult.CreateFailure(string.Empty, ExceptionMessages.RuleCannotBeNull.Format());
+        }
 
         if (string.IsNullOrWhiteSpace(rule.Key))
+        {
             return TaxRuleEvaluationResult.CreateFailure(rule.Key ?? string.Empty, ExceptionMessages.RuleKeyMustNotBeEmpty.Format());
+        }
 
         if (!rule.Enabled)
+        {
             return TaxRuleEvaluationResult.CreateSuccess(rule.Key, 0m, [ExceptionMessages.RuleDisabled.Format()]);
+        }
 
-        var parameters = BuildParameters(attributes, expectedAttributes, amount);
-        var evalResult = _expressionEvaluator.Evaluate(rule.Expression, parameters);
+        Dictionary<string, object?> parameters = BuildParameters(attributes, expectedAttributes, amount);
+        ExpressionEvaluationResult evalResult = _expressionEvaluator.Evaluate(rule.Expression, parameters);
 
         if (!evalResult.IsSuccess)
+        {
             return TaxRuleEvaluationResult.CreateFailure(rule.Key, evalResult.ErrorMessage ?? ExceptionMessages.EvaluationFailed.Format());
+        }
 
         var warnings = evalResult.MissingParameters.Count > 0
             ? [ExceptionMessages.MissingParameters.Format(("parameters", string.Join(", ", evalResult.MissingParameters)))]
@@ -88,20 +99,26 @@ public sealed class DefaultTaxRuleEvaluator : ITaxRuleEvaluator
         IReadOnlyCollection<AttributeDefinition> expectedAttributes,
         decimal? amount)
     {
-        var parameters = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-        var expectedByKey = expectedAttributes.ToDictionary(a => a.Key, a => a, StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, object?> parameters = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, AttributeDefinition> expectedByKey = expectedAttributes.ToDictionary(a => a.Key, a => a, StringComparer.OrdinalIgnoreCase);
 
         if (amount.HasValue)
+        {
             parameters[AmountParameterName] = (double)amount.Value;
+        }
 
         foreach (var attr in attributes)
         {
-            var varName = attr.Key?.Trim();
+            string? varName = attr.Key?.Trim();
             if (string.IsNullOrWhiteSpace(varName))
+            {
                 continue;
+            }
 
             if (TryAddEnumParameters(parameters, attr, varName, expectedByKey))
+            {
                 continue;
+            }
 
             AddTypedParameter(parameters, attr, varName);
         }
@@ -116,31 +133,32 @@ public sealed class DefaultTaxRuleEvaluator : ITaxRuleEvaluator
         Dictionary<string, AttributeDefinition> expectedByKey)
     {
         if (!expectedByKey.TryGetValue(varName, out var def))
+        {
             return false;
+        }
 
         if (def.DataType != AttributeDataType.Enum || def.EnumDefinition is null)
+        {
             return false;
+        }
 
-        var enumDef = def.EnumDefinition;
+        EnumDefinition enumDef = def.EnumDefinition;
 
         parameters[varName] = enumDef.TryGetLabel(attr.Value, out var label) ? label : attr.Value;
 
         if (enumDef.TryGetCode(attr.Value, out var code))
+        {
             parameters[$"{varName}{CodeSuffix}"] = code;
+        }
 
         if (enumDef.TryGetLabel(attr.Value, out var lbl))
+        {
             parameters[$"{varName}{LabelSuffix}"] = lbl;
+        }
 
         return true;
     }
 
     private static void AddTypedParameter(Dictionary<string, object?> parameters, ExtendedAttribute attr, string varName)
-    {
-        if (double.TryParse(attr.Value, out var num))
-            parameters[varName] = num;
-        else if (bool.TryParse(attr.Value, out var b))
-            parameters[varName] = b;
-        else
-            parameters[varName] = attr.Value;
-    }
+    => parameters[varName] = double.TryParse(attr.Value, out var num) ? num : bool.TryParse(attr.Value, out var b) ? b : attr.Value;    
 }

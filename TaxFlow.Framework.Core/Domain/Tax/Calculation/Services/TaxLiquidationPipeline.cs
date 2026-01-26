@@ -1,13 +1,10 @@
+using System.Collections.ObjectModel;
+using System.Globalization;
+
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Core.Domain.Localization;
 using Core.Domain.Tax.Assets;
-
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.Linq;
 
 namespace Core.Domain.Tax.Calculation.Services;
 
@@ -27,37 +24,45 @@ public static class TaxLiquidationPipeline
         var assetList = assets.Where(a => a is not null).ToList();
 
         if (assetList.Count == 0)
+        {
             return options.IncludeRuleResults
                 ? new TaxCalculationResult(Array.Empty<TaxLine>(), Array.Empty<TaxRuleEvaluationResult>(), Array.Empty<string>(), Array.Empty<string>(), options.Currency, options.Precision, options.Rounding)
                 : new TaxCalculationResult(Array.Empty<TaxLine>(), options.Currency, options.Precision, options.Rounding);
+        }
 
         var evaluationDate = options.ForDate ?? DateTimeOffset.UtcNow;
-        var lines = new List<TaxLine>();
-        var errors = new List<string>();
-        var warnings = new List<string>();
-        var ruleResults = options.IncludeRuleResults ? new List<TaxRuleEvaluationResult>() : null;
+        List<TaxLine> lines = [];
+        List<string> errors = [];
+        List<string> warnings = [];
+        List<TaxRuleEvaluationResult>? ruleResults = options.IncludeRuleResults ? [] : null;
 
         foreach (var group in assetList.GroupBy(a => a.AssetTypeId))
         {
-            var assetType = group.First().AssetType;
-            if (assetType is null)
-                throw new InvalidOperationException(ExceptionMessages.AssetTypeMustBeSetToEvaluate.Format());
+            AssetType? assetType = group.First().AssetType ?? throw new InvalidOperationException(ExceptionMessages.AssetTypeMustBeSetToEvaluate.Format());
+            switch (assetType.LiquidationMode)
+            {
+                case LiquidationMode.Grouped:
+                {
+                    var aggregatedAsset = AggregateAssets(assetType, group, evaluationDate);
+                    AppendResult(TaxEngine.Evaluate(aggregatedAsset, options), lines, ruleResults, errors, warnings);
+                    break;
+                }
 
-            if (assetType.LiquidationMode == LiquidationMode.Grouped)
-            {
-                var aggregatedAsset = AggregateAssets(assetType, group, evaluationDate);
-                AppendResult(TaxEngine.Evaluate(aggregatedAsset, options), lines, ruleResults, errors, warnings);
-            }
-            else
-            {
-                foreach (var asset in group)
-                    AppendResult(TaxEngine.Evaluate(asset, options), lines, ruleResults, errors, warnings);
+                default:
+                {
+                    foreach (var asset in group)
+                    {
+                        AppendResult(TaxEngine.Evaluate(asset, options), lines, ruleResults, errors, warnings);
+                    }
+
+                    break;
+                }
             }
         }
 
         if (options.IncludeRuleResults)
         {
-            var resultRules = ruleResults ?? new List<TaxRuleEvaluationResult>();
+            List<TaxRuleEvaluationResult> resultRules = ruleResults ?? new();
             return new TaxCalculationResult(
                 lines,
                 resultRules,
@@ -75,7 +80,7 @@ public static class TaxLiquidationPipeline
     {
         var aggregate = new Dictionary<string, AggregatedAttributeState>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var attribute in assets.SelectMany(asset => asset.Attributes
+        foreach (ExtendedAttribute? attribute in assets.SelectMany(asset => asset.Attributes
                      .Where(attr => attr.ValidFrom <= forDate && (attr.ValidTo == null || attr.ValidTo >= forDate))))
         {
             if (!aggregate.TryGetValue(attribute.Key, out var state))
@@ -102,7 +107,10 @@ public static class TaxLiquidationPipeline
     {
         lines.AddRange(result.Lines);
         if (ruleResults != null)
+        {
             ruleResults.AddRange(result.RuleResults);
+        }
+
         errors.AddRange(result.Errors);
         warnings.AddRange(result.Warnings);
     }
@@ -148,10 +156,9 @@ public static class TaxLiquidationPipeline
 
         private static decimal ParseDecimal(string value)
         {
-            if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed))
-                return parsed;
-
-            return decimal.TryParse(value, NumberStyles.Number | NumberStyles.AllowCurrencySymbol, CultureInfo.CurrentCulture, out parsed)
+            return decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
+                ? parsed
+                : decimal.TryParse(value, NumberStyles.Number | NumberStyles.AllowCurrencySymbol, CultureInfo.CurrentCulture, out parsed)
                 ? parsed
                 : 0m;
         }

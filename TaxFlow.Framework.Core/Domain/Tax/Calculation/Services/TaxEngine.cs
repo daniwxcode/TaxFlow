@@ -1,9 +1,8 @@
 using Core.Domain.Contracts;
+using Core.Domain.Contracts.Validation;
 using Core.Domain.Localization;
 using Core.Domain.Tax.Assets;
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Core.Domain.Tax.Calculation.Services;
@@ -48,14 +47,16 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
         ArgumentNullException.ThrowIfNull(asset);
 
         if (asset.AssetType is null)
+        {
             throw new InvalidOperationException(ExceptionMessages.AssetTypeMustBeSetToEvaluate.Format());
+        }
 
         options ??= new TaxEngineOptions();
-        var forDate = options.ForDate ?? DateTimeOffset.UtcNow;
+        DateTimeOffset forDate = options.ForDate ?? DateTimeOffset.UtcNow;
 
-        var effectiveAttributes = GetEffectiveAttributes(asset, forDate);
-        var (errors, warnings) = ValidateAttributes(asset, effectiveAttributes, options);
-        var (lines, ruleResults) = EvaluateRules(asset, effectiveAttributes, forDate, options, errors);
+        List<ExtendedAttribute> effectiveAttributes = GetEffectiveAttributes(asset, forDate);
+        (List<string>? errors, List<string>? warnings) = ValidateAttributes(asset, effectiveAttributes, options);
+        (List<TaxLine>? lines, List<TaxRuleEvaluationResult>? ruleResults) = EvaluateRules(asset, effectiveAttributes, forDate, options, errors);
 
         return BuildResult(lines, ruleResults, errors, warnings, options);
     }
@@ -73,8 +74,8 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
         ValidatePeriodParameters(from, to, daysInYear);
 
         options ??= new TaxEngineOptions();
-        var baseResult = Evaluate(asset, CreatePeriodOptions(options, from));
-        var factor = CalculateProrataFactor(from, to, daysInYear);
+        TaxCalculationResult baseResult = Evaluate(asset, CreatePeriodOptions(options, from));
+        decimal factor = CalculateProrataFactor(from, to, daysInYear);
 
         var proratedLines = baseResult.Lines
             .Select(l => new TaxLine(l.Key, l.Label, l.Amount * factor, options.Currency, options.Precision, options.Rounding))
@@ -108,13 +109,17 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
         var warnings = new List<string>();
 
         if (options.DetectDuplicateAttributes)
+        {
             DetectDuplicateAttributes(effectiveAttributes, warnings);
+        }
 
-        var validationResult = asset.AssetType.ValidateAttributesResult(effectiveAttributes);
+        ValidationResult validationResult = asset.AssetType.ValidateAttributesResult(effectiveAttributes);
         if (validationResult.HasErrors)
         {
             if (options.StrictValidation)
+            {
                 throw new ArgumentException(ExceptionMessages.AttributeValidationFailed.Format(("errorMessage", validationResult.ErrorMessage)));
+            }
 
             errors.AddRange(validationResult.ToMessages());
         }
@@ -128,9 +133,8 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
             .GroupBy(a => a.Key, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() > 1)
             .Select(g => g.Key);
-
-        foreach (var key in duplicateKeys)
-            warnings.Add(ExceptionMessages.DuplicateAttributeDetected.Format(("key", key)));
+        warnings.AddRange(from key in duplicateKeys
+                          select ExceptionMessages.DuplicateAttributeDetected.Format(("key", key)));
     }
 
     private static (List<TaxLine> lines, List<TaxRuleEvaluationResult>? ruleResults) EvaluateRules(
@@ -140,13 +144,13 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
         TaxEngineOptions options,
         List<string> errors)
     {
-        var rules = GetEffectiveRules(asset.AssetType, forDate);
-        var lines = new List<TaxLine>(rules.Count);
-        var ruleResults = options.IncludeRuleResults ? new List<TaxRuleEvaluationResult>(rules.Count) : null;
+        List<TaxRule> rules = GetEffectiveRules(asset.AssetType, forDate);
+        List<TaxLine> lines = new(rules.Count);
+        List<TaxRuleEvaluationResult>? ruleResults = options.IncludeRuleResults ? new(rules.Count) : null;
 
         foreach (var rule in rules)
         {
-            var result = asset.AssetType.EvaluateTaxRuleDetailed(
+            TaxRuleEvaluationResult result = asset.AssetType.EvaluateTaxRuleDetailed(
                 rule.Key ?? string.Empty,
                 effectiveAttributes,
                 options.BaseAmount);
@@ -182,12 +186,16 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
         List<string> errors)
     {
         if (result.IsSuccess)
+        {
             return;
+        }
 
         var message = result.ErrorMessage ?? ExceptionMessages.EvaluationFailed.Format();
 
         if (options.ThrowOnRuleError)
+        {
             throw new InvalidOperationException(ExceptionMessages.RuleEvaluationFailed.Format(("ruleKey", rule.Key ?? ""), ("error", message)));
+        }
 
         errors.Add(ExceptionMessages.RuleEvaluationFailed.Format(("ruleKey", rule.Key ?? ""), ("error", message)));
     }
@@ -217,10 +225,14 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
     private static void ValidatePeriodParameters(DateTimeOffset from, DateTimeOffset to, int daysInYear)
     {
         if (to < from)
+        {
             throw new ArgumentException(ExceptionMessages.EndDateMustBeGreaterOrEqual.Format(), nameof(to));
+        }
 
         if (daysInYear <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(daysInYear), ExceptionMessages.DaysInYearMustBePositive.Format());
+        }
     }
 
     private static TaxEngineOptions CreatePeriodOptions(TaxEngineOptions source, DateTimeOffset forDate)
@@ -254,13 +266,13 @@ public sealed class TaxCalculationEngine : ITaxCalculationEngine
 /// </summary>
 public static class TaxEngine
 {
-    private static readonly ITaxCalculationEngine Engine = TaxCalculationEngine.Default;
+    private static readonly ITaxCalculationEngine _engine = TaxCalculationEngine.Default;
 
     /// <summary>
     /// Evaluate taxes for a single date.
     /// </summary>
     public static TaxCalculationResult Evaluate(TaxableAsset asset, TaxEngineOptions? options = null)
-        => Engine.Evaluate(asset, options);
+        => _engine.Evaluate(asset, options);
 
     /// <summary>
     /// Evaluate taxes for a period and apply simple prorata.
@@ -271,5 +283,5 @@ public static class TaxEngine
         DateTimeOffset to,
         int daysInYear = 365,
         TaxEngineOptions? options = null)
-        => Engine.EvaluateForPeriod(asset, from, to, daysInYear, options);
+        => _engine.EvaluateForPeriod(asset, from, to, daysInYear, options);
 }
