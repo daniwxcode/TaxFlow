@@ -86,3 +86,5 @@ public sealed class AuditTrailEntity
     /// </summary>
     public string CorrelationId { get; set; } = default!;
 }
+
+
