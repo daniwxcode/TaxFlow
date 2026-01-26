@@ -46,9 +46,7 @@ public readonly record struct Duration
     /// </summary>
     public Duration(int value, TimeUnit unit)
     {
-        if (value < 0)
-            throw new ArgumentOutOfRangeException(nameof(value), "Duration value must be non-negative.");
-
+        ArgumentOutOfRangeException.ThrowIfNegative(value, nameof(value));        
         Value = value;
         Unit = unit;
     }
