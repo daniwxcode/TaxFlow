@@ -35,13 +35,17 @@ public sealed class TransportOperatorAssetTypeDefinition : IAssetTypeDefinition
 
     public AssetType Build()
     {
-        var assetType = AssetType.Create(Name, Description, LiquidationMode);
+        AssetType assetType = AssetType.Create(Name, Description, LiquidationMode);
 
-        foreach (var attr in GetAttributes())
+        foreach (AttributeDefinition attr in GetAttributes())
+        {
             assetType.AddExpectedAttribute(attr);
+        }
 
-        foreach (var rule in GetTaxRules())
+        foreach (TaxRule rule in GetTaxRules())
+        {
             assetType.AddTaxRule(rule);
+        }
 
         return assetType;
     }
@@ -81,7 +85,7 @@ public sealed class TransportOperatorAssetTypeDefinition : IAssetTypeDefinition
 
     private IEnumerable<TaxRule> GetTaxRules()
     {
-        var rule = new TaxRule
+        TaxRule rule = new TaxRule
         {
             Key = "TPU_TR",
             Label = "TPU – Transporteurs routiers",
@@ -125,8 +129,8 @@ public sealed class TransportOperatorAssetTypeDefinition : IAssetTypeDefinition
 
     private static TaxObligationSchedule CreateQuarterlySchedule()
     {
-        var year = DateTimeOffset.UtcNow.Year;
-        var schedule = TaxObligationSchedule.Create("TPU-TR trimestriel", year);
+        int year = DateTimeOffset.UtcNow.Year;
+        TaxObligationSchedule schedule = TaxObligationSchedule.Create("TPU-TR trimestriel", year);
 
         schedule.AddPaymentDeadline(PaymentDeadline.Create(
             "TPU_TR_T1", "Trimestre 1",

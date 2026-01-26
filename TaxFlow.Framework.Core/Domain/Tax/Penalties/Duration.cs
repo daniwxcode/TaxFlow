@@ -101,6 +101,13 @@ public readonly record struct Duration
         _ => Value
     };
 
+    /// <summary>
+    /// Returns a human-readable string representation of the duration.
+    /// </summary>
+    /// <returns>A localized string representation of the duration with appropriate units.</returns>
+    /// <remarks>
+    /// The string format depends on the time unit and includes French localization for duration display.
+    /// </remarks>
     public override string ToString() => Unit switch
     {
         TimeUnit.Days => $"{Value} jour(s)",

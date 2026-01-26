@@ -72,6 +72,6 @@ public static class ValidationErrorCodes
     public const string NullArgument = "NULL_ARGUMENT";
     /// <summary>
     /// Code indicating that an empty argument was provided where it is not allowed.
-    /// 
+    /// </summary>
     public const string EmptyArgument = "EMPTY_ARGUMENT";
 }

@@ -176,7 +176,7 @@ public class ObligationPenaltyCalculatorTests
 
         Assert.True(result.PaymentPenalties.ContainsKey("PAY1"));
         // Penalty should be 10% of 500 = 50 per period
-        PenaltyAccrual firstPenalty = result.PaymentPenalties["PAY1"].First();
+        PenaltyAccrual firstPenalty = result.PaymentPenalties["PAY1"][0];
         Assert.Equal(50m, firstPenalty.Amount);
     }
 

@@ -63,7 +63,7 @@ public abstract class ExtendedSoftAuditableEntity : SoftAuditableEntity
     /// <returns>The newly created <see cref="ExtendedAttribute"/>.</returns>
     public ExtendedAttribute AddAttribute(string key, string value, AttributeDataType dataType, bool isRequired = false)
     {
-        var attr = ExtendedAttribute.Create(key, value, dataType, isRequired, DateTimeOffset.UtcNow, null);
+        ExtendedAttribute attr = ExtendedAttribute.Create(key, value, dataType, isRequired, DateTimeOffset.UtcNow, null);
         // Prevent duplicates by key
         if (!_attributes.Any(a => a.Key.Equals(attr.Key, StringComparison.OrdinalIgnoreCase)))
         {

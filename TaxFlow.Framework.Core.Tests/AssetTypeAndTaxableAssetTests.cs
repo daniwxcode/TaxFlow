@@ -39,7 +39,7 @@ public class AssetTypeAndTaxableAssetTests
         TaxRule tr = new TaxRule { Key = "R1", Label = "r1", Expression = "[ResidualValue]*0.01" };
         at.AddTaxRule(tr);
 
-        Collection<ExtendedAttribute> attrs = new Collection<ExtendedAttribute> { ExtendedAttribute.Create("ResidualValue", "100", AttributeDataType.Number, true) };
+        Collection<ExtendedAttribute> attrs = [ExtendedAttribute.Create("ResidualValue", "100", AttributeDataType.Number, true)];
         decimal? result = at.EvaluateTaxRule("R1", attrs);
         Assert.Equal(1m, result);
     }
@@ -54,7 +54,7 @@ public class AssetTypeAndTaxableAssetTests
         at.AddExpectedAttribute(AttributeDefinition.Create("ResidualValue", "Valeur Venale", AttributeDataType.Number, true));
         at.AddTaxRule(new TaxRule { Key = "R1", Label = "r1", Expression = "[ResidualValue]*0.01" });
 
-        Collection<ExtendedAttribute> attrs = new Collection<ExtendedAttribute> { ExtendedAttribute.Create("ResidualValue", "200", AttributeDataType.Number, true) };
+        Collection<ExtendedAttribute> attrs = [ExtendedAttribute.Create("ResidualValue", "200", AttributeDataType.Number, true)];
         TaxableAsset asset = TaxableAsset.Create(at, attrs);
         IReadOnlyCollection<TaxLine> lines = asset.CalculateTaxLines();
         Assert.Single(lines);

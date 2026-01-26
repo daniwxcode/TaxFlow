@@ -32,13 +32,13 @@ public sealed class EconomicActivityAssetTypeDefinition : IAssetTypeDefinition
     /// <returns></returns>
     public AssetType Build()
     {
-        var assetType = AssetType.Create(Name, Description, LiquidationMode);
-        foreach (var attr in GetAttributes())
+        AssetType assetType = AssetType.Create(Name, Description, LiquidationMode);
+        foreach (AttributeDefinition attr in GetAttributes())
         {
             assetType.AddExpectedAttribute(attr);
         }
 
-        foreach (var rule in GetTaxRules())
+        foreach (TaxRule rule in GetTaxRules())
         {
             assetType.AddTaxRule(rule);
         }

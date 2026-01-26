@@ -32,7 +32,7 @@ public sealed class PersonalIncomeAssetTypeDefinition : IAssetTypeDefinition
     /// <returns></returns>
     public AssetType Build()
     {
-        var assetType = AssetType.Create(Name, Description, LiquidationMode);
+        AssetType assetType = AssetType.Create(Name, Description, LiquidationMode);
 
         assetType.AddExpectedAttribute(AttributeDefinition.Create(
             "AnnualGlobalIncome", "Revenu global annuel", AttributeDataType.Number));
@@ -43,8 +43,10 @@ public sealed class PersonalIncomeAssetTypeDefinition : IAssetTypeDefinition
         assetType.AddExpectedAttribute(AttributeDefinition.Create(
             "ManagerRemuneration", "Rémunérations de gérance", AttributeDataType.Number));
 
-        foreach (var rule in GetTaxRules())
+        foreach (TaxRule rule in GetTaxRules())
+        {
             assetType.AddTaxRule(rule);
+        }
 
         return assetType;
     }

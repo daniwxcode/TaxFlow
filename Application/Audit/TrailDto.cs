@@ -27,22 +27,22 @@ public class TrailDto
     /// <summary>
     /// Clé(s) primaire(s) de l’entité affectée.
     /// </summary>
-    public Dictionary<string, object?> KeyValues { get; } = new();
+    public Dictionary<string, object?> KeyValues { get; } = [];
 
     /// <summary>
     /// Valeurs avant modification.
     /// </summary>
-    public Dictionary<string, object?> OldValues { get; } = new();
+    public Dictionary<string, object?> OldValues { get; } = [];
 
     /// <summary>
     /// Valeurs après modification.
     /// </summary>
-    public Dictionary<string, object?> NewValues { get; } = new();
+    public Dictionary<string, object?> NewValues { get; } = [];
 
     /// <summary>
     /// Liste des propriétés modifiées.
     /// </summary>
-    public Collection<string> ModifiedProperties { get; } = new();
+    public Collection<string> ModifiedProperties { get; } = [];
 
     /// <summary>
     /// Type d’opération (Create, Update, etc.).
@@ -79,7 +79,7 @@ public class TrailDto
     /// </summary>
     public string CorrelationId { get; set; } = string.Empty;
 
-    private static readonly JsonSerializerOptions SerializerOptions = new()
+    private static readonly JsonSerializerOptions _serializerOptions = new()
     {
         WriteIndented = false,
         ReferenceHandler = ReferenceHandler.Preserve,
@@ -93,15 +93,15 @@ public class TrailDto
     {
         return new AuditTrailEntity
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.CreateVersion7(),
             UserId = UserId,
             Operation = Type.ToString(),
             Entity = Entity ?? string.Empty,
             OccurredAt = OccurredAt,
-            PrimaryKey = JsonSerializer.Serialize(KeyValues, SerializerOptions),
-            PreviousValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues, SerializerOptions),
-            NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues, SerializerOptions),
-            ModifiedProperties = ModifiedProperties.Count == 0 ? null : JsonSerializer.Serialize(ModifiedProperties, SerializerOptions),
+            PrimaryKey = JsonSerializer.Serialize(KeyValues, _serializerOptions),
+            PreviousValues = OldValues.Count == 0 ? null : JsonSerializer.Serialize(OldValues, _serializerOptions),
+            NewValues = NewValues.Count == 0 ? null : JsonSerializer.Serialize(NewValues, _serializerOptions),
+            ModifiedProperties = ModifiedProperties.Count == 0 ? null : JsonSerializer.Serialize(ModifiedProperties, _serializerOptions),
             Feature = Feature,
             FeatureVersion = FeatureVersion,
             UseCase = UseCase,

@@ -19,8 +19,8 @@ public class DefaultAssetTypesTests
     /// </summary>
     [Fact]
     public void InitialData_Exposes_All_Default_AssetTypes()
-    {
-        List<AssetType> assetTypes = DefaultAssetTypes.InitialData().ToList();
+    {        
+        List<AssetType> assetTypes = [.. DefaultAssetTypes.InitialData()];
         string[] expected = new[] {
             "Real Estate",
             "Transport Operators",

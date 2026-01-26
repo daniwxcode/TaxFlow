@@ -90,15 +90,14 @@ public sealed class LocalizedString
 
         // Try exact match
         if (_translations.TryGetValue(culture, out var exact))
+        {
             return exact;
+        }
 
         // Try language only (e.g., "fr" from "fr-FR")
         var lang = culture.Split('-')[0];
         var match = _translations.Keys.FirstOrDefault(k => k.StartsWith(lang, StringComparison.OrdinalIgnoreCase));
-        if (match is not null)
-            return _translations[match];
-
-        return _defaultValue;
+        return match is not null ? _translations[match] : _defaultValue;
     }
 
     /// <summary>
@@ -121,5 +120,12 @@ public sealed class LocalizedString
     /// </summary>
     public static implicit operator LocalizedString(string value) => Create(value);
 
+    /// <summary>
+    /// Returns the localized string value for the current language context.
+    /// </summary>
+    /// <returns>The localized string representation.</returns>
+    /// <remarks>
+    /// This method calls GetValue() to retrieve the appropriate localized text based on the current language context.
+    /// </remarks>
     public override string ToString() => GetValue();
 }

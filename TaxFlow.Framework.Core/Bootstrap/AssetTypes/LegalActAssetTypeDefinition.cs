@@ -33,7 +33,7 @@ public sealed class LegalActAssetTypeDefinition : IAssetTypeDefinition
     /// <returns></returns>
     public AssetType Build()
     {
-        var assetType = AssetType.Create(Name, Description, LiquidationMode);
+        AssetType assetType = AssetType.Create(Name, Description, LiquidationMode);
         assetType.AddExpectedAttribute(AttributeDefinition.Create(
             "ContractAmount", "Montant contractuel", AttributeDataType.Number, true));
         

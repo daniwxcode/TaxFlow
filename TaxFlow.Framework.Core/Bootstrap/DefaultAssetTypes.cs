@@ -14,7 +14,7 @@ public static class DefaultAssetTypes
     /// </summary>
     public static IEnumerable<AssetType> InitialData()
     {
-        var registry = new DefaultAssetTypeRegistry();
+        DefaultAssetTypeRegistry registry = new DefaultAssetTypeRegistry();
         return registry.GetDefinitions().Select(def => def.Build());
     }
 

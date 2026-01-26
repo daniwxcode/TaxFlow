@@ -31,7 +31,7 @@ public sealed class PenaltyAssetTypeDefinition : IAssetTypeDefinition
     /// <returns></returns>
     public AssetType Build()
     {
-        var assetType = AssetType.Create(Name, Description, LiquidationMode);
+        AssetType assetType = AssetType.Create(Name, Description, LiquidationMode);
 
         assetType.AddExpectedAttribute(AttributeDefinition.Create(
             "OutstandingTaxAmount", "Montant en souffrance", AttributeDataType.Number, true));

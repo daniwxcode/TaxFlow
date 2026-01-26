@@ -100,48 +100,101 @@ public static class ValidationMessages
     // OBLIGATION SCHEDULE VALIDATION MESSAGES
     // ============================================
 
+    /// <summary>
+    /// Validation message template for duplicate declaration deadline keys.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when multiple declaration deadlines in a schedule have the same unique identifier.
+    /// </remarks>
     public static readonly LocalizedTemplate DuplicateDeclarationKey = LocalizedTemplate.Create(
         "Plusieurs échéances de déclaration ont la même clé: '{key}'.",
         ("en-US", "Multiple declaration deadlines have the same key: '{key}'."),
         ("ar-SA", "??? ?????? ????? ??? ??? ???????: '{key}'."),
         ("pt-PT", "Vários prazos de declaração têm a mesma chave: '{key}'."));
 
+    /// <summary>
+    /// Validation message template for duplicate payment deadline keys.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when multiple payment deadlines in a schedule have the same unique identifier.
+    /// </remarks>
     public static readonly LocalizedTemplate DuplicatePaymentKey = LocalizedTemplate.Create(
         "Plusieurs échéances de paiement ont la même clé: '{key}'.",
         ("en-US", "Multiple payment deadlines have the same key: '{key}'."),
         ("ar-SA", "??? ?????? ??? ??? ??? ???????: '{key}'."),
         ("pt-PT", "Vários prazos de pagamento têm a mesma chave: '{key}'."));
 
+    /// <summary>
+    /// Validation message template for payment fractions exceeding 100%.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when the sum of all payment deadline fractions in a schedule exceeds 1.0 (100%).
+    /// </remarks>
     public static readonly LocalizedTemplate InvalidFractionTotal = LocalizedTemplate.Create(
         "Le total des fractions de paiement ({total}) dépasse 100%.",
         ("en-US", "The total payment fractions ({total}) exceed 100%."),
         ("ar-SA", "?????? ????? ????? ({total}) ?????? 100%."),
         ("pt-PT", "O total das frações de pagamento ({total}) excede 100%."));
 
+    /// <summary>
+    /// Validation message template for declaration deadlines occurring after linked payment deadlines.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when a declaration deadline is scheduled after its associated payment deadline,
+    /// violating the logical chronological order requirement.
+    /// </remarks>
     public static readonly LocalizedTemplate DeclarationAfterPayment = LocalizedTemplate.Create(
         "L'échéance de déclaration '{declarationKey}' doit être antérieure ou égale à l'échéance de paiement '{paymentKey}'.",
         ("en-US", "The declaration deadline '{declarationKey}' must be before or equal to the payment deadline '{paymentKey}'."),
         ("ar-SA", "???? ??????? '{declarationKey}' ??? ?? ???? ??? ?? ????? ???? ????? '{paymentKey}'."),
         ("pt-PT", "O prazo de declaração '{declarationKey}' deve ser anterior ou igual ao prazo de pagamento '{paymentKey}'."));
 
+    /// <summary>
+    /// Validation message template for payment deadlines referencing non-existent declarations.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when a payment deadline references a declaration deadline that does not exist in the schedule,
+    /// indicating a broken referential integrity constraint.
+    /// </remarks>
     public static readonly LocalizedTemplate InvalidLinkedDeclaration = LocalizedTemplate.Create(
         "Le paiement '{paymentKey}' fait référence à une déclaration inexistante: '{declarationKey}'.",
         ("en-US", "The payment '{paymentKey}' references a non-existent declaration: '{declarationKey}'."),
         ("ar-SA", "?????? '{paymentKey}' ???? ??? ????? ??? ?????: '{declarationKey}'."),
         ("pt-PT", "O pagamento '{paymentKey}' referencia uma declaração inexistente: '{declarationKey}'."));
 
+    /// <summary>
+    /// Validation message template for duplicate order numbers in deadlines.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when multiple deadlines of the same type have the same order number,
+    /// which would prevent proper sequencing and processing.
+    /// </remarks>
     public static readonly LocalizedTemplate DuplicateOrder = LocalizedTemplate.Create(
         "Plusieurs {deadlineType} ont le même ordre: {order}.",
         ("en-US", "Multiple {deadlineType} have the same order: {order}."),
         ("ar-SA", "??? {deadlineType} ??? ??? ???????: {order}."),
         ("pt-PT", "Vários {deadlineType} têm a mesma ordem: {order}."));
 
+    /// <summary>
+    /// Validation message template for schedules with multiple deadlines missing legal references.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when a schedule has multiple deadlines but lacks the required legal basis
+    /// documentation to justify the complex obligation structure.
+    /// </remarks>
     public static readonly LocalizedTemplate MissingLegalBasis = LocalizedTemplate.Create(
         "Les échéances multiples nécessitent des références légales explicites.",
         ("en-US", "Multiple deadlines require explicit legal references."),
         ("ar-SA", "???????? ???????? ????? ????? ??????? ?????."),
         ("pt-PT", "Prazos múltiplos requerem referências legais explícitas."));
 
+    /// <summary>
+    /// Validation message template for schedules with advance payments but no balance payment.
+    /// </summary>
+    /// <remarks>
+    /// This message is displayed when a tax obligation schedule includes advance payments but lacks
+    /// a final balance payment to complete the total tax obligation.
+    /// </remarks>
     public static readonly LocalizedTemplate MissingBalancePayment = LocalizedTemplate.Create(
         "Le calendrier contient des acomptes mais aucun solde de régularisation.",
         ("en-US", "The schedule has advance payments but no balance payment."),
@@ -152,12 +205,26 @@ public static class ValidationMessages
     // PENALTY MESSAGES
     // ============================================
 
+    /// <summary>
+    /// Message template for penalty application notifications.
+    /// </summary>
+    /// <remarks>
+    /// This message provides detailed information about applied penalties including type, amount, rate, and base amount.
+    /// Used for audit trails and penalty notifications.
+    /// </remarks>
     public static readonly LocalizedTemplate PenaltyApplied = LocalizedTemplate.Create(
         "Pénalité de {penaltyType} appliquée: {amount} ({rate} sur {baseAmount}).",
         ("en-US", "Penalty of {penaltyType} applied: {amount} ({rate} on {baseAmount})."),
         ("ar-SA", "?? ????? ????? {penaltyType}: {amount} ({rate} ??? {baseAmount})."),
         ("pt-PT", "Penalidade de {penaltyType} aplicada: {amount} ({rate} sobre {baseAmount})."));
 
+    /// <summary>
+    /// Message template for overdue deadline notifications.
+    /// </summary>
+    /// <remarks>
+    /// This message provides information about deadlines that have passed their due date,
+    /// including the deadline label and number of days overdue.
+    /// </remarks>
     public static readonly LocalizedTemplate DeadlineOverdue = LocalizedTemplate.Create(
         "L'échéance '{deadlineLabel}' est en retard de {daysLate} jour(s).",
         ("en-US", "The deadline '{deadlineLabel}' is {daysLate} day(s) overdue."),
