@@ -53,7 +53,7 @@ public sealed class DefaultPenaltyCalculator : IPenaltyCalculator
 
         policy.Validate();
 
-        var accruals = _ruleRegistry.GetRules()
+        List<PenaltyAccrual> accruals = _ruleRegistry.GetRules()
             .SelectMany(r => r.Evaluate(schedule, policy, asOf, taxBaseAmount, assietteDueDate, triggerEvent))
             .ToList();
 

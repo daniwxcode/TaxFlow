@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Core.Domain.Tax.Penalties;
 
@@ -36,14 +33,21 @@ public sealed class PenaltyHistory
             .ThenBy(a => a.AsOf)
             .ToList();
 
-        var entries = new List<PenaltyHistoryEntry>(ordered.Count);
-        var totalAssiette = 0m;
-        var totalRecouvrement = 0m;
+        List<PenaltyHistoryEntry> entries = new (ordered.Count);
+        decimal totalAssiette = 0m;
+        decimal totalRecouvrement = 0m;
 
         foreach (var a in ordered)
         {
-            if (a.Type == PenaltyType.Assiette) totalAssiette += a.Amount;
-            if (a.Type == PenaltyType.Recouvrement) totalRecouvrement += a.Amount;
+            if (a.Type == PenaltyType.Assiette)
+            {
+                totalAssiette += a.Amount;
+            }
+
+            if (a.Type == PenaltyType.Recouvrement)
+            {
+                totalRecouvrement += a.Amount;
+            }
 
             entries.Add(new PenaltyHistoryEntry(
                 a.PeriodEnd,

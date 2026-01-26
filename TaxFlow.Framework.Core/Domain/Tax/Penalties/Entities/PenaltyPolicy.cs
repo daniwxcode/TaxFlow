@@ -31,7 +31,7 @@ public sealed class PenaltyPolicy
     /// <param name="definition">Definition to add or update.</param>
     public void AddOrUpdateDefinition(PenaltyDefinition definition)
     {
-        if (definition is null) throw new ArgumentNullException(nameof(definition));
+        ArgumentNullException.ThrowIfNull(definition);
         _definitions[definition.Type] = definition;
     }
 
@@ -61,8 +61,8 @@ public sealed class PenaltyPolicy
     /// </summary>
     public void Validate()
     {
-        if (DaysInYear <= 0) throw new ArgumentOutOfRangeException(nameof(DaysInYear));
-        if (MinimumLineAmount < 0) throw new ArgumentOutOfRangeException(nameof(MinimumLineAmount));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(DaysInYear, nameof(DaysInYear));
+        ArgumentOutOfRangeException.ThrowIfNegative(MinimumLineAmount, nameof(MinimumLineAmount));
         foreach (var def in _definitions.Values)
         {
             def.Validate();

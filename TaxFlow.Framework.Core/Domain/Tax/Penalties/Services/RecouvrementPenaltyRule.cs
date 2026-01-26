@@ -1,8 +1,5 @@
 using Core.Domain.Tax.Payments;
 
-using System;
-using System.Collections.Generic;
-
 namespace Core.Domain.Tax.Penalties;
 
 /// <summary>
@@ -19,64 +16,80 @@ public sealed class RecouvrementPenaltyRule : IPenaltyRule
         DateTimeOffset? assietteDueDate,
         PenaltyTriggerEvent triggerEvent)
     {
-        var definition = policy.GetDefinition(PenaltyType.Recouvrement);
+        PenaltyDefinition? definition = policy.GetDefinition(PenaltyType.Recouvrement);
         if (definition is null)
+        {
             yield break;
+        }
 
         if (!PenaltyCalculationHelper.MatchesTriggerEvent(definition.TriggerEvent, triggerEvent))
+        {
             yield break;
+        }
 
-        var declarationId = PenaltyCalculationHelper.GetOrCreateDeclarationId(schedule.DeclarationId);
-        var liquidationId = schedule.LiquidationId;
+        Guid declarationId = PenaltyCalculationHelper.GetOrCreateDeclarationId(schedule.DeclarationId);
+        Guid? liquidationId = schedule.LiquidationId;
 
         foreach (var inst in schedule.Installments)
         {
-            var effectiveDue = definition.GracePeriod.AddTo(inst.EffectiveDueDate);
+            DateTimeOffset effectiveDue = definition.GracePeriod.AddTo(inst.EffectiveDueDate);
             if (asOf <= effectiveDue)
-                continue;
-
-            var unpaid = inst.GetOutstanding(asOf);
-            if (unpaid <= 0)
-                continue;
-
-            var daysLate = PenaltyCalculationHelper.CalculateDaysLate(asOf, effectiveDue);
-            if (daysLate == 0)
-                continue;
-
-            var periodDaysApprox = definition.Period.ToDays();
-            var periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
-            var accumulatedPenalty = 0m;
-
-            for (var period = 1; period <= periodCount; period++)
             {
-                var periodStart = definition.GetPeriodStartDate(effectiveDue, period);
-                var periodEnd = definition.GetPeriodEndDate(effectiveDue, period);
-                var cappedEnd = periodEnd < asOf ? periodEnd : asOf;
-                var daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
+                continue;
+            }
+
+            decimal unpaid = inst.GetOutstanding(asOf);
+            if (unpaid <= 0)
+            {
+                continue;
+            }
+
+            int daysLate = PenaltyCalculationHelper.CalculateDaysLate(asOf, effectiveDue);
+            if (daysLate == 0)
+            {
+                continue;
+            }
+
+            int periodDaysApprox = definition.Period.ToDays();
+            int periodCount = PenaltyCalculationHelper.CalculatePeriodCount(daysLate, periodDaysApprox);
+            decimal accumulatedPenalty = 0m;
+
+            for (int period = 1; period <= periodCount; period++)
+            {
+                DateTimeOffset periodStart = definition.GetPeriodStartDate(effectiveDue, period);
+                DateTimeOffset periodEnd = definition.GetPeriodEndDate(effectiveDue, period);
+                DateTimeOffset cappedEnd = periodEnd < asOf ? periodEnd : asOf;
+                int daysInPeriod = (int)Math.Max(0, (cappedEnd.Date - periodStart.Date).TotalDays);
 
                 if (daysInPeriod == 0)
+                {
                     continue;
+                }
 
-                var outstandingAtPeriodEnd = inst.GetOutstanding(cappedEnd);
+                decimal outstandingAtPeriodEnd = inst.GetOutstanding(cappedEnd);
                 if (outstandingAtPeriodEnd <= 0)
+                {
                     break;
+                }
 
-                var baseAmount = definition.Capitalize
+                decimal baseAmount = definition.Capitalize
                     ? outstandingAtPeriodEnd + accumulatedPenalty
                     : outstandingAtPeriodEnd;
 
-                var rate = definition.PeriodRate > 0
+                decimal rate = definition.PeriodRate > 0
                     ? definition.PeriodRate + (period - 1) * definition.PeriodRateIncrement
                     : definition.AnnualRate;
 
-                var penalty = definition.PeriodRate > 0
+                decimal penalty = definition.PeriodRate > 0
                     ? baseAmount * rate
                     : PenaltyCalculationHelper.Prorate(baseAmount, rate, policy.DaysInYear, daysInPeriod);
 
                 penalty = PenaltyCalculationHelper.ApplyFloorAndCap(penalty, definition.Minimum, definition.Cap);
 
                 if (penalty < policy.MinimumLineAmount)
+                {
                     continue;
+                }
 
                 yield return new PenaltyAccrual(
                     PenaltyType.Recouvrement,
@@ -95,7 +108,9 @@ public sealed class RecouvrementPenaltyRule : IPenaltyRule
                     asOf);
 
                 if (definition.Capitalize)
+                {
                     accumulatedPenalty += penalty;
+                }
             }
         }
     }

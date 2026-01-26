@@ -1,5 +1,3 @@
-using System;
-
 namespace Core.Domain.Tax.Penalties;
 
 /// <summary>
@@ -69,12 +67,12 @@ public sealed class PenaltyDefinition
     /// </summary>
     public void Validate()
     {
-        if (FixedAmount < 0) throw new ArgumentOutOfRangeException(nameof(FixedAmount));
-        if (GracePeriod.Value < 0) throw new ArgumentOutOfRangeException(nameof(GracePeriod));
-        if (Period.Value <= 0) throw new ArgumentOutOfRangeException(nameof(Period));
-        if (AnnualRate < 0) throw new ArgumentOutOfRangeException(nameof(AnnualRate));
-        if (PeriodRate < 0) throw new ArgumentOutOfRangeException(nameof(PeriodRate));
-        if (PeriodRateIncrement < 0) throw new ArgumentOutOfRangeException(nameof(PeriodRateIncrement));
+        ArgumentOutOfRangeException.ThrowIfNegative(FixedAmount, nameof(FixedAmount));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(Period.Value, nameof(Period));
+        ArgumentOutOfRangeException.ThrowIfNegative(GracePeriod.Value, nameof(GracePeriod));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(AnnualRate, nameof(AnnualRate));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(PeriodRate, nameof(PeriodRate));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(PeriodRateIncrement, nameof(PeriodRateIncrement));
     }
 
     /// <summary>
@@ -87,10 +85,8 @@ public sealed class PenaltyDefinition
     /// </summary>
     public DateTimeOffset GetPeriodStartDate(DateTimeOffset effectiveDueDate, int periodIndex)
     {
-        if (periodIndex < 1)
-            throw new ArgumentOutOfRangeException(nameof(periodIndex), "Period index must be at least 1.");
-
-        var start = effectiveDueDate;
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(periodIndex, nameof(periodIndex));
+        DateTimeOffset start = effectiveDueDate;
         for (var i = 1; i < periodIndex; i++)
         {
             start = Period.AddTo(start);

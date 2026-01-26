@@ -16,10 +16,7 @@ internal static class PenaltyCalculationHelper
     /// <returns>Prorated amount.</returns>
     public static decimal Prorate(decimal baseAmount, decimal annualRate, int daysInYear, int days)
     {
-        if (baseAmount <= 0 || annualRate <= 0 || days <= 0)
-            return 0m;
-
-        return baseAmount * annualRate * days / daysInYear;
+        return baseAmount <= 0 || annualRate <= 0 || days <= 0 ? 0m : baseAmount * annualRate * days / daysInYear;
     }
 
     /// <summary>
@@ -32,10 +29,14 @@ internal static class PenaltyCalculationHelper
     public static decimal ApplyFloorAndCap(decimal value, decimal? minimum, decimal? cap)
     {
         if (minimum.HasValue && value < minimum.Value)
+        {
             value = minimum.Value;
+        }
 
         if (cap.HasValue && value > cap.Value)
+        {
             value = cap.Value;
+        }
 
         return value;
     }
@@ -49,7 +50,9 @@ internal static class PenaltyCalculationHelper
     public static int CalculateDaysLate(DateTimeOffset asOf, DateTimeOffset effectiveDueDate)
     {
         if (asOf <= effectiveDueDate)
+        {
             return 0;
+        }
 
         return (int)Math.Max(0, (asOf.Date - effectiveDueDate.Date).TotalDays);
     }

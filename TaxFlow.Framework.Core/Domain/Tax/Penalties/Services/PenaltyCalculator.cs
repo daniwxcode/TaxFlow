@@ -8,7 +8,7 @@ namespace Core.Domain.Tax.Penalties.Services;
 /// </summary>
 public static class PenaltyCalculator
 {
-    private static readonly IPenaltyCalculator Calculator = DefaultPenaltyCalculator.Default;
+    private static readonly IPenaltyCalculator _calculator = DefaultPenaltyCalculator.Default;
 
     /// <summary>
     /// Calculate penalties as of a given date.
@@ -19,7 +19,7 @@ public static class PenaltyCalculator
         DateTimeOffset asOf,
         decimal taxBaseAmount,
         DateTimeOffset? assietteDueDate = null)
-        => Calculator.Calculate(schedule, policy, asOf, taxBaseAmount, assietteDueDate);
+        => _calculator.Calculate(schedule, policy, asOf, taxBaseAmount, assietteDueDate);
 
     /// <summary>
     /// Calculate penalties as of a given date for a specific trigger event.
@@ -31,5 +31,5 @@ public static class PenaltyCalculator
         decimal taxBaseAmount,
         PenaltyTriggerEvent triggerEvent,
         DateTimeOffset? assietteDueDate = null)
-        => Calculator.Calculate(schedule, policy, asOf, taxBaseAmount, triggerEvent, assietteDueDate);
+        => _calculator.Calculate(schedule, policy, asOf, taxBaseAmount, triggerEvent, assietteDueDate);
 }

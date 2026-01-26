@@ -1,8 +1,5 @@
 using Core.Domain.Tax.Payments;
 
-using System;
-using System.Collections.Generic;
-
 namespace Core.Domain.Tax.Penalties;
 
 /// <summary>
