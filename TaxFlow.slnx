@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/Framework/">
+    <Project Path="Application/Application.csproj" Id="af271cbd-a0ab-4a30-b4cc-a574dad8428c" />
     <Project Path="Infrastructure/Infrastructure.csproj" Id="66113fa4-5266-4080-940f-898d85f3d09b" />
     <Project Path="TaxFlow.Framework.Core/Core.csproj" Id="32c3924b-fb53-4dd5-8cf5-cb7339c412f7" />
   </Folder>
