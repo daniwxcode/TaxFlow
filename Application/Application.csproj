@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <Folder Include="Caching\" />
     <Folder Include="Exceptions\" />
     <Folder Include="Jobs\" />
     <Folder Include="Misc\" />
