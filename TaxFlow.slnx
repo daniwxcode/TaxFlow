@@ -6,6 +6,15 @@
   <Folder Name="/src/Infrastructure/">
     <Project Path="TaxFlow.Infrastructure/TaxFlow.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/AppHost/">
+    <Project Path="TaxFlow.AppHost/TaxFlow.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/src/Api/">
+    <Project Path="TaxFlow.Api/TaxFlow.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/ServiceDefaults/">
+    <Project Path="TaxFlow.ServiceDefaults/TaxFlow.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="TaxFlow.Framework.Core.Tests/TaxFlow.Framework.Core.Tests.csproj" />
   </Folder>
