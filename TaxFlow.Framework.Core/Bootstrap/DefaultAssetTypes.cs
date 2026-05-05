@@ -28,7 +28,7 @@ public static class DefaultAssetTypes
 
     private static AssetType CreateRealEstateAssetType()
     {
-        var realEstate = AssetType.Create("Real Estate", "Propriété Immobilière Maison et Terrain");
+        var realEstate = AssetType.Create("Real Estate", "PropriÃ©tÃ© ImmobiliÃ¨re Maison et Terrain");
 
         foreach (var attr in RealEstateAttributes())
             realEstate.AddExpectedAttribute(attr);
@@ -41,26 +41,26 @@ public static class DefaultAssetTypes
 
     private static IEnumerable<AttributeDefinition> RealEstateAttributes()
     {
-        yield return AttributeDefinition.Create("ResidualValue", "Valeur vénale", AttributeDataType.Number, true);
+        yield return AttributeDefinition.Create("ResidualValue", "Valeur vÃ©nale", AttributeDataType.Number, true);
         yield return AttributeDefinition.Create("Situation", "Situation", AttributeDataType.String);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "RealEstateType",
-            Label = "Type de Propriété",
+            Label = "Type de PropriÃ©tÃ©",
             Items =
             {
-                new EnumItem { Code = "PB", Label = "Propriété Bâtie", Order = 1 },
-                new EnumItem { Code = "PNB", Label = "Propriété Non Bâtie", Order = 2 }
+                new EnumItem { Code = "PB", Label = "PropriÃ©tÃ© BÃ¢tie", Order = 1 },
+                new EnumItem { Code = "PNB", Label = "PropriÃ©tÃ© Non BÃ¢tie", Order = 2 }
             }
         });
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "ResidenceType",
-            Label = "Type de Résidence",
+            Label = "Type de RÃ©sidence",
             Items =
             {
-                new EnumItem { Code = "RP", Label = "Résidence Principale", Order = 1 },
-                new EnumItem { Code = "RS", Label = "Résidence Secondaire", Order = 2 }
+                new EnumItem { Code = "RP", Label = "RÃ©sidence Principale", Order = 1 },
+                new EnumItem { Code = "RS", Label = "RÃ©sidence Secondaire", Order = 2 }
             }
         }, false);
         yield return AttributeDefinition.Create(new EnumDefinition
@@ -69,7 +69,7 @@ public static class DefaultAssetTypes
             Label = "Usage d'un bien immobilier",
             Items =
             {
-                new EnumItem { Code = "RES", Label = "Résidentiel", Order = 1 },
+                new EnumItem { Code = "RES", Label = "RÃ©sidentiel", Order = 1 },
                 new EnumItem { Code = "COM", Label = "Location", Order = 2 }
             }
         }, false);
@@ -79,31 +79,31 @@ public static class DefaultAssetTypes
             Label = "Type d'Habitat",
             Items =
             {
-                new EnumItem { Code = "STUDIO", Label = "Appartement 1 pièce (studio)", Order = 1 },
+                new EnumItem { Code = "STUDIO", Label = "Appartement 1 piÃ¨ce (studio)", Order = 1 },
                 new EnumItem { Code = "CON", Label = "Concession", Order = 2 },
-                new EnumItem { Code = "APT2", Label = "Appartement 2 pièces", Order = 3 },
-                new EnumItem { Code = "APT3P", Label = "Appartement 3 pièces et plus", Order = 4 },
+                new EnumItem { Code = "APT2", Label = "Appartement 2 piÃ¨ces", Order = 3 },
+                new EnumItem { Code = "APT3P", Label = "Appartement 3 piÃ¨ces et plus", Order = 4 },
                 new EnumItem { Code = "VILLA", Label = "Villa / concession unique", Order = 5 },
                 new EnumItem { Code = "HOUSE_R1", Label = "Maison R+1", Order = 6 },
                 new EnumItem { Code = "HOUSE_R2", Label = "Maison R+2", Order = 7 },
                 new EnumItem { Code = "HOUSE_R3", Label = "Maison R+3 et plus", Order = 8 },
-                new EnumItem { Code = "ETG600", Label = "Étage > 600 m²", Order = 9 }
+                new EnumItem { Code = "ETG600", Label = "Ã‰tage > 600 mÂ²", Order = 9 }
             }
         }, false);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "RealEstateOwnerShip",
-            Label = "Droit de Propriété",
+            Label = "Droit de PropriÃ©tÃ©",
             Items =
             {
-                new EnumItem { Code = "OWNER", Label = "Propriétaire" },
+                new EnumItem { Code = "OWNER", Label = "PropriÃ©taire" },
                 new EnumItem { Code = "RENT", Label = "Locataire" }
             }
         }, false);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "ResidenceStatus",
-            Label = "Statut de la Résidence",
+            Label = "Statut de la RÃ©sidence",
             Items =
             {
                 new EnumItem { Code = "NEW", Label = "Nouvelle", Order = 1 },
@@ -114,7 +114,7 @@ public static class DefaultAssetTypes
         yield return AttributeDefinition.Create("BuildingCompletionDate", "Date de fin des Travaux", AttributeDataType.Date);
         yield return AttributeDefinition.Create("LocativeValue", "Valeur locative annuelle", AttributeDataType.Number);
         yield return AttributeDefinition.Create("NetRentalIncome", "Revenu net foncier", AttributeDataType.Number);
-        yield return AttributeDefinition.Create("AnnualRent", "Loyer perçu", AttributeDataType.Number);
+        yield return AttributeDefinition.Create("AnnualRent", "Loyer perÃ§u", AttributeDataType.Number);
     }
 
     private static IEnumerable<TaxRule> RealEstateTaxRules()
@@ -123,48 +123,48 @@ public static class DefaultAssetTypes
         {
             Key = "TH",
             Label = "TAXE D'HABITATION",
-            Description = "Barème forfaitaire selon la catégorie d'habitation.",
+            Description = "BarÃ¨me forfaitaire selon la catÃ©gorie d'habitation.",
             ValidFrom = default,
             Expression = """
-            [RealEstateCategory]=="Appartement 1 pièce (studio)"?2_000:
+            [RealEstateCategory]=="Appartement 1 piÃ¨ce (studio)"?2_000:
             [RealEstateCategory]=="Concession"?4_000:
-            [RealEstateCategory]=="Appartement 2 pièces"?6_000:
-            [RealEstateCategory]=="Appartement 3 pièces et plus"?9_000:
+            [RealEstateCategory]=="Appartement 2 piÃ¨ces"?6_000:
+            [RealEstateCategory]=="Appartement 3 piÃ¨ces et plus"?9_000:
             [RealEstateCategory]=="Villa / concession unique"?30_000:
             [RealEstateCategory]=="Maison R+1"?40_000:
             [RealEstateCategory]=="Maison R+2"?75_000:
             [RealEstateCategory]=="Maison R+3 et plus"?100_000:
-            [RealEstateCategory]=="Étage > 600 m²"?100_000:0
+            [RealEstateCategory]=="Ã‰tage > 600 mÂ²"?100_000:0
             """
         };
 
         yield return new TaxRule
         {
             Key = "TFPB",
-            Label = "TAXE FONCIÈRE SUR PROPRIÉTÉS BÂTIES",
+            Label = "TAXE FONCIÃˆRE SUR PROPRIÃ‰TÃ‰S BÃ‚TIES",
             Description = "Taux proportionnel annuel de 7,5 % sur la valeur locative.",
             ValidFrom = default,
             Expression = """
-            [RealEstateType]=="Propriété Bâtie"?[LocativeValue]*7.5/100:0
+            [RealEstateType]=="PropriÃ©tÃ© BÃ¢tie"?[LocativeValue]*7.5/100:0
             """
         };
 
         yield return new TaxRule
         {
             Key = "TFPNB",
-            Label = "TAXE FONCIÈRE SUR PROPRIÉTÉS NON BÂTIES",
-            Description = "Taux proportionnel annuel de 0,5 % sur la valeur vénale du terrain.",
+            Label = "TAXE FONCIÃˆRE SUR PROPRIÃ‰TÃ‰S NON BÃ‚TIES",
+            Description = "Taux proportionnel annuel de 0,5 % sur la valeur vÃ©nale du terrain.",
             ValidFrom = default,
             Expression = """
-            [RealEstateType]=="Propriété Non Bâtie"?[ResidualValue]*0.5/100:0
+            [RealEstateType]=="PropriÃ©tÃ© Non BÃ¢tie"?[ResidualValue]*0.5/100:0
             """
         };
 
         yield return new TaxRule
         {
             Key = "IRF",
-            Label = "IMPÔT SUR LE REVENU FONCIER",
-            Description = "Barème progressif IRPP appliqué au revenu net foncier.",
+            Label = "IMPÃ”T SUR LE REVENU FONCIER",
+            Description = "BarÃ¨me progressif IRPP appliquÃ© au revenu net foncier.",
             Expression = BuildIrppScaleExpression("NetRentalIncome")
         };
 
@@ -172,7 +172,7 @@ public static class DefaultAssetTypes
         {
             Key = "RSL",
             Label = "RETENUE SUR LOYER",
-            Description = "Taxe proportionnelle de 8,75 % sur les loyers perçus.",
+            Description = "Taxe proportionnelle de 8,75 % sur les loyers perÃ§us.",
             Expression = """
             [AnnualRent]*8.75/100
             """
@@ -181,7 +181,7 @@ public static class DefaultAssetTypes
 
     private static AssetType CreateTransportOperatorAssetType()
     {
-        var transport = AssetType.Create("Transport Operators", "Exploitants assujettis à la TPU-TR");
+        var transport = AssetType.Create("Transport Operators", "Exploitants assujettis Ã  la TPU-TR");
 
         foreach (var attr in TransportOperatorAttributes())
             transport.AddExpectedAttribute(attr);
@@ -210,8 +210,8 @@ public static class DefaultAssetTypes
             }
         });
         yield return AttributeDefinition.Create("VehicleTonnage", "Tonnage (en tonnes)", AttributeDataType.Number);
-        yield return AttributeDefinition.Create("VehicleAgeYears", "Âge du véhicule (années)", AttributeDataType.Number);
-        yield return AttributeDefinition.Create("SeatCount", "Nombre de sièges", AttributeDataType.Number);
+        yield return AttributeDefinition.Create("VehicleAgeYears", "Ã‚ge du vÃ©hicule (annÃ©es)", AttributeDataType.Number);
+        yield return AttributeDefinition.Create("SeatCount", "Nombre de siÃ¨ges", AttributeDataType.Number);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "OperationZone",
@@ -230,8 +230,8 @@ public static class DefaultAssetTypes
         var rule = new TaxRule
         {
             Key = "TPU_TR",
-            Label = "TPU – Transporteurs routiers",
-            Description = "Taxe forfaitaire quadrimestrielle basée sur tonnage, sièges, âge et zone.",
+            Label = "TPU â€“ Transporteurs routiers",
+            Description = "Taxe forfaitaire quadrimestrielle basÃ©e sur tonnage, siÃ¨ges, Ã¢ge et zone.",
             Expression = """
             [TransportActivity]=="Transport de sable et gravats"?
                 ([VehicleTonnage]<=10?9_000:[VehicleTonnage]<=20?11_000:13_500):
@@ -293,7 +293,7 @@ public static class DefaultAssetTypes
 
     private static AssetType CreateEconomicActivityAssetType()
     {
-        var activity = AssetType.Create("Economic Activity", "Activités économiques soumises à la TPU");
+        var activity = AssetType.Create("Economic Activity", "ActivitÃ©s Ã©conomiques soumises Ã  la TPU");
 
         foreach (var attr in EconomicActivityAttributes())
             activity.AddExpectedAttribute(attr);
@@ -310,21 +310,21 @@ public static class DefaultAssetTypes
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "ActivityNature",
-            Label = "Nature de l'activité",
+            Label = "Nature de l'activitÃ©",
             Items =
             {
                 new EnumItem { Code = "COM", Label = "Commerce", Order = 1 },
                 new EnumItem { Code = "SRV", Label = "Services", Order = 2 },
                 new EnumItem { Code = "ART", Label = "Artisan", Order = 3 },
                 new EnumItem { Code = "AMB", Label = "Ambulant", Order = 4 },
-                new EnumItem { Code = "ELV", Label = "Eleveur", Order = 5 }
+                new EnumItem { Code = "ELV", Label = "Ã‰leveur", Order = 5 }
             }
         });
-        yield return AttributeDefinition.Create("UsesMechanicalMeans", "Utilise des moyens mécaniques", AttributeDataType.Boolean);
+        yield return AttributeDefinition.Create("UsesMechanicalMeans", "Utilise des moyens mÃ©caniques", AttributeDataType.Boolean);
         yield return AttributeDefinition.Create(new EnumDefinition
         {
             Key = "LocationCategory",
-            Label = "Catégorie de localisation",
+            Label = "CatÃ©gorie de localisation",
             Items =
             {
                 new EnumItem { Code = "URB", Label = "Urbain", Order = 1 },
@@ -332,7 +332,7 @@ public static class DefaultAssetTypes
                 new EnumItem { Code = "RUR", Label = "Rural", Order = 3 }
             }
         }, false);
-        yield return AttributeDefinition.Create("HasFranchise", "Bénéficie d'une franchise", AttributeDataType.Boolean);
+        yield return AttributeDefinition.Create("HasFranchise", "BÃ©nÃ©ficie d'une franchise", AttributeDataType.Boolean);
     }
 
     private static IEnumerable<TaxRule> EconomicActivityTaxRules()
@@ -340,8 +340,8 @@ public static class DefaultAssetTypes
         yield return new TaxRule
         {
             Key = "TPU_ECO",
-            Label = "TPU – Activités économiques",
-            Description = "Barème forfaitaire commerce/services et montants différenciés artisans/ambulants.",
+            Label = "TPU â€“ ActivitÃ©s Ã©conomiques",
+            Description = "BarÃ¨me forfaitaire commerce/services et montants diffÃ©renciÃ©s artisans/ambulants.",
             Expression = """
             [HasFranchise]==true?0:
             [ActivityNature]=="Commerce"?
@@ -406,7 +406,7 @@ public static class DefaultAssetTypes
 
     private static AssetType CreatePersonalIncomeAssetType()
     {
-        var income = AssetType.Create("Household Income", "Impôts personnels IRF/IRTS/IRPRV/IRCM/IRGM", LiquidationMode.Grouped);
+        var income = AssetType.Create("Household Income", "ImpÃ´ts personnels IRF/IRTS/IRPRV/IRCM/IRGM", LiquidationMode.Grouped);
 
         foreach (var attr in PersonalIncomeAttributes())
             income.AddExpectedAttribute(attr);
@@ -422,7 +422,7 @@ public static class DefaultAssetTypes
         yield return AttributeDefinition.Create("AnnualGlobalIncome", "Revenu global annuel", AttributeDataType.Number);
         yield return AttributeDefinition.Create("PensionAmount", "Pensions et rentes", AttributeDataType.Number);
         yield return AttributeDefinition.Create("CapitalIncomeAmount", "Revenus de capitaux mobiliers", AttributeDataType.Number);
-        yield return AttributeDefinition.Create("ManagerRemuneration", "Rémunérations de gérance", AttributeDataType.Number);
+        yield return AttributeDefinition.Create("ManagerRemuneration", "RÃ©munÃ©rations de gÃ©rance", AttributeDataType.Number);
     }
 
     private static IEnumerable<TaxRule> PersonalIncomeTaxRules()
@@ -430,8 +430,8 @@ public static class DefaultAssetTypes
         yield return new TaxRule
         {
             Key = "IRPRV",
-            Label = "IMPÔT SUR PENSIONS ET RENTES",
-            Description = "Tranches 2,4-3,6M à 25 %, au-delà 50 %.",
+            Label = "IMPÃ”T SUR PENSIONS ET RENTES",
+            Description = "Tranches 2,4-3,6M Ã  25 %, au-delÃ  50 %.",
             Expression = """
             [PensionAmount]<=2_400_000?0:
             [PensionAmount]<=3_600_000?([PensionAmount]-2_400_000)*0.25:
@@ -443,15 +443,15 @@ public static class DefaultAssetTypes
         {
             Key = "IRTS",
             Label = "IR SUR TRAITEMENTS ET SALAIRES",
-            Description = "Barème IRPP sur le revenu global.",
+            Description = "BarÃ¨me IRPP sur le revenu global.",
             Expression = BuildIrppScaleExpression("AnnualGlobalIncome")
         };
 
         yield return new TaxRule
         {
             Key = "IRCM",
-            Label = "IMPÔT SUR REVENUS DE CAPITAUX MOBILIERS",
-            Description = "Taxe proportionnelle de 15 % sur les revenus agrégés.",
+            Label = "IMPÃ”T SUR REVENUS DE CAPITAUX MOBILIERS",
+            Description = "Taxe proportionnelle de 15 % sur les revenus agrÃ©gÃ©s.",
             Expression = """
             [CapitalIncomeAmount]*0.15
             """
@@ -460,8 +460,8 @@ public static class DefaultAssetTypes
         yield return new TaxRule
         {
             Key = "IRGM",
-            Label = "IMPÔT SUR REVENUS DE GÉRANTS",
-            Description = "Taxe proportionnelle de 10 % sur les rémunérations des gérants/associés.",
+            Label = "IMPÃ”T SUR REVENUS DE GÃ‰RANTS",
+            Description = "Taxe proportionnelle de 10 % sur les rÃ©munÃ©rations des gÃ©rants/associÃ©s.",
             Expression = """
             [ManagerRemuneration]*0.10
             """
@@ -470,7 +470,7 @@ public static class DefaultAssetTypes
 
     private static AssetType CreatePenaltyAssetType()
     {
-        var penalties = AssetType.Create("Recovery Penalties", "Pénalité de recouvrement (PENAR)");
+        var penalties = AssetType.Create("Recovery Penalties", "PÃ©nalitÃ© de recouvrement (PENAR)");
 
         foreach (var attr in PenaltyAttributes())
             penalties.AddExpectedAttribute(attr);
@@ -491,7 +491,7 @@ public static class DefaultAssetTypes
         yield return new TaxRule
         {
             Key = "PENAR",
-            Label = "PÉNALITÉ DE RECOUVREMENT",
+            Label = "PÃ‰NALITÃ‰ DE RECOUVREMENT",
             Description = "Taux proportionnel de 10 % avec plancher 1 000.",
             Expression = """
             ([OutstandingTaxAmount]*0.10)<1_000?1_000:[OutstandingTaxAmount]*0.10

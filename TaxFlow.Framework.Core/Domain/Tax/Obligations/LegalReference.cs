@@ -141,12 +141,12 @@ public enum LegalTextType
     Law = 1,
 
     /// <summary>
-    /// Decree (Décret).
+    /// Decree (DÃ©cret).
     /// </summary>
     Decree = 2,
 
     /// <summary>
-    /// Order (Arrêté).
+    /// Order (ArrÃªtÃ©).
     /// </summary>
     Order = 3,
 
@@ -161,7 +161,7 @@ public enum LegalTextType
     Instruction = 5,
 
     /// <summary>
-    /// Tax Code (Code Général des Impôts).
+    /// Tax Code (Code GÃ©nÃ©ral des ImpÃ´ts).
     /// </summary>
     TaxCode = 6,
 
@@ -171,7 +171,7 @@ public enum LegalTextType
     FinanceLaw = 7,
 
     /// <summary>
-    /// Regulation (Règlement).
+    /// Regulation (RÃ¨glement).
     /// </summary>
     Regulation = 8,
 

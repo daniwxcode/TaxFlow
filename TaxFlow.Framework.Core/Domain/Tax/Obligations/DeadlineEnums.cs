@@ -93,12 +93,12 @@ public enum PaymentType
     Installment = 2,
 
     /// <summary>
-    /// Balance payment (solde de régularisation).
+    /// Balance payment (solde de rÃ©gularisation).
     /// </summary>
     Balance = 3,
 
     /// <summary>
-    /// Withholding payment (retenue à la source).
+    /// Withholding payment (retenue Ã  la source).
     /// </summary>
     Withholding = 4
 }

@@ -25,7 +25,7 @@ public sealed class PaymentDeadline : TaxDeadline
 
     /// <summary>
     /// Penalty definition applied when this payment deadline is missed.
-    /// This typically represents "pénalité de recouvrement" for late payment.
+    /// This typically represents "pÃ©nalitÃ© de recouvrement" for late payment.
     /// </summary>
     public PenaltyDefinition? PenaltyDefinition { get; private set; }
 

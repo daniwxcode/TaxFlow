@@ -1,5 +1,6 @@
 ﻿using Core.Domain.Contracts.Abstracts;
 using Core.Domain.Enums;
+using Core.Domain.Localization;
 
 using System.Text.RegularExpressions;
 
@@ -24,6 +25,51 @@ public class EnumDefinition : AuditableEntity
     /// Items that belong to this enumeration.
     /// </summary>
     public ICollection<EnumItem> Items { get; internal set; } = new List<EnumItem>();
+
+    /// <summary>
+    /// Creates a new enum item.
+    /// </summary>
+    public static EnumItem CreateItem(string code, string label, int order = 0)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException(ExceptionMessages.EnumItemCodeCannotBeEmpty.Format(), nameof(code));
+        if (string.IsNullOrWhiteSpace(label))
+            throw new ArgumentException(ExceptionMessages.EnumItemLabelCannotBeEmpty.Format(), nameof(label));
+
+        return new EnumItem
+        {
+            Code = code.Trim(),
+            Label = label.Trim(),
+            Order = order
+        };
+    }
+
+    /// <summary>
+    /// Creates a new enum definition with items.
+    /// </summary>
+    public static EnumDefinition Create(string key, string label, IEnumerable<EnumItem> items)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException(ExceptionMessages.EnumDefinitionKeyCannotBeEmpty.Format(), nameof(key));
+        if (string.IsNullOrWhiteSpace(label))
+            throw new ArgumentException(ExceptionMessages.EnumDefinitionLabelCannotBeEmpty.Format(), nameof(label));
+        ArgumentNullException.ThrowIfNull(items);
+
+        var definition = new EnumDefinition
+        {
+            Key = key.Trim(),
+            Label = label.Trim()
+        };
+
+        foreach (var item in items)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            item.EnumDefinition = definition;
+            definition.Items.Add(item);
+        }
+
+        return definition;
+    }
 
     /// <summary>
     /// Construit une regex basée sur les labels des items d'énumération.
