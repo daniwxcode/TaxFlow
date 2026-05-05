@@ -1,6 +1,7 @@
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 using Core.Domain.Tax.Assets;
+using Core.Domain.Tax.Calculation;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -37,20 +38,20 @@ internal sealed class AssetTypeConfiguration : IEntityTypeConfiguration<AssetTyp
         builder.ConfigureAuditable();
         builder.ConfigureSoftDelete();
 
-        builder.HasMany<AttributeDefinition>("_expectedAttributes")
+        builder.HasMany(a => a.ExpectedAttributes)
             .WithOne()
             .HasForeignKey("asset_type_id")
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany<TaxRule>("_taxRules")
+        builder.HasMany(a => a.TaxRules)
             .WithOne()
             .HasForeignKey("asset_type_id")
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Metadata.FindNavigation("_expectedAttributes")
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(a => a.ExpectedAttributes)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.Metadata.FindNavigation("_taxRules")
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(a => a.TaxRules)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

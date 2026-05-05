@@ -47,7 +47,7 @@ internal sealed class TaxRuleConfiguration : IEntityTypeConfiguration<TaxRule>
         builder.ConfigureAuditable();
         builder.ConfigureTemporal();
 
-        builder.HasIndex("asset_type_id", "key")
+        builder.HasIndex("asset_type_id", nameof(TaxRule.Key))
             .IsUnique()
             .HasDatabaseName("ux_tax_rules_asset_key");
 

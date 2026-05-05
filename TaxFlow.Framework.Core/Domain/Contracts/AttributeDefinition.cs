@@ -27,7 +27,7 @@ public class EnumItem : AuditableEntity
     /// <summary>
     /// Foreign key to the owning <see cref="EnumDefinition"/> - used by persistence.
     /// </summary>
-    public int EnumDefinitionId { get; internal set; }
+    public Guid EnumDefinitionId { get; internal set; }
 
     /// <summary>
     /// Navigation property to the owning <see cref="EnumDefinition"/>.
@@ -63,7 +63,7 @@ public class AttributeDefinition : AuditableEntity
     /// <summary>
     /// Optional foreign key to an enum definition when DataType is Enum.
     /// </summary>
-    public int? EnumDefinitionId { get; internal set; }
+    public Guid? EnumDefinitionId { get; internal set; }
 
     /// <summary>
     /// Optional navigation to the enum definition when DataType is Enum.

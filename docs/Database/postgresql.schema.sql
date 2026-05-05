@@ -122,8 +122,7 @@ CREATE TABLE IF NOT EXISTS declaration_deadlines (
     requires_documents boolean NOT NULL,
     form_reference varchar(500),
 
-    grace_value int NOT NULL,
-    grace_unit int NOT NULL,
+    grace_period jsonb NOT NULL,
 
     penalty_type int,
     penalty_trigger_event int,
@@ -134,10 +133,8 @@ CREATE TABLE IF NOT EXISTS declaration_deadlines (
     penalty_cap numeric(18,2),
     penalty_minimum numeric(18,2),
     penalty_capitalize boolean,
-    penalty_grace_value int,
-    penalty_grace_unit int,
-    penalty_period_value int,
-    penalty_period_unit int,
+    penalty_grace_period jsonb,
+    penalty_period jsonb,
 
     created timestamptz NOT NULL,
     created_by uuid NOT NULL,
@@ -169,8 +166,7 @@ CREATE TABLE IF NOT EXISTS payment_deadlines (
     minimum_payment numeric(18,2),
     fixed_amount numeric(18,2),
 
-    grace_value int NOT NULL,
-    grace_unit int NOT NULL,
+    grace_period jsonb NOT NULL,
 
     penalty_type int,
     penalty_trigger_event int,
@@ -181,10 +177,8 @@ CREATE TABLE IF NOT EXISTS payment_deadlines (
     penalty_cap numeric(18,2),
     penalty_minimum numeric(18,2),
     penalty_capitalize boolean,
-    penalty_grace_value int,
-    penalty_grace_unit int,
-    penalty_period_value int,
-    penalty_period_unit int,
+    penalty_grace_period jsonb,
+    penalty_period jsonb,
 
     created timestamptz NOT NULL,
     created_by uuid NOT NULL,

@@ -34,27 +34,27 @@ internal sealed class TaxObligationScheduleConfiguration : IEntityTypeConfigurat
 
         builder.ConfigureAuditable();
 
-        builder.HasMany<DeclarationDeadline>("_declarationDeadlines")
+        builder.HasMany(s => s.DeclarationDeadlines)
             .WithOne()
             .HasForeignKey("schedule_id")
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany<PaymentDeadline>("_paymentDeadlines")
+        builder.HasMany(s => s.PaymentDeadlines)
             .WithOne()
             .HasForeignKey("schedule_id")
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Metadata.FindNavigation("_declarationDeadlines")
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(s => s.DeclarationDeadlines)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.Metadata.FindNavigation("_paymentDeadlines")
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(s => s.PaymentDeadlines)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasMany<LegalReference>("_legalReferences")
+        builder.HasMany(s => s.LegalReferences)
             .WithMany()
             .UsingEntity(j => j.ToTable("tax_obligation_schedule_legal_references"));
 
-        builder.Metadata.FindNavigation("_legalReferences")
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(s => s.LegalReferences)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

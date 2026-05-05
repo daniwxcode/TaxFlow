@@ -3,6 +3,9 @@
   <Folder Name="/src/Framework/">
     <Project Path="TaxFlow.Framework.Core/Core.csproj" Id="32c3924b-fb53-4dd5-8cf5-cb7339c412f7" />
   </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="TaxFlow.Infrastructure/TaxFlow.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="TaxFlow.Framework.Core.Tests/TaxFlow.Framework.Core.Tests.csproj" />
   </Folder>

@@ -105,16 +105,11 @@ internal sealed class PaymentDeadlineConfiguration : IEntityTypeConfiguration<Pa
             .HasConversion(LocalizedStringConversion.JsonConverter)
             .Metadata.SetValueComparer(LocalizedStringConversion.JsonComparer);
 
-        builder.OwnsOne(d => d.GracePeriod, gp =>
-        {
-            gp.Property(p => p.Value)
-                .HasColumnName("grace_value")
-                .IsRequired();
-            gp.Property(p => p.Unit)
-                .HasColumnName("grace_unit")
-                .HasConversion<int>()
-                .IsRequired();
-        });
+        builder.Property(d => d.GracePeriod)
+            .HasColumnName("grace_period")
+            .HasColumnType("jsonb")
+            .HasConversion(DurationConversion.JsonConverter)
+            .Metadata.SetValueComparer(DurationConversion.JsonComparer);
 
         builder.OwnsOne(d => d.PenaltyDefinition, pd =>
         {
@@ -139,23 +134,17 @@ internal sealed class PaymentDeadlineConfiguration : IEntityTypeConfiguration<Pa
             pd.Property(p => p.Capitalize)
                 .HasColumnName("penalty_capitalize");
 
-            pd.OwnsOne(p => p.GracePeriod, g =>
-            {
-                g.Property(x => x.Value)
-                    .HasColumnName("penalty_grace_value");
-                g.Property(x => x.Unit)
-                    .HasColumnName("penalty_grace_unit")
-                    .HasConversion<int>();
-            });
+            pd.Property(p => p.GracePeriod)
+                .HasColumnName("penalty_grace_period")
+                .HasColumnType("jsonb")
+                .HasConversion(DurationConversion.JsonConverter)
+                .Metadata.SetValueComparer(DurationConversion.JsonComparer);
 
-            pd.OwnsOne(p => p.Period, p =>
-            {
-                p.Property(x => x.Value)
-                    .HasColumnName("penalty_period_value");
-                p.Property(x => x.Unit)
-                    .HasColumnName("penalty_period_unit")
-                    .HasConversion<int>();
-            });
+            pd.Property(p => p.Period)
+                .HasColumnName("penalty_period")
+                .HasColumnType("jsonb")
+                .HasConversion(DurationConversion.JsonConverter)
+                .Metadata.SetValueComparer(DurationConversion.JsonComparer);
         });
 
         builder.Navigation(d => d.PenaltyDefinition)
@@ -163,11 +152,11 @@ internal sealed class PaymentDeadlineConfiguration : IEntityTypeConfiguration<Pa
 
         builder.ConfigureAuditable();
 
-        builder.HasMany<LegalReference>("_legalReferences")
+        builder.HasMany(d => d.LegalReferences)
             .WithMany()
             .UsingEntity(j => j.ToTable("payment_deadline_legal_references"));
 
-        builder.Metadata.FindNavigation("_legalReferences")
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(d => d.LegalReferences)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

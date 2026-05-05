@@ -30,7 +30,9 @@ internal sealed class AttributeDefinitionConfiguration : IEntityTypeConfiguratio
 
         builder.Property(a => a.DataType)
             .HasColumnName("data_type")
-            .HasConversion<int>()
+            .HasConversion(
+                value => value.Value,
+                value => AttributeDataType.FromValue(value))
             .IsRequired();
 
         builder.Property(a => a.IsRequired)
@@ -53,7 +55,7 @@ internal sealed class AttributeDefinitionConfiguration : IEntityTypeConfiguratio
             .HasForeignKey(a => a.EnumDefinitionId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex("asset_type_id", "key")
+        builder.HasIndex("asset_type_id", nameof(AttributeDefinition.Key))
             .IsUnique()
             .HasDatabaseName("ux_attribute_definitions_asset_key");
 

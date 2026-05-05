@@ -22,7 +22,7 @@ internal static class LocalizedStringConversion
 
     internal static readonly ValueComparer<LocalizedString?> JsonComparer = new(
         (left, right) => string.Equals(Serialize(left), Serialize(right), StringComparison.Ordinal),
-        value => Serialize(value)?.GetHashCode(StringComparison.Ordinal) ?? 0,
+        value => GetHash(value),
         value => Deserialize(Serialize(value)));
 
     private static string? Serialize(LocalizedString? value)
@@ -36,6 +36,12 @@ internal static class LocalizedStringConversion
         };
 
         return JsonSerializer.Serialize(payload, JsonOptions);
+    }
+
+    private static int GetHash(LocalizedString? value)
+    {
+        var json = Serialize(value);
+        return json is null ? 0 : StringComparer.Ordinal.GetHashCode(json);
     }
 
     private static LocalizedString? Deserialize(string? json)

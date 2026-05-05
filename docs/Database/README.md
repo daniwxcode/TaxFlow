@@ -20,7 +20,7 @@ Le fichier [postgresql.schema.sql](postgresql.schema.sql) fournit :
 ## Notes de mapping
 
 - Les champs d’audit sont présents sur toutes les entités.
-- Les durées (`Duration`) sont stockées via deux colonnes : `*_value` et `*_unit`.
+- Les durées (`Duration`) sont stockées en `jsonb` (ex: `grace_period`, `penalty_period`).
 - Les pénalités sont stockées dans les colonnes `penalty_*` des tables d’échéances.
 - Les traductions (`LocalizedString`) sont stockées en `jsonb` (ex: `localized_label`, `localized_description`).
 
