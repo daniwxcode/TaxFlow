@@ -69,7 +69,8 @@ public static class FormParameterEndpoints
             {
                 var code = value.ToString();
                 var label = ToLabel(code);
-                return new FormParamDto(code, label);
+                var numericValue = Convert.ToInt32(value);
+                return new FormParamDto(code, label, numericValue);
             })
             .ToList();
     }
@@ -86,7 +87,7 @@ public static class FormParameterEndpoints
     private static IReadOnlyList<FormParamDto> ToAttributeDataTypes()
     {
         return AttributeDataType.List
-            .Select(item => new FormParamDto(item.Name, ToLabel(item.Name)))
+            .Select(item => new FormParamDto(item.Name, ToLabel(item.Name), item.Value))
             .ToList();
     }
 }

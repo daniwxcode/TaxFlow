@@ -28,6 +28,11 @@ public class TaxableAsset : ExtendedTemporalSoftAuditableEntity
     public Guid AssetTypeId { get; private set; }
 
     /// <summary>
+    /// Optional external identifier or business key for the asset.
+    /// </summary>
+    public string? ExternalId { get; private set; }
+
+    /// <summary>
     /// Protected parameterless constructor for EF Core and infrastructure.
     /// </summary>
     protected TaxableAsset() { }
@@ -49,6 +54,14 @@ public class TaxableAsset : ExtendedTemporalSoftAuditableEntity
             AssetTypeId = assetType.Id,
             _attributes = attributes.ToList()
         };
+    }
+
+    /// <summary>
+    /// Set or clear the external identifier for this asset.
+    /// </summary>
+    public void SetExternalId(string? externalId)
+    {
+        ExternalId = string.IsNullOrWhiteSpace(externalId) ? null : externalId.Trim();
     }
 
     #region Tax Calculation

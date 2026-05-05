@@ -19,6 +19,8 @@ public sealed class TaxFlowDbContext : DbContext
     public DbSet<AttributeDefinition> AttributeDefinitions => Set<AttributeDefinition>();
     public DbSet<EnumDefinition> EnumDefinitions => Set<EnumDefinition>();
     public DbSet<EnumItem> EnumItems => Set<EnumItem>();
+    public DbSet<TaxableAsset> TaxableAssets => Set<TaxableAsset>();
+    public DbSet<ExtendedAttribute> ExtendedAttributes => Set<ExtendedAttribute>();
     public DbSet<TaxRule> TaxRules => Set<TaxRule>();
     public DbSet<TaxObligationSchedule> TaxObligationSchedules => Set<TaxObligationSchedule>();
     public DbSet<DeclarationDeadline> DeclarationDeadlines => Set<DeclarationDeadline>();
@@ -31,6 +33,8 @@ public sealed class TaxFlowDbContext : DbContext
         modelBuilder.ApplyConfiguration(new AttributeDefinitionConfiguration());
         modelBuilder.ApplyConfiguration(new EnumDefinitionConfiguration());
         modelBuilder.ApplyConfiguration(new EnumItemConfiguration());
+        modelBuilder.ApplyConfiguration(new TaxableAssetConfiguration());
+        modelBuilder.ApplyConfiguration(new ExtendedAttributeConfiguration());
         modelBuilder.ApplyConfiguration(new TaxRuleConfiguration());
         modelBuilder.ApplyConfiguration(new TaxObligationScheduleConfiguration());
         modelBuilder.ApplyConfiguration(new DeclarationDeadlineConfiguration());

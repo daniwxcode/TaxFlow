@@ -54,6 +54,40 @@ public static class AssetTypeEndpoints
                 : Results.Ok(MapAssetTypeDetail(assetType));
         });
 
+        group.MapGet("/{id:guid}/asset-model", async (Guid id, TaxFlowDbContext db, CancellationToken cancellationToken) =>
+        {
+            var model = await db.AssetTypes
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Where(a => a.Id == id)
+                .Select(a => new AssetCreationModelDto(
+                    a.Id,
+                    a.Name,
+                    a.Description,
+                    a.LiquidationMode,
+                    a.ExpectedAttributes
+                        .OrderBy(attr => attr.Key)
+                        .Select(attr => new AssetAttributeFieldDto(
+                            attr.Key,
+                            attr.Label,
+                            attr.DataType,
+                            attr.IsRequired,
+                            attr.RegexPattern,
+                            attr.EnumDefinition == null
+                                ? null
+                                : new EnumDefinitionDto(
+                                    attr.EnumDefinition.Key,
+                                    attr.EnumDefinition.Label,
+                                    attr.EnumDefinition.Items
+                                        .OrderBy(item => item.Order)
+                                        .Select(item => new EnumItemDto(item.Code, item.Label, item.Order))
+                                        .ToList())))
+                        .ToList()))
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return model is null ? Results.NotFound() : Results.Ok(model);
+        });
+
         group.MapPost("/", async (CreateAssetTypeRequest request, TaxFlowDbContext db, CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(request.Name))
@@ -66,6 +100,124 @@ public static class AssetTypeEndpoints
 
             var dto = new AssetTypeDto(assetType.Id, assetType.Name, assetType.Description, assetType.LiquidationMode);
             return Results.Created($"/asset-types/{assetType.Id}", dto);
+        });
+
+        group.MapPost("/{id:guid}/assets", async (Guid id, CreateTaxableAssetRequest request, TaxFlowDbContext db, CancellationToken cancellationToken) =>
+        {
+            if (request.Attributes is null)
+                return Results.BadRequest(new { error = "Attributes are required (can be empty)." });
+
+            var assetType = await db.AssetTypes
+                .Include(a => a.ExpectedAttributes)
+                    .ThenInclude(a => a.EnumDefinition)
+                        .ThenInclude(e => e!.Items)
+                .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+
+            if (assetType is null)
+                return Results.NotFound();
+
+            var attributeList = request.Attributes
+                .Where(a => a is not null)
+                .ToList();
+
+            var duplicateKeys = attributeList
+                .Where(a => !string.IsNullOrWhiteSpace(a.Key))
+                .GroupBy(a => a.Key.Trim(), StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicateKeys.Count > 0)
+            {
+                return Results.BadRequest(new
+                {
+                    errors = duplicateKeys.Select(k => new
+                    {
+                        Code = "DUPLICATE_ATTRIBUTE",
+                        Message = $"Duplicate attribute '{k}'.",
+                        PropertyName = k
+                    })
+                });
+            }
+
+            var expectedByKey = assetType.ExpectedAttributes
+                .ToDictionary(a => a.Key, StringComparer.OrdinalIgnoreCase);
+
+            var unexpectedKeys = attributeList
+                .Select(a => a.Key?.Trim())
+                .Where(k => !string.IsNullOrWhiteSpace(k))
+                .Where(k => !expectedByKey.ContainsKey(k!))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (unexpectedKeys.Count > 0)
+            {
+                return Results.BadRequest(new
+                {
+                    errors = unexpectedKeys.Select(k => new
+                    {
+                        Code = "UNEXPECTED_ATTRIBUTE",
+                        Message = $"Unexpected attribute '{k}'.",
+                        PropertyName = k
+                    })
+                });
+            }
+
+            var attributes = new List<ExtendedAttribute>();
+            foreach (var attribute in attributeList)
+            {
+                if (string.IsNullOrWhiteSpace(attribute.Key))
+                    continue;
+
+                if (!expectedByKey.TryGetValue(attribute.Key.Trim(), out var expected))
+                    continue;
+
+                var attr = ExtendedAttribute.Create(
+                    expected.Key,
+                    attribute.Value ?? string.Empty,
+                    expected.DataType,
+                    expected.IsRequired,
+                    attribute.ValidFrom,
+                    attribute.ValidTo);
+
+                attributes.Add(attr);
+            }
+
+            var validation = assetType.ValidateAttributesResult(attributes);
+            if (validation.HasErrors)
+            {
+                return Results.BadRequest(new
+                {
+                    errors = validation.Errors.Select(e => new { e.Code, e.Message, e.PropertyName })
+                });
+            }
+
+            var asset = TaxableAsset.Create(assetType, new System.Collections.ObjectModel.Collection<ExtendedAttribute>(attributes));
+            asset.SetExternalId(request.ExternalId);
+            asset.ValidFrom = request.ValidFrom ?? DateTimeOffset.UtcNow;
+            asset.ValidTo = request.ValidTo;
+
+            db.TaxableAssets.Add(asset);
+            await db.SaveChangesAsync(cancellationToken);
+
+            return Results.Created($"/asset-types/{id}/assets/{asset.Id}", MapTaxableAsset(asset));
+        });
+
+        group.MapGet("/{id:guid}/assets/by-external/{externalId}", async (Guid id, string externalId, TaxFlowDbContext db, CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(externalId))
+                return Results.BadRequest(new { error = "ExternalId is required." });
+
+            var normalized = externalId.Trim().ToLowerInvariant();
+
+            var asset = await db.TaxableAssets
+                .AsNoTracking()
+                .Include(a => a.Attributes)
+                .Where(a => a.AssetTypeId == id)
+                .Where(a => a.ExternalId != null && a.ExternalId.ToLower() == normalized)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return asset is null ? Results.NotFound() : Results.Ok(MapTaxableAsset(asset));
         });
 
         group.MapPut("/{id:guid}", async (Guid id, UpdateAssetTypeRequest request, TaxFlowDbContext db, CancellationToken cancellationToken) =>
@@ -552,6 +704,28 @@ public static class AssetTypeEndpoints
             rule.Expression,
             rule.Description,
             rule.Enabled);
+    }
+
+    private static TaxableAssetDto MapTaxableAsset(TaxableAsset asset)
+    {
+        var attributes = asset.Attributes
+            .OrderBy(a => a.Key)
+            .Select(a => new TaxableAssetAttributeDto(
+                a.Key,
+                a.Value,
+                a.DataType,
+                a.IsRequired,
+                a.ValidFrom,
+                a.ValidTo))
+            .ToList();
+
+        return new TaxableAssetDto(
+            asset.Id,
+            asset.AssetTypeId,
+            asset.ExternalId,
+            asset.ValidFrom,
+            asset.ValidTo,
+            attributes);
     }
 
     private static TaxObligationScheduleDto MapSchedule(TaxObligationSchedule schedule)

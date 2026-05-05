@@ -1,3 +1,3 @@
 namespace TaxFlow.Api.Features.FormParameters;
 
-public sealed record FormParamDto(string Code, string Label);
+public sealed record FormParamDto(string Code, string Label, int Value);

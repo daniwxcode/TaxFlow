@@ -256,6 +256,171 @@ namespace TaxFlow.Infrastructure.Persistence.Migrations
                     b.ToTable("asset_types", (string)null);
                 });
 
+            modelBuilder.Entity("Core.Domain.Tax.Assets.TaxableAsset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AssetTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("asset_type_id");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_id");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<DateTimeOffset?>("LastDeletedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_deleted_on");
+
+                    b.Property<Guid?>("LastDeletedby")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_deleted_by");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<DateTimeOffset?>("LastRecovered")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_recovered");
+
+                    b.Property<Guid?>("LastRecoveredBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_recovered_by");
+
+                    b.Property<DateTimeOffset>("ValidFrom")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_from");
+
+                    b.Property<DateTimeOffset?>("ValidTo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_to");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetTypeId")
+                        .HasDatabaseName("ix_taxable_assets_asset_type_id");
+
+                    b.HasIndex("ExternalId")
+                        .HasDatabaseName("ix_taxable_assets_external_id");
+
+                    b.ToTable("taxable_assets", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Domain.Contracts.ExtendedAttribute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("DataTypeValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("data_type");
+
+                    b.Property<DateTimeOffset?>("Deleted")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_required");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset?>("LastDeletedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_deleted_on");
+
+                    b.Property<Guid?>("LastDeletedby")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_deleted_by");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<DateTimeOffset?>("LastRecovered")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_recovered");
+
+                    b.Property<Guid?>("LastRecoveredBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("last_recovered_by");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("value");
+
+                    b.Property<DateTimeOffset>("ValidFrom")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_from");
+
+                    b.Property<DateTimeOffset?>("ValidTo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_to");
+
+                    b.Property<Guid>("asset_id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("asset_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("asset_id")
+                        .HasDatabaseName("ix_extended_attributes_asset_id");
+
+                    b.HasIndex("Key")
+                        .HasDatabaseName("ix_extended_attributes_key");
+
+                    b.ToTable("extended_attributes", (string)null);
+                });
+
             modelBuilder.Entity("Core.Domain.Tax.Calculation.TaxRule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -748,6 +913,26 @@ namespace TaxFlow.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("EnumDefinition");
+                });
+
+            modelBuilder.Entity("Core.Domain.Tax.Assets.TaxableAsset", b =>
+                {
+                    b.HasOne("Core.Domain.Tax.Assets.AssetType", "AssetType")
+                        .WithMany()
+                        .HasForeignKey("AssetTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssetType");
+                });
+
+            modelBuilder.Entity("Core.Domain.Contracts.ExtendedAttribute", b =>
+                {
+                    b.HasOne("Core.Domain.Tax.Assets.TaxableAsset", null)
+                        .WithMany("Attributes")
+                        .HasForeignKey("asset_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Core.Domain.Tax.Calculation.TaxRule", b =>
