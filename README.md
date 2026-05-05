@@ -3,17 +3,17 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Framework de gestion fiscale flexible et extensible pour le calcul des taxes, la gestion des ÈchÈances et le calcul des pÈnalitÈs.
+Framework de gestion fiscale flexible et extensible pour le calcul des taxes, la gestion des √©ch√©ances et le calcul des p√©nalit√©s.
 
-## ?? FonctionnalitÈs
+## ‚ú® Fonctionnalit√©s
 
-- **?? Calcul de Taxes Dynamique** : Expressions NCalc pour des rËgles fiscales flexibles
-- **?? Gestion des …chÈances** : Deadlines de dÈclaration et de paiement avec pÈriodes de gr‚ce
-- **?? Calcul des PÈnalitÈs** : PÈnalitÈs d'assiette et de recouvrement avec taux progressifs
-- **? Validation Riche** : RÈsultats de validation structurÈs avec codes d'erreur
-- **?? Extensible** : Architecture modulaire basÈe sur Domain-Driven Design
+- **üßÆ Calcul de Taxes Dynamique** : Expressions NCalc pour des r√®gles fiscales flexibles
+- **üìÖ Gestion des √âch√©ances** : Deadlines de d√©claration et de paiement avec p√©riodes de gr√¢ce
+- **‚öñÔ∏è Calcul des P√©nalit√©s** : P√©nalit√©s d'assiette et de recouvrement avec taux progressifs
+- **‚úÖ Validation Riche** : R√©sultats de validation structur√©s avec codes d'erreur
+- **üß© Extensible** : Architecture modulaire bas√©e sur Domain-Driven Design
 
-## ?? Structure du Projet
+## üß± Structure du Projet
 
 ```mermaid
 graph TB
@@ -46,9 +46,9 @@ graph TB
     Payments --> Penalties
 ```
 
-## ?? DÈmarrage Rapide
+## üöÄ D√©marrage Rapide
 
-### 1. DÈfinir un Type d'Actif
+### 1. D√©finir un Type d'Actif
 
 ```csharp
 using Core.Domain.Tax.Assets;
@@ -56,36 +56,36 @@ using Core.Domain.Tax.Calculation;
 using Core.Domain.Contracts;
 using Core.Domain.Enums;
 
-// CrÈer le type d'actif
+// Cr√©er le type d'actif
 var realEstate = AssetType.Create("Immobilier", "Biens immobiliers");
 
 // Ajouter les attributs attendus
 realEstate
     .AddExpectedAttribute(AttributeDefinition.Create(
-        "ValeurVenale", "Valeur VÈnale", AttributeDataType.Number, isRequired: true))
+        "ValeurVenale", "Valeur V√©nale", AttributeDataType.Number, isRequired: true))
     .AddExpectedAttribute(AttributeDefinition.Create(new EnumDefinition
     {
         Key = "TypePropriete",
-        Label = "Type de PropriÈtÈ",
+        Label = "Type de Propri√©t√©",
         Items = {
-            new EnumItem { Code = "PB", Label = "PropriÈtÈ B‚tie" },
-            new EnumItem { Code = "PNB", Label = "PropriÈtÈ Non B‚tie" }
+            new EnumItem { Code = "PB", Label = "Propri√©t√© B√¢tie" },
+            new EnumItem { Code = "PNB", Label = "Propri√©t√© Non B√¢tie" }
         }
     }));
 
-// Ajouter une rËgle fiscale
+// Ajouter une r√®gle fiscale
 realEstate.AddTaxRule(new TaxRule
 {
     Key = "TFB",
-    Label = "Taxe FonciËre B‚tie",
-    Expression = "[TypePropriete] == 'PropriÈtÈ B‚tie' ? [ValeurVenale] * 0.0075 : 0"
+    Label = "Taxe Fonci√®re B√¢tie",
+    Expression = "[TypePropriete] == 'Propri√©t√© B√¢tie' ? [ValeurVenale] * 0.0075 : 0"
 });
 ```
 
 ### 2. Calculer les Taxes
 
 ```csharp
-// CrÈer un actif imposable
+// Cr√©er un actif imposable
 var attributes = new Collection<ExtendedAttribute>
 {
     ExtendedAttribute.Create("ValeurVenale", "50000000", AttributeDataType.Number, true),
@@ -111,29 +111,29 @@ foreach (var line in result.Lines)
 }
 ```
 
-### 3. Configurer les Obligations avec PÈriodes de Gr‚ce
+### 3. Configurer les Obligations avec P√©riodes de Gr√¢ce
 
 ```csharp
 using Core.Domain.Tax.Obligations;
 using Core.Domain.Tax.Penalties;
 
 var schedule = TaxObligationSchedule.Create()
-    // …chÈance de dÈclaration avec 2 semaines de gr‚ce
+    // √âch√©ance de d√©claration avec 2 semaines de gr√¢ce
     .WithDeclarationDeadline(
         DeclarationDeadline.Create(
             "DECL_2025",
-            "DÈclaration 2025",
+            "D√©claration 2025",
             new DateTimeOffset(2025, 3, 31, 0, 0, 0, TimeSpan.Zero),
-            Duration.Weeks(2))  // PÈriode de gr‚ce flexible
+            Duration.Weeks(2))  // P√©riode de gr√¢ce flexible
         .WithPenalty(new PenaltyDefinition
         {
             Type = PenaltyType.Assiette,
             FixedAmount = 100_000m,
             AnnualRate = 0.10m,
-            Period = Duration.Months(1)  // PÈriodicitÈ mensuelle
+            Period = Duration.Months(1)  // P√©riodicit√© mensuelle
         }))
     
-    // …chÈance de paiement (50% du montant)
+    // √âch√©ance de paiement (50% du montant)
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_1",
@@ -149,7 +149,7 @@ var schedule = TaxObligationSchedule.Create()
             Period = Duration.Days(30)
         }))
     
-    // DeuxiËme ÈchÈance (50% restant)
+    // Deuxi√®me √©ch√©ance (50% restant)
     .AddPaymentDeadline(
         PaymentDeadline.Create(
             "PAY_2",
@@ -165,7 +165,7 @@ var schedule = TaxObligationSchedule.Create()
             Period = Duration.Days(30)
         }));
 
-// Valider et associer ‡ la rËgle
+// Valider et associer √† la r√®gle
 var validation = schedule.Validate();
 if (validation.IsValid)
 {
@@ -173,7 +173,7 @@ if (validation.IsValid)
 }
 ```
 
-### 4. Calculer les PÈnalitÈs
+### 4. Calculer les P√©nalit√©s
 
 ```csharp
 var calculator = new ObligationPenaltyCalculator(new PenaltyPolicy 
@@ -181,7 +181,7 @@ var calculator = new ObligationPenaltyCalculator(new PenaltyPolicy
     DaysInYear = 365 
 });
 
-// Paiements effectuÈs
+// Paiements effectu√©s
 var payments = new Dictionary<string, decimal>
 {
     { "PAY_1", 100_000m }  // Paiement partiel
@@ -193,12 +193,12 @@ var penalties = calculator.Calculate(
     asOf: new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero),
     payments);
 
-Console.WriteLine($"PÈnalitÈs de dÈclaration: {penalties.TotalDeclarationPenalty:N0}");
-Console.WriteLine($"PÈnalitÈs de paiement: {penalties.TotalPaymentPenalty:N0}");
-Console.WriteLine($"Total pÈnalitÈs: {penalties.TotalAmount:N0}");
+Console.WriteLine($"P√©nalit√©s de d√©claration: {penalties.TotalDeclarationPenalty:N0}");
+Console.WriteLine($"P√©nalit√©s de paiement: {penalties.TotalPaymentPenalty:N0}");
+Console.WriteLine($"Total p√©nalit√©s: {penalties.TotalAmount:N0}");
 ```
 
-## ?? Flux de Calcul
+## üîÑ Flux de Calcul
 
 ```mermaid
 flowchart LR
@@ -214,53 +214,56 @@ flowchart LR
     I --> H
 ```
 
-## ?? Documentation ComplËte
+## üìö Documentation Compl√®te
 
 Consultez la [Documentation du Domaine](docs/DOMAIN.md) pour :
-- Guide dÈtaillÈ de chaque module
+- Guide d√©taill√© de chaque module
 - Exemples complets avec cas d'usage
 - Diagrammes d'architecture Mermaid
 - [API Reference](docs/API.md)
 
-## ?? Tests
+Pour l‚Äôarchitecture API/Web et la vertical slice, voir le [Playbook d‚ÄôIng√©nierie](docs/ENGINEERING_PLAYBOOK.md).
+Pour la base de donn√©es et le sch√©ma initial, voir [docs/Database/README.md](docs/Database/README.md).
+
+## üß™ Tests
 
 ```bash
 cd TaxFlow
 dotnet test
 ```
 
-RÈsultat attendu : 45 tests passent avec succËs.
+R√©sultat attendu : 45 tests passent avec succ√®s.
 
-## ?? Concepts ClÈs
+## üß† Concepts Cl√©s
 
 | Concept | Description |
 |---------|-------------|
-| `AssetType` | Type d'actif avec attributs attendus et rËgles fiscales |
+| `AssetType` | Type d'actif avec attributs attendus et r√®gles fiscales |
 | `TaxableAsset` | Instance d'un actif avec valeurs d'attributs |
-| `TaxRule` | RËgle fiscale avec expression NCalc dynamique |
-| `TaxObligationSchedule` | Calendrier des obligations (dÈclaration/paiement) |
-| `Duration` | PÈriode flexible (jours, semaines, mois, annÈes) |
-| `PenaltyDefinition` | DÈfinition d'une pÈnalitÈ (taux, pÈriodicitÈ, plafond) |
+| `TaxRule` | R√®gle fiscale avec expression NCalc dynamique |
+| `TaxObligationSchedule` | Calendrier des obligations (d√©claration/paiement) |
+| `Duration` | P√©riode flexible (jours, semaines, mois, ann√©es) |
+| `PenaltyDefinition` | D√©finition d'une p√©nalit√© (taux, p√©riodicit√©, plafond) |
 
-## ??? PrÈrequis
+## üß∞ Pr√©requis
 
 - .NET 10.0 SDK
-- NCalc (pour l'Èvaluation des expressions)
+- NCalc (pour l'√©valuation des expressions)
 
-## ?? SÈcuritÈ
+## üîê S√©curit√©
 
-- Ne jamais Èvaluer des expressions NCalc provenant de sources non fiables
-- Valider les entrÈes utilisateur avant utilisation
-- Journaliser les erreurs d'Èvaluation
+- Ne jamais √©valuer des expressions NCalc provenant de sources non fiables
+- Valider les entr√©es utilisateur avant utilisation
+- Journaliser les erreurs d'√©valuation
 
-## ?? Contribution
+## ü§ù Contribution
 
 1. Fork le projet
-2. CrÈer une branche (`git checkout -b feature/AmazingFeature`)
+2. Cr√©er une branche (`git checkout -b feature/AmazingFeature`)
 3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
 4. Push (`git push origin feature/AmazingFeature`)
 5. Ouvrir une Pull Request
 
-## ?? Licence
+## üìÑ Licence
 
-DistribuÈ sous licence MIT. Voir `LICENSE` pour plus d'informations.
+Distribu√© sous licence MIT. Voir `LICENSE` pour plus d'informations.
