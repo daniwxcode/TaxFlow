@@ -30,3 +30,9 @@ Le mapping EF Core se trouve dans :
 
 - [TaxFlow.Infrastructure/Persistence/TaxFlowDbContext.cs](../../TaxFlow.Infrastructure/Persistence/TaxFlowDbContext.cs)
 - [TaxFlow.Infrastructure/Persistence/Configurations](../../TaxFlow.Infrastructure/Persistence/Configurations)
+
+## Orchestration locale (Aspire)
+
+Le projet AppHost lance PostgreSQL via image Docker :
+
+- [TaxFlow.AppHost/Program.cs](../../TaxFlow.AppHost/Program.cs)

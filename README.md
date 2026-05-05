@@ -224,6 +224,7 @@ Consultez la [Documentation du Domaine](docs/DOMAIN.md) pour :
 
 Pour l’architecture API/Web et la vertical slice, voir le [Playbook d’Ingénierie](docs/ENGINEERING_PLAYBOOK.md).
 Pour la base de données et le schéma initial, voir [docs/Database/README.md](docs/Database/README.md).
+Pour l’orchestration locale (Aspire + PostgreSQL), voir [TaxFlow.AppHost](TaxFlow.AppHost).
 
 ## 🧪 Tests
 

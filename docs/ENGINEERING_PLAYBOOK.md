@@ -98,6 +98,12 @@ Ce document définit les « skills » et pratiques indispensables pour livrer un
 - Performance validée (budget défini)
 - Revue sécurité
 
+## 9.1) Règle de commits (traçabilité)
+
+- **Commits petits et fréquents** (scope limité) pour faciliter le suivi et les revues.
+- **1 commit = 1 intention** (ex: “add migration”, “add endpoint AssetType”).
+- **Messages clairs** (type + action), éviter les commits “fourre‑tout”.
+
 ## 10) Plan d’implémentation recommandé
 
 1. **Créer le projet API** (si absent) et la structure `Features/`.
