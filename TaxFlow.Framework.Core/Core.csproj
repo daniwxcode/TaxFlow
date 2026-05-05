@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <!-- Generate XML documentation to ensure code is documented -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Suppress missing XML doc warnings in core domain models -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

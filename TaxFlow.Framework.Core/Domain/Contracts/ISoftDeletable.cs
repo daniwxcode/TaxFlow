@@ -30,8 +30,8 @@ public interface ISoftDeletable : IAuditable
     /// </summary>
     Guid? LastRecoveredBy { get; }
     /// <summary>
-    /// Marks the entity as deleted.
+    /// Marks the entity as recovered.
     /// </summary>
-    /// <param name="deletedBy">The identifier of the user performing the deletion.</param
+    /// <param name="recoveredBy">The identifier of the user performing the recovery.</param>
     void Recover(Guid recoveredBy);
 }

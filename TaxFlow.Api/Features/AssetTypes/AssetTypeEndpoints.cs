@@ -45,7 +45,7 @@ public static class AssetTypeEndpoints
                 .AsNoTracking()
                 .Include(a => a.ExpectedAttributes)
                     .ThenInclude(a => a.EnumDefinition)
-                        .ThenInclude(e => e.Items)
+                        .ThenInclude(e => e!.Items)
                 .Include(a => a.TaxRules)
                 .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
@@ -105,7 +105,7 @@ public static class AssetTypeEndpoints
                 .AsNoTracking()
                 .Include(a => a.ExpectedAttributes)
                     .ThenInclude(a => a.EnumDefinition)
-                        .ThenInclude(e => e.Items)
+                        .ThenInclude(e => e!.Items)
                 .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
             if (assetType is null)
@@ -124,7 +124,7 @@ public static class AssetTypeEndpoints
             var assetType = await db.AssetTypes
                 .Include(a => a.ExpectedAttributes)
                     .ThenInclude(a => a.EnumDefinition)
-                        .ThenInclude(e => e.Items)
+                        .ThenInclude(e => e!.Items)
                 .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
             if (assetType is null)
@@ -339,15 +339,15 @@ public static class AssetTypeEndpoints
                 .AsNoTracking()
                 .Include(a => a.TaxRules)
                     .ThenInclude(r => r.ObligationSchedule)
-                        .ThenInclude(s => s.DeclarationDeadlines)
+                        .ThenInclude(s => s!.DeclarationDeadlines)
                             .ThenInclude(d => d.LegalReferences)
                 .Include(a => a.TaxRules)
                     .ThenInclude(r => r.ObligationSchedule)
-                        .ThenInclude(s => s.PaymentDeadlines)
+                        .ThenInclude(s => s!.PaymentDeadlines)
                             .ThenInclude(p => p.LegalReferences)
                 .Include(a => a.TaxRules)
                     .ThenInclude(r => r.ObligationSchedule)
-                        .ThenInclude(s => s.LegalReferences)
+                        .ThenInclude(s => s!.LegalReferences)
                 .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
             if (assetType is null)

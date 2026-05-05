@@ -85,7 +85,7 @@ public class AttributeDefinition : AuditableEntity
     /// <param name="regexPattern">Optional regex pattern.</param>
     /// <returns>A configured <see cref="AttributeDefinition"/> instance.</returns>
     public static AttributeDefinition Create(string key, string label, AttributeDataType dataType, bool isRequired = false
-        , string regexPattern = null)
+        , string? regexPattern = null)
     {
         if (string.IsNullOrWhiteSpace(key))
             throw new ArgumentException(ExceptionMessages.AttributeKeyCannotBeEmpty.Format(), nameof(key));
